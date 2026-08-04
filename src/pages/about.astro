@@ -1,0 +1,308 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { whyLexCorp, process, stats } from '../data/services.js';
+import { COMPANY, CONTACT } from '../config/site.js';
+
+const mission = [
+  'Deliver reliable and secure technology solutions.',
+  'Build scalable software and cloud platforms.',
+  'Provide exceptional consulting and managed IT services.',
+];
+---
+
+<BaseLayout
+  title="About Us"
+  description="Lex Corp Pvt. Ltd. is a Nepal-based information technology company specializing in cloud computing, DevOps engineering, software development, AI, cybersecurity, and digital transformation."
+>
+  <section class="section a-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-b a-orb" data-parallax="0.15"></div>
+
+    <div class="container a-hero-in">
+      <span class="eyebrow">About Lex Corp</span>
+      <h1 class="a-title">A Nepal-based engineering company built around reliability.</h1>
+      <p class="lead">
+        {COMPANY.legalName} specializes in cloud computing, DevOps engineering,
+        software development, artificial intelligence, cybersecurity, and digital
+        transformation — delivered from Kathmandu to clients at home and abroad.
+      </p>
+    </div>
+  </section>
+
+  <section class="section a-vm-sec">
+    <div class="container">
+      <div class="a-vm">
+        <div class="reveal glass-card a-card">
+          <span class="icon-tile"><Icon name="globe" /></span>
+          <span class="eyebrow a-eb">Vision</span>
+          <p class="a-statement">
+            To become a leading technology company delivering innovative cloud, AI,
+            and digital infrastructure solutions.
+          </p>
+        </div>
+
+        <div class="reveal glass-card a-card">
+          <span class="icon-tile"><Icon name="route" /></span>
+          <span class="eyebrow a-eb">Mission</span>
+          <ul class="a-mission">
+            {mission.map((m) => (
+              <li>
+                <span class="tick"><Icon name="check" size={13} /></span>
+                {m}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section a-stats-sec">
+    <div class="container">
+      <div class="grid grid-4">
+        {stats.map((s) => (
+          <div class="reveal stat glass-card">
+            <span class="stat-value" data-counter={s.value} data-counter-suffix={s.suffix}>0{s.suffix}</span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section a-proc-sec">
+    <div class="scanline"></div>
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How we work</span>
+        <h2 class="h2">A blueprint before a single resource is provisioned.</h2>
+        <p class="lead">
+          The same four phases run on every engagement, whether it is a single
+          migration or a full platform rebuild.
+        </p>
+      </div>
+
+      <div class="a-proc">
+        {process.map((p) => (
+          <div class="reveal glass-card a-step">
+            <span class="a-step-num">{p.step}</span>
+            <h3 class="h3">{p.title}</h3>
+            <p>{p.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section a-why-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Why teams choose us</span>
+        <h2 class="h2">What sets the delivery apart.</h2>
+      </div>
+
+      <div class="a-why">
+        {whyLexCorp.map((w) => (
+          <div class="reveal glass-card a-w">
+            <span class="icon-tile"><Icon name={w.icon} /></span>
+            <h3 class="h3">{w.title}</h3>
+            <p>{w.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section a-cta-sec">
+    <div class="container">
+      <div class="cta-card reveal">
+        <div class="grid-bg"></div>
+        <div class="cta-in">
+          <span class="eyebrow">Work with us</span>
+          <h2 class="h2">Let&rsquo;s talk about your platform.</h2>
+          <p class="lead">
+            Reach out directly at <a class="a-link" href={CONTACT.emailHref}>{CONTACT.email}</a>,
+            or send the details through the contact form.
+          </p>
+          <div class="cta-actions">
+            <a href="/contact" class="btn btn-primary">
+              Contact Lex Corp
+              <span class="arrow"><Icon name="arrow" size={17} /></span>
+            </a>
+            <a href="/services" class="btn btn-ghost">See capabilities</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .a-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    padding-bottom: clamp(40px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  .a-orb { width: 520px; height: 520px; top: -220px; left: -160px; opacity: 0.28; }
+
+  /* Also a .container — narrowing its max-width would re-centre the block. */
+  .a-hero-in {
+    position: relative;
+    z-index: 1;
+  }
+
+  .a-hero-in > * {
+    max-width: 46rem;
+  }
+
+  .a-title {
+    margin-bottom: 20px;
+    font-size: clamp(2.1rem, 4.6vw, 3.3rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .a-vm-sec { padding-top: clamp(24px, 3vw, 40px); }
+
+  .a-vm {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .a-card { padding: clamp(26px, 3vw, 36px); }
+  .a-eb { margin: 18px 0 12px; }
+
+  .a-statement {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .a-mission {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 13px;
+  }
+
+  .a-mission li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    align-items: start;
+    gap: 12px;
+    font-size: 0.94rem;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    border-radius: 50%;
+    background: rgba(110, 231, 160, 0.12);
+    border: 1px solid rgba(110, 231, 160, 0.3);
+    color: var(--term-ok);
+  }
+
+  .a-stats-sec { padding-block: clamp(40px, 5vw, 64px); }
+  .stat { text-align: center; }
+
+  .a-proc-sec {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-elev);
+    border-block: 1px solid var(--border);
+  }
+
+  .a-proc {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .a-step-num {
+    display: block;
+    margin-bottom: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    color: var(--accent-blue);
+  }
+
+  .a-step h3 { margin-bottom: 8px; }
+
+  .a-step p,
+  .a-w p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .a-why {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .a-w h3 { margin: 16px 0 8px; }
+
+  .a-link {
+    color: var(--accent-blue);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .cta-card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background:
+      radial-gradient(ellipse 70% 90% at 12% 8%, rgba(255, 77, 109, 0.16), transparent 62%),
+      radial-gradient(ellipse 80% 90% at 88% 92%, rgba(108, 124, 255, 0.2), transparent 62%),
+      var(--bg-elev);
+    padding: clamp(36px, 5vw, 70px);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .cta-in {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin-inline: auto;
+  }
+
+  .cta-in .lead { margin-inline: auto; }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 13px;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 1000px) {
+    .a-proc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .a-why { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 720px) {
+    .a-vm,
+    .a-proc,
+    .a-why { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

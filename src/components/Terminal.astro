@@ -1,0 +1,226 @@
+---
+---
+
+<div class="term">
+  <div class="term-bar">
+    <span class="tl tl-r"></span>
+    <span class="tl tl-y"></span>
+    <span class="tl tl-g"></span>
+    <span class="term-title">ops@lexcorp — production</span>
+    <span class="term-badge">live</span>
+  </div>
+  <pre class="term-body"><code id="term-out" aria-hidden="true"></code></pre>
+  <p class="visually-hidden">
+    An illustrative terminal showing infrastructure automation commands such as
+    terraform apply, kubectl rollout status, and security scans completing successfully.
+  </p>
+</div>
+
+<style>
+  /* This component keeps a fixed dark palette in BOTH themes — a light
+     terminal would wash the output out and lose the "console" read. */
+  .term {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--term-border);
+    background: var(--term-bg);
+    box-shadow: var(--shadow-lift), 0 0 60px -30px rgba(108, 124, 255, 0.6);
+    overflow: hidden;
+    font-family: var(--font-mono);
+  }
+
+  .term::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--term-accent), transparent);
+    opacity: 0.7;
+  }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 16px;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+  }
+
+  .tl {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .tl-r { background: #ff5f57; }
+  .tl-y { background: #febc2e; }
+  .tl-g { background: #28c840; }
+
+  .term-title {
+    margin-left: 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: #7e88a8;
+  }
+
+  .term-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(110, 231, 160, 0.35);
+    background: rgba(110, 231, 160, 0.1);
+    color: var(--term-ok);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .term-body {
+    margin: 0;
+    padding: 18px 18px 24px;
+    min-height: 264px;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--term-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    tab-size: 2;
+  }
+
+  .term-body :global(.c) { color: var(--term-cmd); font-weight: 600; }
+  .term-body :global(.o) { color: var(--term-text); opacity: 0.78; }
+  .term-body :global(.g) { color: var(--term-ok); }
+  .term-body :global(.a) { color: var(--term-accent); }
+  .term-body :global(.cur) {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    vertical-align: text-bottom;
+    background: var(--term-ok);
+    animation: blink 1.05s steps(2, start) infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  @media (max-width: 640px) {
+    .term-body {
+      min-height: 200px;
+      font-size: 0.74rem;
+      padding: 14px 14px 18px;
+    }
+
+    .term-title { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .term-body :global(.cur) { animation: none; }
+  }
+</style>
+
+<script>
+  const out = document.getElementById('term-out');
+
+  const SCRIPT = [
+    { cmd: 'terraform apply -auto-approve', lines: [
+      ['o', 'Plan: 14 to add, 2 to change, 0 to destroy.'],
+      ['g', 'Apply complete! Resources: 14 added, 2 changed.'],
+    ]},
+    { cmd: 'kubectl rollout status deploy/api -n prod', lines: [
+      ['o', 'Waiting for rollout to finish: 2 of 3 updated...'],
+      ['g', 'deployment "api" successfully rolled out'],
+    ]},
+    { cmd: 'ansible-playbook harden-baseline.yml', lines: [
+      ['o', 'PLAY RECAP ***********************************'],
+      ['g', 'ok=24   changed=7   unreachable=0   failed=0'],
+    ]},
+    { cmd: 'trivy image registry.lexcorp/api:1.8.2', lines: [
+      ['o', 'Scanning 312 packages for known CVEs...'],
+      ['g', 'CRITICAL: 0   HIGH: 0   MEDIUM: 1'],
+    ]},
+    { cmd: 'aws cloudwatch describe-alarms --state OK', lines: [
+      ['a', 'latency_p99  84ms      availability  99.98%'],
+      ['g', 'All 19 alarms healthy.'],
+    ]},
+  ];
+
+  if (out) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+    const fullTranscript = () =>
+      SCRIPT.map(
+        (s) => `<span class="c">$ ${esc(s.cmd)}</span>\n` +
+          s.lines.map(([k, t]) => `<span class="${k}">  ${esc(t)}</span>`).join('\n')
+      ).join('\n\n');
+
+    // Always paint something first: a page opened in a background tab must never
+    // show an empty console. The animation replaces this once it starts.
+    out.innerHTML = fullTranscript();
+
+    if (!reduced) {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      let history = [];
+      let running = true;
+
+      // Only animate while the terminal is on screen and the tab is focused —
+      // no point burning cycles typing into a console nobody is looking at.
+      let onScreen = false;
+      const io = new IntersectionObserver((e) => { onScreen = e[0]?.isIntersecting ?? true; }, { threshold: 0.1 });
+      io.observe(out);
+
+      const canRun = () => onScreen && document.visibilityState === 'visible';
+
+      const paint = (typing = '') => {
+        out.innerHTML = history.join('\n') +
+          (typing ? `\n<span class="c">${esc(typing)}</span>` : '') +
+          '<span class="cur"></span>';
+      };
+
+      async function waitActive() {
+        // While paused, leave the full transcript on screen rather than a blank box.
+        if (!canRun() && history.length === 0) out.innerHTML = fullTranscript();
+        while (!canRun()) await sleep(300);
+      }
+
+      async function run() {
+        while (running) {
+          for (const step of SCRIPT) {
+            await waitActive();
+
+            let typed = '$ ';
+            for (const ch of step.cmd) {
+              typed += ch;
+              paint(typed);
+              await sleep(16 + Math.random() * 26);
+            }
+            history.push(`<span class="c">${esc(typed)}</span>`);
+            paint();
+            await sleep(300);
+
+            for (const [kind, text] of step.lines) {
+              history.push(`<span class="${kind}">  ${esc(text)}</span>`);
+              paint();
+              await sleep(240);
+            }
+
+            await sleep(760);
+            if (history.length > 12) history = history.slice(-12);
+          }
+          await sleep(900);
+          history = [];
+          paint();
+          await sleep(400);
+        }
+      }
+
+      run();
+    }
+  }
+</script>

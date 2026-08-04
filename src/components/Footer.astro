@@ -1,0 +1,220 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import logoWhite from '../assets/logo-white-horizontal.png';
+import logoBlack from '../assets/logo-black-horizontal.png';
+import { CONTACT, COMPANY } from '../config/site.js';
+
+const year = new Date().getFullYear();
+
+const columns = [
+  {
+    title: 'Company',
+    links: [
+      { href: '/', label: 'Home' },
+      { href: '/services', label: 'Services' },
+      { href: '/about', label: 'About' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
+  {
+    title: 'Capabilities',
+    links: [
+      { href: '/services#cloud-engineering', label: 'Cloud Engineering' },
+      { href: '/services#devops-engineering', label: 'DevOps Engineering' },
+      { href: '/services#artificial-intelligence', label: 'Artificial Intelligence' },
+      { href: '/services#cybersecurity', label: 'Cybersecurity' },
+    ],
+  },
+];
+---
+
+<footer class="ftr">
+  <div class="ftr-glow"></div>
+
+  <div class="container ftr-in">
+    <div class="ftr-brand">
+      <Image src={logoWhite} alt="Lex Corp" class="logo dark-only" widths={[220, 440]} sizes="220px" />
+      <Image src={logoBlack} alt="Lex Corp" class="logo light-only" widths={[220, 440]} sizes="220px" />
+      <p>
+        Nepal-based engineering partner for cloud architecture, DevOps automation,
+        applied AI, and cybersecurity — built for teams that need infrastructure
+        to hold up under real load.
+      </p>
+      <a class="ftr-social" href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
+        <Icon name="linkedin" size={18} />
+        <span>LinkedIn</span>
+      </a>
+    </div>
+
+    {columns.map((col) => (
+      <div class="ftr-col">
+        <h3 class="mono">{col.title}</h3>
+        <ul>
+          {col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+      </div>
+    ))}
+
+    <div class="ftr-col">
+      <h3 class="mono">Contact</h3>
+      <ul class="ftr-contact">
+        <li>
+          <Icon name="pin" size={16} />
+          <span>{CONTACT.location}</span>
+        </li>
+        <li>
+          <Icon name="phone" size={16} />
+          <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+        </li>
+        <li>
+          <Icon name="mail" size={16} />
+          <a href={CONTACT.emailHref}>{CONTACT.email}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container ftr-btm">
+    <p>&copy; {year} {COMPANY.legalName} All rights reserved.</p>
+    <p class="mono ftr-status"><span class="live"></span> All systems operational</p>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    position: relative;
+    padding-top: clamp(56px, 7vw, 92px);
+    border-top: 1px solid var(--border);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+
+  .ftr-glow {
+    position: absolute;
+    top: -160px;
+    left: 50%;
+    width: min(780px, 100%);
+    height: 320px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, var(--glow-a), transparent 68%);
+    filter: blur(70px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .ftr-in {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1.15fr;
+    gap: clamp(28px, 4vw, 54px);
+    padding-bottom: 52px;
+  }
+
+  .logo { height: 28px; width: auto; margin-bottom: 18px; }
+  .dark-only, .light-only { display: none; }
+  :root[data-theme='dark'] .dark-only { display: block; }
+  :root[data-theme='light'] .light-only { display: block; }
+
+  .ftr-brand p {
+    max-width: 40ch;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  .ftr-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.86rem;
+    color: var(--text-soft);
+    transition: border-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  }
+
+  .ftr-social:hover {
+    border-color: var(--accent-blue);
+    color: var(--text);
+    transform: translateY(-2px);
+  }
+
+  .ftr-col h3 {
+    margin-bottom: 18px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .ftr-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .ftr-col a {
+    font-size: 0.91rem;
+    color: var(--text-soft);
+    transition: color 0.25s var(--ease-out);
+  }
+
+  .ftr-col a:hover { color: var(--accent-blue); }
+
+  /* icon + text share a baseline-aligned grid so nothing sits crooked */
+  .ftr-contact li {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    align-items: start;
+    gap: 11px;
+    font-size: 0.91rem;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  .ftr-contact svg { margin-top: 2px; color: var(--accent-blue); }
+
+  .ftr-btm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  .ftr-btm p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .ftr-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.66rem !important;
+    letter-spacing: 0.14em;
+  }
+
+  .live {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--term-ok);
+    box-shadow: 0 0 10px 1px rgba(110, 231, 160, 0.8);
+  }
+
+  @media (max-width: 940px) {
+    .ftr-in { grid-template-columns: 1fr 1fr; }
+    .ftr-brand { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 560px) {
+    .ftr-in { grid-template-columns: 1fr; }
+    .ftr-btm { flex-direction: column-reverse; align-items: flex-start; }
+  }
+</style>

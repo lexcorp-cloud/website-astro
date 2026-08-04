@@ -1,0 +1,330 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { WEB3FORMS_ACCESS_KEY, CONTACT } from '../config/site.js';
+
+const rows = [
+  { icon: 'pin', label: 'Location', value: CONTACT.location, href: null, note: 'Serving clients locally and internationally' },
+  { icon: 'phone', label: 'Phone', value: CONTACT.phone, href: CONTACT.phoneHref, note: 'Sun–Fri, 9:00–18:00 NPT' },
+  { icon: 'mail', label: 'Email', value: CONTACT.email, href: CONTACT.emailHref, note: 'Replies within one business day' },
+  { icon: 'linkedin', label: 'LinkedIn', value: CONTACT.linkedinLabel, href: CONTACT.linkedin, note: 'Connect with our founder', external: true },
+];
+---
+
+<BaseLayout
+  title="Contact"
+  description="Talk to Lex Corp about cloud architecture, DevOps automation, applied AI, or cybersecurity. Based in Kathmandu, Nepal — working with clients worldwide."
+>
+  <section class="section c-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a c-orb-a" data-parallax="0.16"></div>
+    <div class="orb orb-b c-orb-b" data-parallax="-0.1"></div>
+
+    <div class="container c-in">
+      <!-- ---------- left: details ---------- -->
+      <div class="c-side">
+        <span class="pill">
+          <span class="dot"></span>
+          Accepting new engagements
+        </span>
+
+        <h1 class="c-title">Let&rsquo;s design your infrastructure.</h1>
+
+        <p class="lead">
+          Tell us the stack you run today and the outcome you need. You&rsquo;ll get a
+          direct assessment from an engineer &mdash; not a sales script.
+        </p>
+
+        <div class="c-rows">
+          {rows.map((r) => (
+            <div class="contact-row">
+              <span class="icon-tile"><Icon name={r.icon} size={20} /></span>
+
+              <div class="c-body">
+                <span class="c-label mono">{r.label}</span>
+                {r.href ? (
+                  <a
+                    class="c-value"
+                    href={r.href}
+                    target={r.external ? '_blank' : undefined}
+                    rel={r.external ? 'noopener noreferrer' : undefined}
+                  >
+                    {r.value}
+                  </a>
+                ) : (
+                  <span class="c-value">{r.value}</span>
+                )}
+                <span class="c-note">{r.note}</span>
+              </div>
+
+              {r.href && (
+                <span class="c-go" aria-hidden="true"><Icon name="arrow" size={16} /></span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- ---------- right: form ---------- -->
+      <div class="c-form-wrap glass-card">
+        <div class="c-form-head">
+          <h2 class="h3">Send a message</h2>
+          <p>All fields required. We never share your details.</p>
+        </div>
+
+        <form
+          id="contact-form"
+          action="https://api.web3forms.com/submit"
+          method="POST"
+          novalidate
+        >
+          <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+          <input type="hidden" name="subject" value="New enquiry from lexcorp.com.np" />
+          <input type="hidden" name="from_name" value="Lex Corp Website" />
+          <!-- honeypot: bots fill this, humans never see it -->
+          <input type="checkbox" name="botcheck" class="visually-hidden" tabindex="-1" autocomplete="off" />
+
+          <div class="field">
+            <input type="text" id="name" name="name" placeholder=" " required autocomplete="name" />
+            <label for="name">Your name</label>
+          </div>
+
+          <div class="field">
+            <input type="email" id="email" name="email" placeholder=" " required autocomplete="email" />
+            <label for="email">Work email</label>
+          </div>
+
+          <div class="field">
+            <input type="text" id="company" name="company" placeholder=" " autocomplete="organization" />
+            <label for="company">Company <span class="opt">(optional)</span></label>
+          </div>
+
+          <div class="field">
+            <textarea id="message" name="message" placeholder=" " required rows="5"></textarea>
+            <label for="message">What are you building?</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+            <span class="btn-label">Send message</span>
+            <span class="arrow"><Icon name="arrow" size={17} /></span>
+          </button>
+
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .c-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    overflow: hidden;
+  }
+
+  .c-orb-a { width: 540px; height: 540px; top: -220px; left: -180px; opacity: 0.3; }
+  .c-orb-b { width: 420px; height: 420px; bottom: -180px; right: -140px; opacity: 0.26; }
+
+  .c-in {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+    gap: clamp(34px, 5vw, 68px);
+    align-items: start;
+  }
+
+  .c-title {
+    margin: 22px 0 18px;
+    font-size: clamp(2.1rem, 4.4vw, 3.3rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- contact rows ----------
+     Fixed icon column + text column keeps every icon on the same axis and
+     the label/value/note stack vertically consistent at any width. */
+  .c-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 38px;
+  }
+
+  .contact-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+    transition: border-color 0.4s var(--ease-out), transform 0.4s var(--ease-out),
+      box-shadow 0.4s var(--ease-out);
+  }
+
+  .contact-row::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), var(--glow-a), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+    pointer-events: none;
+  }
+
+  .contact-row:hover {
+    border-color: var(--border-strong);
+    transform: translateX(3px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .contact-row:hover::after { opacity: 0.42; }
+  .contact-row > * { position: relative; z-index: 1; }
+
+  .c-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .c-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--text-muted);
+  }
+
+  .c-value {
+    font-size: 1.02rem;
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    overflow-wrap: anywhere;
+    transition: color 0.3s var(--ease-out);
+  }
+
+  a.c-value:hover { color: var(--accent-blue); }
+
+  .c-note {
+    margin-top: 3px;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  .c-go {
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: opacity 0.35s var(--ease-out), transform 0.35s var(--ease-out);
+  }
+
+  .contact-row:hover .c-go {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--accent-blue);
+  }
+
+  /* ---------- form ---------- */
+  .c-form-wrap { padding: clamp(24px, 3vw, 38px); }
+
+  .c-form-head { margin-bottom: 26px; }
+  .c-form-head h2 { margin-bottom: 6px; }
+
+  .c-form-head p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .opt {
+    color: var(--text-muted);
+    font-size: 0.85em;
+  }
+
+  #submit-btn { margin-top: 6px; }
+  #submit-btn[disabled] .arrow { display: none; }
+
+  @media (max-width: 940px) {
+    .c-in { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .contact-row {
+      grid-template-columns: 40px minmax(0, 1fr);
+      padding: 16px;
+      gap: 13px;
+    }
+
+    .contact-row .icon-tile { width: 40px; height: 40px; }
+    .c-go { display: none; }
+    .c-value { font-size: 0.95rem; }
+  }
+</style>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const statusEl = document.getElementById('form-status');
+  const btn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+
+  const setStatus = (state: string, html: string) => {
+    if (!statusEl) return;
+    if (state) statusEl.setAttribute('data-state', state);
+    else statusEl.removeAttribute('data-state');
+    statusEl.innerHTML = html;
+  };
+
+  const setLoading = (loading: boolean) => {
+    if (!btn) return;
+    btn.disabled = loading;
+    const label = btn.querySelector('.btn-label');
+    if (label) label.textContent = loading ? 'Sending' : 'Send message';
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    // Native validation first so browsers show their own field hints.
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      setStatus('error', 'Please complete the required fields.');
+      return;
+    }
+
+    setLoading(true);
+    setStatus('', '<span class="spinner"></span> Sending your message…');
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(form),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
+        setStatus(
+          'success',
+          '<svg class="check" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg> Thanks — your message is on its way. We\'ll reply within one business day.'
+        );
+        form.reset();
+      } else {
+        setStatus('error', `Something went wrong. Please email us directly at info@lexcorp.com.np`);
+      }
+    } catch (err) {
+      setStatus('error', 'Network error — please check your connection or email info@lexcorp.com.np');
+    } finally {
+      setLoading(false);
+    }
+  });
+</script>

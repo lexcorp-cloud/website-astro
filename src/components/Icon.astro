@@ -1,0 +1,49 @@
+---
+interface Props {
+  name: string;
+  size?: number;
+}
+
+const { name, size = 22 } = Astro.props;
+
+// Single source of truth for iconography — keeps stroke weight and the
+// 24x24 grid identical everywhere so nothing looks misaligned.
+const paths: Record<string, string> = {
+  cloud: '<path d="M17.5 19H7a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 9.5a4.5 4.5 0 0 1-.5 9.5Z"/>',
+  pipeline: '<circle cx="5" cy="7" r="2.2"/><circle cx="19" cy="7" r="2.2"/><circle cx="12" cy="17" r="2.2"/><path d="M7.2 7h9.6M5 9.2V12a2 2 0 0 0 2 2h2.8M19 9.2V12a2 2 0 0 1-2 2h-2.8"/>',
+  server: '<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/>',
+  code: '<path d="m8 6-5 6 5 6M16 6l5 6-5 6"/>',
+  ai: '<circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6" r="1.8"/><circle cx="5" cy="18" r="1.8"/><circle cx="19" cy="18" r="1.8"/><path d="m6.5 7.2 3.4 3.3M17.5 7.2l-3.4 3.3M6.5 16.8l3.4-3.3M17.5 16.8l-3.4-3.3"/>',
+  shield: '<path d="M12 3l7.5 3v5.5c0 4.4-3 8.2-7.5 9.5-4.5-1.3-7.5-5.1-7.5-9.5V6L12 3Z"/><path d="m9.2 12 2 2 3.6-3.8"/>',
+  transform: '<path d="M4 8h11.5a3.5 3.5 0 0 1 0 7H8"/><path d="m7 5-3 3 3 3M17 12l3 3-3 3"/>',
+  pulse: '<path d="M3 12h3.5l2-5 3 10 2.5-5H21"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16.5 5.4a3.2 3.2 0 0 1 0 5.2M18 20a5.5 5.5 0 0 0-2.3-4.5"/>',
+  scale: '<path d="M12 4v16M6 9l-3 6h6l-3-6ZM18 9l-3 6h6l-3-6ZM6 9h12"/>',
+  bolt: '<path d="M13.5 3 5 13.5h5L9.5 21 19 10h-5.5L13.5 3Z"/>',
+  route: '<circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M6 15.8V11a5 5 0 0 1 5-5h4.8"/>',
+  pin: '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+  phone: '<path d="M6.2 3.5h3l1.6 4-2 1.4a11 11 0 0 0 5.3 5.3l1.4-2 4 1.6v3a1.9 1.9 0 0 1-2.1 1.9A15.5 15.5 0 0 1 4.3 5.6 1.9 1.9 0 0 1 6.2 3.5Z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.8 7 7.3 5.5a1.5 1.5 0 0 0 1.8 0L20.2 7"/>',
+  linkedin: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 10.5V16M8 7.6v.01M12 16v-3.2a2 2 0 0 1 4 0V16"/>',
+  arrow: '<path d="M5 12h13M13 6.5 18.5 12 13 17.5"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.6 9.5h16.8M3.6 14.5h16.8"/><path d="M12 3.5c-2.4 2.4-2.4 14.6 0 17M12 3.5c2.4 2.4 2.4 14.6 0 17"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+};
+
+const body = paths[name] ?? paths.arrow;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+  set:html={body}
+/>

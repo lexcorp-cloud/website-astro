@@ -1,0 +1,650 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroScene from '../components/HeroScene.astro';
+import Terminal from '../components/Terminal.astro';
+import PipelineFlow from '../components/PipelineFlow.astro';
+import Icon from '../components/Icon.astro';
+import { services, technologies, whyLexCorp, process, stats } from '../data/services.js';
+
+const headline = ['We architect the', 'infrastructure behind', 'what you build.'];
+const marquee = [...technologies, ...technologies];
+---
+
+<BaseLayout
+  title="Lex Corp Pvt. Ltd."
+  description="Lex Corp is a Nepal-based engineering partner for cloud architecture, DevOps automation, applied AI, and cybersecurity — enterprise-grade infrastructure, delivered end to end."
+>
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="grid-bg"></div>
+    <HeroScene />
+    <div class="orb orb-a hero-orb-a" data-parallax="0.18"></div>
+    <div class="orb orb-b hero-orb-b" data-parallax="-0.12"></div>
+
+    <div class="container hero-in">
+      <div class="hero-copy">
+        <span class="pill" data-hero>
+          <span class="dot"></span>
+          Kathmandu, Nepal · Available worldwide
+        </span>
+
+        <h1 class="display hero-title">
+          {headline.map((line) => (
+            <span class="line"><span class="line-inner">{line}</span></span>
+          ))}
+        </h1>
+
+        <p class="lead" data-hero>
+          Cloud architecture, DevOps automation, applied AI, and cybersecurity —
+          designed as one system, from the server blueprint through to production
+          operations.
+        </p>
+
+        <div class="hero-cta" data-hero>
+          <a href="/contact" class="btn btn-primary">
+            Start a project
+            <span class="arrow"><Icon name="arrow" size={17} /></span>
+          </a>
+          <a href="/services" class="btn btn-ghost">Explore capabilities</a>
+        </div>
+
+        <ul class="hero-proof" data-hero>
+          <li><Icon name="check" size={15} /> Automation-first delivery</li>
+          <li><Icon name="check" size={15} /> Secure by design</li>
+          <li><Icon name="check" size={15} /> 24/7 managed support</li>
+        </ul>
+      </div>
+
+      <div class="hero-term" data-hero>
+        <Terminal />
+      </div>
+    </div>
+
+    <div class="scroll-cue" aria-hidden="true">
+      <span class="mono">Scroll</span>
+      <span class="cue-line"></span>
+    </div>
+  </section>
+
+  <!-- ================= TECH MARQUEE ================= -->
+  <section class="strip">
+    <div class="marquee">
+      <div class="marquee-track">
+        {marquee.map((t) => <span>{t}</span>)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATS ================= -->
+  <section class="section stats-sec">
+    <div class="container">
+      <div class="grid grid-4">
+        {stats.map((s) => (
+          <div class="reveal stat glass-card">
+            <span class="stat-value" data-counter={s.value} data-counter-suffix={s.suffix}>0{s.suffix}</span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CAPABILITIES ================= -->
+  <section class="section svc-sec">
+    <div class="grid-bg"></div>
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Capabilities</span>
+        <h2 class="h2">Eight domains, one accountable engineering partner.</h2>
+        <p class="lead">
+          Most teams stitch together separate vendors for cloud, pipelines, security,
+          and support. We design them together so they behave like one platform.
+        </p>
+      </div>
+
+      <div class="grid grid-4 svc-grid">
+        {services.map((s, i) => (
+          <a href={`/services#${s.slug}`} class="reveal glass-card svc" data-tilt>
+            <span class="svc-num mono">{String(i + 1).padStart(2, '0')}</span>
+            <span class="icon-tile"><Icon name={s.icon} /></span>
+            <h3 class="h3">{s.title}</h3>
+            <p>{s.blurb}</p>
+            <span class="svc-more">
+              Details <span class="arrow"><Icon name="arrow" size={15} /></span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTROL CENTER ================= -->
+  <section class="section ops-sec">
+    <div class="scanline"></div>
+    <div class="orb orb-a ops-orb" data-parallax="0.14"></div>
+
+    <div class="container ops-in">
+      <div class="ops-copy">
+        <span class="eyebrow">Delivery in motion</span>
+        <h2 class="h2">Every release runs the same hardened path.</h2>
+        <p class="lead">
+          Commits move through build, test, security scanning, and deployment with
+          policy checks at each gate. Nothing reaches production by hand — which is
+          why rollbacks are boring and audits are short.
+        </p>
+
+        <PipelineFlow />
+
+        <div class="ops-grid">
+          <div class="ops-item">
+            <span class="icon-tile"><Icon name="clock" /></span>
+            <div>
+              <h3 class="h3">Faster, calmer releases</h3>
+              <p>Repeatable pipelines replace release-night heroics.</p>
+            </div>
+          </div>
+          <div class="ops-item">
+            <span class="icon-tile"><Icon name="globe" /></span>
+            <div>
+              <h3 class="h3">Built to scale regionally</h3>
+              <p>Multi-cloud topologies with headroom and cost visibility.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ops-visual reveal">
+        <div class="ops-card glass-card">
+          <div class="ops-card-head">
+            <span class="mono">Cluster health</span>
+            <span class="chip">operational</span>
+          </div>
+          <ul class="metrics">
+            <li>
+              <span class="m-label">Availability</span>
+              <span class="m-bar"><i style="--w:99.9%"></i></span>
+              <span class="m-val">99.9%</span>
+            </li>
+            <li>
+              <span class="m-label">p99 latency</span>
+              <span class="m-bar"><i style="--w:22%"></i></span>
+              <span class="m-val">84ms</span>
+            </li>
+            <li>
+              <span class="m-label">Error rate</span>
+              <span class="m-bar"><i style="--w:4%"></i></span>
+              <span class="m-val">0.04%</span>
+            </li>
+            <li>
+              <span class="m-label">Automated coverage</span>
+              <span class="m-bar"><i style="--w:92%"></i></span>
+              <span class="m-val">92%</span>
+            </li>
+          </ul>
+          <p class="ops-note mono">Illustrative targets from managed engagements</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROCESS ================= -->
+  <section class="section proc-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How we work</span>
+        <h2 class="h2">Assess. Architect. Automate. Operate.</h2>
+        <p class="lead">
+          A sequence designed so you own a documented blueprint before a single
+          resource is provisioned.
+        </p>
+      </div>
+
+      <div class="proc-track">
+        {process.map((p) => (
+          <div class="reveal proc-step glass-card">
+            <span class="proc-num">{p.step}</span>
+            <h3 class="h3">{p.title}</h3>
+            <p>{p.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHY ================= -->
+  <section class="section why-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Why Lex Corp</span>
+        <h2 class="h2">Engineering discipline, not just deliverables.</h2>
+      </div>
+
+      <div class="why-grid">
+        {whyLexCorp.map((w) => (
+          <div class="reveal glass-card why">
+            <span class="icon-tile"><Icon name={w.icon} /></span>
+            <h3 class="h3">{w.title}</h3>
+            <p>{w.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="section cta-sec">
+    <div class="container">
+      <div class="cta-card reveal">
+        <div class="grid-bg"></div>
+        <div class="orb orb-b cta-orb"></div>
+        <div class="cta-in">
+          <span class="eyebrow">Next step</span>
+          <h2 class="h2">Tell us what you&rsquo;re building.</h2>
+          <p class="lead">
+            Share the current stack and the outcome you need. You&rsquo;ll get a
+            straight assessment and a recommended architecture — no obligation.
+          </p>
+          <div class="cta-actions">
+            <a href="/contact" class="btn btn-primary">
+              Book a consultation
+              <span class="arrow"><Icon name="arrow" size={17} /></span>
+            </a>
+            <a href="/services" class="btn btn-ghost">See all services</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------------- HERO ---------------- */
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: min(100svh, 940px);
+    padding: clamp(96px, 13vh, 150px) 0 clamp(72px, 10vh, 110px);
+    overflow: hidden;
+  }
+
+  .hero-orb-a { width: 620px; height: 620px; top: -220px; right: -140px; opacity: 0.38; }
+  .hero-orb-b { width: 460px; height: 460px; bottom: -200px; left: -160px; opacity: 0.3; }
+
+  .hero-in {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    align-items: center;
+    gap: clamp(34px, 5vw, 68px);
+  }
+
+  .hero-copy { max-width: 42rem; }
+
+  /* Sized to sit beside the terminal without crowding it. */
+  .hero-title {
+    margin: 22px 0 24px;
+    font-size: clamp(2.2rem, 4.1vw, 3.55rem);
+  }
+
+  /* each line is a mask; .line-inner slides up from inside it */
+  .line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+
+  .line-inner {
+    display: block;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 13px;
+    margin-top: 30px;
+  }
+
+  .hero-proof {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin: 30px 0 0;
+    padding: 0;
+  }
+
+  .hero-proof li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .hero-proof svg { color: var(--term-ok); }
+
+  .hero-term { position: relative; }
+
+  .scroll-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 0.6rem;
+  }
+
+  .cue-line {
+    width: 1px;
+    height: 44px;
+    background: linear-gradient(to bottom, var(--accent-blue), transparent);
+    animation: cue 2.4s var(--ease-in-out) infinite;
+    transform-origin: top;
+  }
+
+  @keyframes cue {
+    0%, 100% { transform: scaleY(0.35); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* ---------------- STRIP ---------------- */
+  .strip {
+    padding: 26px 0;
+    border-block: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  /* ---------------- STATS ---------------- */
+  .stats-sec { padding-block: clamp(48px, 6vw, 76px); }
+  .stat { text-align: center; }
+
+  /* ---------------- SERVICES ---------------- */
+  .svc-sec { overflow: hidden; }
+  .svc-sec .container { position: relative; z-index: 1; }
+
+  .svc {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .svc-num {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    opacity: 0.55;
+  }
+
+  .svc h3 { margin: 4px 0 0; }
+
+  .svc p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .svc-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: auto;
+    padding-top: 8px;
+    font-size: 0.82rem;
+    font-weight: 560;
+    color: var(--accent-blue);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+  }
+
+  .svc:hover .svc-more { opacity: 1; transform: translateY(0); }
+
+  @media (hover: none) {
+    .svc-more { opacity: 1; transform: none; }
+  }
+
+  /* ---------------- OPS / CONTROL CENTER ---------------- */
+  .ops-sec {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-elev);
+    border-block: 1px solid var(--border);
+  }
+
+  .ops-orb { width: 520px; height: 520px; top: -180px; left: -160px; opacity: 0.26; }
+
+  .ops-in {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 64px);
+  }
+
+  .ops-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 34px;
+  }
+
+  .ops-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .ops-item h3 { margin: 0 0 4px; font-size: 0.98rem; }
+
+  .ops-item p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .ops-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    color: var(--text-muted);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(110, 231, 160, 0.32);
+    background: rgba(110, 231, 160, 0.1);
+    color: var(--term-ok);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .metrics {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .metrics li {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .m-label {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .m-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-strong);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .m-bar i {
+    display: block;
+    height: 100%;
+    width: var(--w);
+    border-radius: 3px;
+    background: var(--gradient-brand);
+    box-shadow: 0 0 14px -2px var(--glow-a);
+  }
+
+  .m-val {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    min-width: 3.4rem;
+    text-align: right;
+  }
+
+  .ops-note {
+    margin: 22px 0 0;
+    font-size: 0.6rem !important;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------------- PROCESS ---------------- */
+  .proc-track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .proc-step { position: relative; }
+
+  .proc-num {
+    display: block;
+    margin-bottom: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    color: var(--accent-blue);
+  }
+
+  .proc-step h3 { margin-bottom: 8px; }
+
+  .proc-step p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* ---------------- WHY ---------------- */
+  .why-sec { background: var(--bg-elev); border-block: 1px solid var(--border); }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  /* first two cards take half-width rows on wide screens for rhythm */
+  .why-grid > :nth-child(1),
+  .why-grid > :nth-child(2) {
+    grid-column: span 3;
+  }
+
+  .why h3 { margin: 16px 0 8px; }
+
+  .why p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* ---------------- CTA ---------------- */
+  .cta-card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background:
+      radial-gradient(ellipse 70% 90% at 12% 8%, rgba(255, 77, 109, 0.16), transparent 62%),
+      radial-gradient(ellipse 80% 90% at 88% 92%, rgba(108, 124, 255, 0.2), transparent 62%),
+      var(--bg-elev);
+    padding: clamp(38px, 6vw, 78px);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .cta-orb { width: 420px; height: 420px; right: -140px; bottom: -180px; opacity: 0.32; }
+
+  .cta-in {
+    position: relative;
+    z-index: 1;
+    max-width: 620px;
+    margin-inline: auto;
+  }
+
+  .cta-in .lead { margin-inline: auto; }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 13px;
+    margin-top: 30px;
+  }
+
+  /* ---------------- RESPONSIVE ---------------- */
+  @media (max-width: 1080px) {
+    .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .proc-track { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .why-grid > :nth-child(1),
+    .why-grid > :nth-child(2) { grid-column: auto; }
+  }
+
+  @media (max-width: 960px) {
+    .hero {
+      min-height: 0;
+      padding-top: clamp(72px, 11vh, 110px);
+    }
+
+    .hero-in { grid-template-columns: minmax(0, 1fr); }
+    .hero-copy { max-width: none; }
+    .ops-in { grid-template-columns: minmax(0, 1fr); }
+    .scroll-cue { display: none; }
+  }
+
+  @media (max-width: 680px) {
+    .svc-grid,
+    .proc-track,
+    .why-grid { grid-template-columns: minmax(0, 1fr); }
+
+    .ops-grid { grid-template-columns: 1fr; gap: 18px; }
+    .hero-orb-a, .hero-orb-b { filter: blur(70px); }
+    .metrics li { grid-template-columns: 1fr auto; }
+    .m-bar { grid-column: 1 / -1; order: 3; }
+  }
+</style>

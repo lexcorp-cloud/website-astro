@@ -1,0 +1,116 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { CONTACT, COMPANY, ANALYTICS_ID } from '../config/site.js';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL('/og-image.png', Astro.site);
+const siteName = COMPANY.legalName;
+const fullTitle = title === siteName ? `${siteName} — Cloud, DevOps & AI Engineering` : `${title} | ${siteName}`;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: siteName,
+  alternateName: COMPANY.shortName,
+  url: Astro.site?.toString(),
+  logo: new URL('/favicon-512.png', Astro.site).toString(),
+  image: ogImageURL.toString(),
+  description:
+    'Nepal-based IT company specializing in Cloud Computing, DevOps Engineering, Software Development, Artificial Intelligence, Cybersecurity, and Digital Transformation.',
+  founder: { '@type': 'Person', name: COMPANY.founder },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Kathmandu',
+    addressCountry: 'NP',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'sales',
+    telephone: CONTACT.phone,
+    email: CONTACT.email,
+    areaServed: 'Worldwide',
+    availableLanguage: ['en', 'ne'],
+  },
+  sameAs: [CONTACT.linkedin],
+};
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#05060b" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+    <!-- Dark is the default; light is opt-in and remembered. Inline so there is no flash. -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('lexcorp-theme');
+          document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+
+    {ANALYTICS_ID && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_ID}`}></script>
+        <script define:vars={{ ANALYTICS_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', ANALYTICS_ID);
+        </script>
+      </>
+    )}
+  </head>
+
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <div class="noise" aria-hidden="true"></div>
+
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      import '../scripts/animations.js';
+    </script>
+  </body>
+</html>

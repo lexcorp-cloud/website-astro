@@ -1,0 +1,137 @@
+---
+const stages = [
+  { name: 'Commit', meta: 'git push' },
+  { name: 'Build', meta: 'docker' },
+  { name: 'Test', meta: 'ci suite' },
+  { name: 'Scan', meta: 'trivy' },
+  { name: 'Deploy', meta: 'k8s' },
+];
+---
+
+<div class="pipeline" role="img" aria-label="Continuous delivery pipeline: commit, build, test, scan, deploy — each stage passing.">
+  <div class="track">
+    {stages.map((stage, i) => (
+      <div class="stage" style={`--i:${i}`}>
+        <span class="node">
+          <span class="ping"></span>
+        </span>
+        <span class="name">{stage.name}</span>
+        <span class="meta">{stage.meta}</span>
+      </div>
+    ))}
+    <div class="wire"><span class="pulse"></span></div>
+  </div>
+</div>
+
+<style>
+  .pipeline {
+    padding: 26px 4px 6px;
+  }
+
+  .track {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .wire {
+    position: absolute;
+    top: 9px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--border-strong), var(--border-strong));
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .pulse {
+    position: absolute;
+    inset-block: 0;
+    width: 26%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-blue), transparent);
+    animation: travel 3.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes travel {
+    0% { transform: translateX(-100%); opacity: 0; }
+    12% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { transform: translateX(420%); opacity: 0; }
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .node {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-blue);
+    background: var(--bg);
+    display: grid;
+    place-items: center;
+  }
+
+  .node::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px 2px rgba(87, 226, 255, 0.7);
+  }
+
+  .ping {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid var(--accent-cyan);
+    opacity: 0;
+    animation: ping 3.4s var(--ease-out) infinite;
+    animation-delay: calc(var(--i) * 0.62s);
+  }
+
+  @keyframes ping {
+    0%, 100% { transform: scale(0.7); opacity: 0; }
+    18% { transform: scale(1); opacity: 0.9; }
+    46% { transform: scale(1.7); opacity: 0; }
+  }
+
+  .name {
+    margin-top: 8px;
+    font-size: 0.84rem;
+    font-weight: 560;
+    color: var(--text);
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 560px) {
+    .meta { display: none; }
+    .name { font-size: 0.74rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .ping { animation: none; }
+    .pulse { opacity: 0.8; transform: none; width: 100%; }
+  }
+</style>
