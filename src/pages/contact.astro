@@ -104,6 +104,13 @@ const rows = [
             <label for="message">What are you building?</label>
           </div>
 
+          <!-- Web3Forms renders hCaptcha into this div (zero-config: it injects
+               the sitekey, so none is hardcoded here). data-theme is set by the
+               script below to match the active site theme. -->
+          <div class="captcha">
+            <div class="h-captcha" data-captcha="true"></div>
+          </div>
+
           <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
             <span class="btn-label">Send message</span>
             <span class="arrow"><Icon name="arrow" size={17} /></span>
@@ -114,6 +121,10 @@ const rows = [
       </div>
     </div>
   </section>
+
+  <!-- Renders the hCaptcha widget into .h-captcha above. is:inline keeps the
+       async/defer attributes intact — Astro would otherwise bundle this. -->
+  <script is:inline async defer src="https://web3forms.com/client/script.js"></script>
 </BaseLayout>
 
 <style>
@@ -252,8 +263,27 @@ const rows = [
     font-size: 0.85em;
   }
 
+  /* hCaptcha renders a fixed-size iframe (~303x78). Give it breathing room and
+     let it shrink on narrow screens rather than overflowing the card. */
+  .captcha {
+    margin: 4px 0 20px;
+    min-height: 78px;
+  }
+
+  .captcha :global(iframe) {
+    max-width: 100%;
+  }
+
   #submit-btn { margin-top: 6px; }
   #submit-btn[disabled] .arrow { display: none; }
+
+  @media (max-width: 400px) {
+    /* scale the widget down slightly so it never causes horizontal scroll */
+    .captcha :global(.h-captcha) {
+      transform: scale(0.92);
+      transform-origin: left top;
+    }
+  }
 
   @media (max-width: 940px) {
     .c-in { grid-template-columns: minmax(0, 1fr); }
@@ -291,6 +321,18 @@ const rows = [
     if (label) label.textContent = loading ? 'Sending' : 'Send message';
   };
 
+  // Render hCaptcha in whatever theme the site is currently using. Web3Forms'
+  // script reads this attribute when it renders, so it has to be set before
+  // that runs — hence an inline script rather than a bundled module.
+  const captchaEl = document.querySelector('.h-captcha');
+  if (captchaEl) {
+    const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    captchaEl.setAttribute('data-theme', theme);
+  }
+
+  const captchaToken = () =>
+    (form?.querySelector('textarea[name=h-captcha-response]') as HTMLTextAreaElement | null)?.value || '';
+
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -298,6 +340,14 @@ const rows = [
     if (!form.checkValidity()) {
       form.reportValidity();
       setStatus('error', 'Please complete the required fields.');
+      return;
+    }
+
+    // Web3Forms rejects the submission server-side without a captcha token;
+    // catching it here gives a useful message instead of a generic failure.
+    if (captchaEl && !captchaToken()) {
+      setStatus('error', 'Please complete the captcha to verify you are human.');
+      captchaEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -325,6 +375,9 @@ const rows = [
       setStatus('error', 'Network error — please check your connection or email info@lexcorp.com.np');
     } finally {
       setLoading(false);
+      // hCaptcha tokens are single-use and form.reset() does not clear the
+      // widget, so without this a second send would reuse a spent token.
+      (window as any).hcaptcha?.reset();
     }
   });
 </script>

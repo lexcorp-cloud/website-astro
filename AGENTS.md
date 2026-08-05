@@ -80,7 +80,7 @@ src/
 │   ├── index.astro          # Hero, stats, capabilities, ops/control-centre, process, why, CTA.
 │   ├── services.astro       # 8 service cards with #slug anchors.
 │   ├── about.astro          # Vision, mission, stats, process, why.
-│   └── contact.astro        # Contact rows + Web3Forms form.
+│   └── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
 ├── scripts/
 │   ├── animations.js        # GSAP orchestration for every page. Loaded by BaseLayout.
 │   └── hero-scene.js        # Three.js scene. Lazily imported by HeroScene.astro only.
@@ -163,6 +163,33 @@ Performance rules already in place — keep them:
 
 ---
 
+## 6a. Contact form & spam protection (`src/pages/contact.astro`)
+
+Submits to Web3Forms. Two layers of spam protection:
+
+1. **Honeypot** — a `visually-hidden` `botcheck` checkbox. Bots tick it, humans
+   never see it.
+2. **hCaptcha** — `<div class="h-captcha" data-captcha="true">`, rendered by
+   `https://web3forms.com/client/script.js` (loaded `is:inline async defer` so
+   Astro doesn't bundle it and strip the attributes).
+
+Implementation notes:
+- **No sitekey is hardcoded.** Web3Forms is zero-config: its client script injects
+  the shared sitekey at render time. Don't add `data-sitekey`.
+- `data-theme` on the captcha div is set from the site's current theme before the
+  widget renders. Known limitation: toggling the theme afterwards does not
+  re-render the widget, so it keeps the theme it was created with until reload.
+- The form posts via `fetch()`, and `new FormData(form)` picks up the
+  `h-captcha-response` textarea automatically — no manual token handling needed.
+- Submit is gated on that token. The docs suggest `alert()`; we surface a styled
+  message in the existing `aria-live` status region instead.
+- `hcaptcha.reset()` runs in the `finally` block. Tokens are single-use and
+  `form.reset()` does not clear the widget, so without it a second send would
+  reuse a spent token.
+- Requires the dashboard toggle — see §9.4.
+
+---
+
 ## 7. Content & contact data
 
 Edit `src/config/site.js` and `src/data/services.js` — **never hardcode contact
@@ -217,15 +244,18 @@ export does not exist there and will fail the build.
 
 ## 9. Outstanding work
 
-1. **Nothing is committed yet.** The working tree is entirely untracked against
-   the `lexcorp-cloud/website` remote. First commit + push still needed.
-2. **Vercel not connected.** Once pushed: import the repo, Astro is auto-detected,
-   then set the three `PUBLIC_*` vars in Project Settings → Environment Variables
-   (Vercel builds from its own env, not the local `.env`).
-3. **Analytics id is set locally but not in Vercel** — add `PUBLIC_ANALYTICS_ID`
+1. **Vercel not connected.** Import the repo (Astro is auto-detected), then set
+   the three `PUBLIC_*` vars in Project Settings → Environment Variables — Vercel
+   builds from its own env, not the local `.env`.
+2. **Analytics id is set locally but not in Vercel** — add `PUBLIC_ANALYTICS_ID`
    there too, then use Google's "Test installation" against the live URL.
-4. **The contact form has never been submitted end-to-end** — send one real test
+3. **The contact form has never been submitted end-to-end** — send one real test
    and confirm it lands in the Web3Forms inbox.
+4. **hCaptcha must be enabled in the Web3Forms dashboard** (Settings → Spam
+   Protection → enable hCaptcha). The markup is already in place, but until that
+   toggle is on, Web3Forms will not verify the token server-side. Note the widget
+   shows a "localhost detected" warning locally — that is expected with the shared
+   test sitekey and disappears on the real domain.
 5. Not yet run: Lighthouse audit, cross-browser check (Safari/Firefox), real-device
    mobile pass.
 6. `README.md` is still partly Astro starter boilerplate.
