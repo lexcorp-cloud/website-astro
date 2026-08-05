@@ -88,13 +88,16 @@ const schema = {
 
     {ANALYTICS_ID && (
       <>
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_ID}`}></script>
-        <script define:vars={{ ANALYTICS_ID }}>
+        <script async is:inline src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_ID}`}></script>
+        {/* Emitted verbatim via is:inline + set:html. Do NOT use define:vars here:
+            it wraps the body in an IIFE, which traps `gtag` in a closure and breaks
+            any later gtag('event', ...) call from outside this script. */}
+        <script is:inline set:html={`
           window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
+          function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', ANALYTICS_ID);
-        </script>
+          gtag('config', '${ANALYTICS_ID}');
+        `} />
       </>
     )}
   </head>

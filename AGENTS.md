@@ -198,7 +198,14 @@ them present.
 | --- | --- |
 | `PUBLIC_WEB3FORMS_ACCESS_KEY` | Contact form. Already set locally. Publishable by design — it ships in the page source, so it can be recovered from `dist/contact/index.html` if `.env` is lost. |
 | `PUBLIC_SITE_URL` | Canonical/OG/sitemap origin. |
-| `PUBLIC_ANALYTICS_ID` | GA4 id (e.g. `G-XXXXXXXXXX`). **Currently empty → analytics is off.** `BaseLayout.astro` only injects gtag when set. |
+| `PUBLIC_ANALYTICS_ID` | GA4 measurement id. Set locally to `G-QK4R30ST26`. `BaseLayout.astro` injects the standard gtag.js snippet only when this is non-empty, on every page. |
+
+**Analytics setup used the "Install manually" method in Google's wizard, but the
+snippet is never pasted by hand** — `BaseLayout.astro` emits it from this variable.
+Supplying the id is the whole install. Because `.env` is gitignored and these vars
+are inlined at build time, **`PUBLIC_ANALYTICS_ID` must also be set in the Vercel
+dashboard**, or production builds will ship with analytics silently disabled.
+Google's "Test installation" button only works against the deployed URL.
 
 `astro.config.mjs` resolves the site URL as:
 `PUBLIC_SITE_URL` → `https://$VERCEL_URL` (auto on preview deploys) →
@@ -215,7 +222,8 @@ export does not exist there and will fail the build.
 2. **Vercel not connected.** Once pushed: import the repo, Astro is auto-detected,
    then set the three `PUBLIC_*` vars in Project Settings → Environment Variables
    (Vercel builds from its own env, not the local `.env`).
-3. **Analytics id** not supplied yet.
+3. **Analytics id is set locally but not in Vercel** — add `PUBLIC_ANALYTICS_ID`
+   there too, then use Google's "Test installation" against the live URL.
 4. **The contact form has never been submitted end-to-end** — send one real test
    and confirm it lands in the Web3Forms inbox.
 5. Not yet run: Lighthouse audit, cross-browser check (Safari/Firefox), real-device
@@ -242,6 +250,10 @@ export does not exist there and will fail the build.
   visibility, or first-time visitors arriving in a background tab see blanks.
 - Astro `<style>` blocks are scoped; use `:global()` for anything targeting markup
   rendered by a child component.
+- **`define:vars` on a `<script>` wraps the body in an IIFE.** That broke the GA4
+  snippet: `function gtag(){}` became closure-scoped, so pageviews worked but any
+  later `gtag('event', …)` threw `gtag is not defined`. Third-party snippets that
+  must expose globals need `is:inline` + `set:html` so they're emitted verbatim.
 
 ---
 
