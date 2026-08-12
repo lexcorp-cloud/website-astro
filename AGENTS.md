@@ -80,7 +80,9 @@ src/
 │   ├── index.astro          # Hero, stats, capabilities, ops/control-centre, process, why, CTA.
 │   ├── services.astro       # 8 service cards with #slug anchors.
 │   ├── about.astro          # Vision, mission, stats, process, why.
-│   └── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
+│   ├── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
+│   └── tools/
+│       └── email-security.astro  # SPF/DKIM/DMARC scanner (see §6b).
 ├── scripts/
 │   ├── animations.js        # GSAP orchestration for every page. Loaded by BaseLayout.
 │   └── hero-scene.js        # Three.js scene. Lazily imported by HeroScene.astro only.
@@ -187,6 +189,47 @@ Implementation notes:
   `form.reset()` does not clear the widget, so without it a second send would
   reuse a spent token.
 - Requires the dashboard toggle — see §9.4.
+
+---
+
+## 6b. Free tools (`src/pages/tools/`)
+
+Lead-generation tools, not a utility directory. The bar for adding one: **does it
+attract someone who might buy infrastructure work?** A tool that surfaces a
+problem Lex Corp fixes (a missing DMARC record) is worth far more than one with
+higher traffic and no commercial intent. Consumer utilities — Nepali date or
+Unicode converters — were considered and deliberately rejected on that basis;
+they would pull volume but dilute an enterprise consultancy's positioning.
+
+**Tool pages must live on the main domain** (`/tools/…`), never a subdomain.
+Subdomains split ranking authority, which defeats the point. Each tool ends with
+a contextual CTA converting findings into a conversation.
+
+### `email-security.astro` + `scripts/email-scan.js`
+Checks SPF, DKIM, DMARC and MX for any domain. **No backend** — Cloudflare's
+DNS-over-HTTPS resolver is CORS-open, so it all runs in the visitor's browser.
+No API key, no server cost, nothing to rate-limit.
+
+Design rules that matter more than the score:
+- **DKIM reports "inconclusive", never "fail", when no key is found.** Selectors
+  are chosen freely by whoever configured mail and cannot be enumerated from DNS.
+  We probe 18 common provider selectors; a miss proves nothing. Google itself
+  returns inconclusive because it uses rotating date-based selectors — reporting
+  that as a failure would make the whole tool untrustworthy.
+- Multiple SPF records are scored as a **fail**, not a warning: RFC 7208 makes
+  that a permerror, so it is actively worse than a soft misconfiguration.
+- `+all` is penalised more heavily than a missing SPF record, because it
+  explicitly authorises the whole internet.
+- SPF's 10-DNS-lookup limit is counted; exceeding it silently breaks evaluation.
+
+Accepts `?domain=example.com` for deep links and shareable results.
+
+**Feasibility notes for future tools** (verified from a browser, not assumed):
+DNS-over-HTTPS ✅ CORS-open · RDAP `rdap.org` ✅ CORS-open · fetching arbitrary
+site HTML ❌ CORS-blocked, needs a proxy · `.np` WHOIS ❌ **does not exist** —
+IANA's record for `.np` has an empty `refer:` field, so no port-43 server is
+published even from a VPS. A `.np` checker can only infer registration from
+`NXDOMAIN` vs `NOERROR`.
 
 ---
 

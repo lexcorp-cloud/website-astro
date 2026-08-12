@@ -1,0 +1,477 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const checks = [
+  { icon: 'shield', name: 'SPF', desc: 'Which servers may send as your domain' },
+  { icon: 'code', name: 'DKIM', desc: 'Cryptographic signing of outgoing mail' },
+  { icon: 'mail', name: 'DMARC', desc: 'What receivers do when checks fail' },
+  { icon: 'server', name: 'MX', desc: 'Where your inbound mail is handled' },
+];
+---
+
+<BaseLayout
+  title="Email Security Scanner — SPF, DKIM & DMARC"
+  description="Free SPF, DKIM and DMARC checker. See whether your domain can be spoofed, and get plain-English fixes. Runs entirely in your browser — no signup, nothing stored."
+>
+  <section class="section t-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a t-orb" data-parallax="0.14"></div>
+
+    <div class="container t-in">
+      <span class="eyebrow">Free tool</span>
+      <h1 class="t-title">Can someone send email pretending to be you?</h1>
+      <p class="lead">
+        Check any domain&rsquo;s SPF, DKIM and DMARC configuration. Most domains
+        are missing at least one &mdash; which is how phishing and invoice fraud
+        get through.
+      </p>
+
+      <form id="scan-form" class="scan" novalidate>
+        <div class="scan-field">
+          <label for="domain" class="visually-hidden">Domain to check</label>
+          <span class="scan-icon"><Icon name="globe" size={19} /></span>
+          <input
+            type="text"
+            id="domain"
+            name="domain"
+            placeholder="yourcompany.com.np"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary" id="scan-btn">
+          <span class="btn-label">Scan domain</span>
+          <span class="arrow"><Icon name="arrow" size={17} /></span>
+        </button>
+      </form>
+
+      <p class="scan-note mono">
+        Runs in your browser over DNS-over-HTTPS · nothing is sent to us or stored
+      </p>
+
+      <p class="scan-error" id="scan-error" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- ---------------- results ---------------- -->
+  <section class="section results-sec" id="results" hidden aria-live="polite">
+    <div class="container">
+      <div class="score-card glass-card">
+        <div class="score-ring" id="score-ring">
+          <span class="score-letter" id="score-letter">–</span>
+          <span class="score-num"><span id="score-num">0</span><i>/100</i></span>
+        </div>
+        <div class="score-copy">
+          <span class="eyebrow" id="score-label">Result</span>
+          <h2 class="h2" id="score-domain">—</h2>
+          <p id="score-summary">—</p>
+        </div>
+      </div>
+
+      <div class="findings" id="findings"></div>
+
+      <div class="tool-cta glass-card">
+        <div>
+          <h3 class="h3">Want these fixed properly?</h3>
+          <p>
+            We configure SPF, DKIM and DMARC as part of our cybersecurity and
+            managed services work &mdash; including moving you safely to
+            <code>p=reject</code> without breaking legitimate mail.
+          </p>
+        </div>
+        <a href="/contact" class="btn btn-primary">
+          Talk to an engineer
+          <span class="arrow"><Icon name="arrow" size={17} /></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- explainer ---------------- -->
+  <section class="section explain-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">What gets checked</span>
+        <h2 class="h2">Four records decide whether your domain can be spoofed.</h2>
+      </div>
+
+      <div class="grid grid-4">
+        {checks.map((c) => (
+          <div class="reveal glass-card ex">
+            <span class="icon-tile"><Icon name={c.icon} /></span>
+            <h3 class="h3">{c.name}</h3>
+            <p>{c.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .t-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    padding-bottom: clamp(40px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  .t-orb { width: 540px; height: 540px; top: -230px; right: -170px; opacity: 0.28; }
+
+  .t-in { position: relative; z-index: 1; }
+  .t-in > * { max-width: 46rem; }
+
+  .t-title {
+    margin-bottom: 18px;
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- search ---------- */
+  .scan {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    max-width: 42rem;
+  }
+
+  .scan-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .scan-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .scan-field input {
+    width: 100%;
+    padding: 16px 18px 16px 48px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+
+  .scan-field input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(108, 124, 255, 0.14);
+  }
+
+  .scan-note {
+    margin-top: 14px;
+    font-size: 0.64rem !important;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .scan-error {
+    margin-top: 10px;
+    min-height: 20px;
+    font-size: 0.88rem;
+    color: var(--accent-red);
+  }
+
+  /* ---------- score ---------- */
+  .results-sec { padding-top: clamp(24px, 3vw, 40px); }
+
+  .score-card {
+    display: flex;
+    align-items: center;
+    gap: clamp(22px, 4vw, 46px);
+    margin-bottom: 20px;
+  }
+
+  .score-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 132px;
+    height: 132px;
+    flex: none;
+    border-radius: 50%;
+    background: conic-gradient(var(--ring-color, var(--accent-blue)) var(--ring, 0turn), var(--surface-strong) 0);
+    transition: background 0.8s var(--ease-out);
+  }
+
+  .score-ring::after {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+  }
+
+  .score-letter {
+    position: relative;
+    z-index: 1;
+    font-size: 2.5rem;
+    font-weight: 680;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ring-color, var(--accent-blue));
+  }
+
+  .score-num {
+    position: relative;
+    z-index: 1;
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .score-num i { font-style: normal; opacity: 0.6; }
+
+  .score-copy h2 { margin: 6px 0 10px; word-break: break-word; }
+  .score-copy p { margin: 0; }
+
+  /* ---------- findings ---------- */
+  .findings {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .finding {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
+    padding: 22px 24px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .f-badge {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .f-pass { background: rgba(110, 231, 160, 0.12); border: 1px solid rgba(110, 231, 160, 0.35); color: var(--term-ok); }
+  .f-warn { background: rgba(254, 188, 46, 0.12); border: 1px solid rgba(254, 188, 46, 0.35); color: #febc2e; }
+  .f-fail { background: rgba(255, 77, 109, 0.12); border: 1px solid rgba(255, 77, 109, 0.35); color: var(--accent-red); }
+  .f-unknown { background: var(--surface-strong); border: 1px solid var(--border-strong); color: var(--text-muted); }
+
+  .f-kind {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .f-title {
+    margin: 4px 0 8px;
+    font-size: 1.02rem;
+    font-weight: 580;
+    letter-spacing: -0.015em;
+  }
+
+  .f-detail {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    line-height: 1.65;
+  }
+
+  .f-record {
+    display: block;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-xs);
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .f-fix {
+    display: flex;
+    gap: 9px;
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .f-fix b {
+    color: var(--accent-blue);
+    font-weight: 600;
+    flex: none;
+  }
+
+  /* ---------- CTA ---------- */
+  .tool-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+    background: radial-gradient(ellipse 80% 120% at 10% 0%, rgba(108, 124, 255, 0.16), transparent 60%), var(--surface);
+  }
+
+  .tool-cta h3 { margin-bottom: 6px; }
+  .tool-cta p { margin: 0; font-size: 0.9rem; max-width: 52ch; }
+
+  .tool-cta code {
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .tool-cta .btn { flex: none; }
+
+  .explain-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .ex h3 { margin: 14px 0 6px; }
+  .ex p { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+
+  @media (max-width: 720px) {
+    .scan { flex-direction: column; }
+    .scan .btn { width: 100%; }
+    .score-card { flex-direction: column; text-align: center; }
+    .tool-cta { flex-direction: column; align-items: flex-start; }
+    .tool-cta .btn { width: 100%; }
+  }
+
+  @media (max-width: 520px) {
+    .finding { grid-template-columns: minmax(0, 1fr); }
+    .f-badge { width: 40px; height: 40px; }
+  }
+</style>
+
+<script>
+  import { scanDomain } from '../../scripts/email-scan.js';
+
+  const form = document.getElementById('scan-form') as HTMLFormElement | null;
+  const input = document.getElementById('domain') as HTMLInputElement | null;
+  const btn = document.getElementById('scan-btn') as HTMLButtonElement | null;
+  const errorEl = document.getElementById('scan-error');
+  const results = document.getElementById('results');
+  const findings = document.getElementById('findings');
+
+  const esc = (s: string) =>
+    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const BADGE = { pass: 'PASS', warn: 'WARN', fail: 'FAIL', unknown: '?' };
+
+  function card(kind: string, r: any) {
+    const status = r.status || 'unknown';
+    return `
+      <article class="finding">
+        <span class="f-badge f-${status}">${BADGE[status] || '?'}</span>
+        <div>
+          <span class="f-kind">${esc(kind)}</span>
+          <h3 class="f-title">${esc(r.title)}</h3>
+          <p class="f-detail">${esc(r.detail)}</p>
+          ${r.record ? `<code class="f-record">${esc(r.record)}</code>` : ''}
+          ${r.hosts && r.hosts.length ? `<code class="f-record">${r.hosts.map(esc).join('\n')}</code>` : ''}
+          ${r.selectors && r.selectors.length
+            ? `<code class="f-record">${r.selectors.map((s: any) => esc(`${s.selector}._domainkey → ${s.record.slice(0, 90)}${s.record.length > 90 ? '…' : ''}`)).join('\n')}</code>`
+            : ''}
+          ${r.fix ? `<p class="f-fix"><b>Fix</b> ${esc(r.fix)}</p>` : ''}
+        </div>
+      </article>`;
+  }
+
+  function setLoading(loading: boolean) {
+    if (!btn) return;
+    btn.disabled = loading;
+    const label = btn.querySelector('.btn-label');
+    if (label) label.textContent = loading ? 'Scanning…' : 'Scan domain';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!errorEl || !results || !findings || !input) return;
+
+    errorEl.textContent = '';
+    setLoading(true);
+
+    try {
+      const r = await scanDomain(input.value);
+
+      // score ring + colour
+      const ring = document.getElementById('score-ring') as HTMLElement | null;
+      const colour =
+        r.score >= 75 ? 'var(--term-ok)' : r.score >= 50 ? '#febc2e' : 'var(--accent-red)';
+      if (ring) {
+        ring.style.setProperty('--ring', `${(r.score / 100).toFixed(3)}turn`);
+        ring.style.setProperty('--ring-color', colour);
+      }
+
+      const set = (id: string, text: string) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+      set('score-letter', r.grade.letter);
+      set('score-num', String(r.score));
+      set('score-label', r.grade.label);
+      set('score-domain', r.domain);
+      set(
+        'score-summary',
+        r.score >= 90
+          ? 'This domain is well protected against spoofing.'
+          : r.score >= 60
+            ? 'Partially protected — the gaps below still leave room for spoofing.'
+            : 'This domain can likely be spoofed today. The failures below are worth fixing first.'
+      );
+
+      findings.innerHTML =
+        card('SPF — authorised senders', r.spf) +
+        card('DKIM — message signing', r.dkim) +
+        card('DMARC — enforcement policy', r.dmarc) +
+        card('MX — inbound mail', r.mx);
+
+      results.hidden = false;
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err: any) {
+      errorEl.textContent = err?.message || 'Something went wrong running that scan.';
+      results.hidden = true;
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // Allow deep links like /tools/email-security?domain=example.com
+  const preset = new URLSearchParams(location.search).get('domain');
+  if (preset && input) {
+    input.value = preset;
+    form?.requestSubmit();
+  }
+</script>
