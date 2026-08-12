@@ -330,6 +330,30 @@ export does not exist there and will fail the build.
 
 ---
 
+## 10a. Git identity (Vercel will refuse to build without this)
+
+Vercel matches the **commit author email against a verified email on the GitHub
+account**. It rejected a deployment outright with "the commit author email is not
+a valid email address" because commits were authored as `info@lexcorp.com.np`,
+which is not registered on the account.
+
+This repo is therefore configured **locally** to use the GitHub noreply address:
+
+```bash
+git config user.email "17145173+laxman-chaudhary@users.noreply.github.com"
+```
+
+Noreply is deliberate over the personal address: the repo is **public**, and
+commit emails in public history get scraped for spam. If you would rather commits
+carry `info@lexcorp.com.np`, add and verify it under GitHub → Settings → Emails
+first, then change this config — Vercel will accept it once it is verified.
+
+Note this is a **repo-local** setting; the global config still points elsewhere,
+so a fresh clone on another machine will hit the same Vercel error until this is
+set again there.
+
+---
+
 ## 11. Conventions
 
 - Comment only to explain a constraint the code can't express (why the terminal has
