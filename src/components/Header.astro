@@ -8,12 +8,18 @@ import logoBlack from '../assets/logo-black-horizontal.png';
 const links = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/tools', label: 'Tools' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const isCurrent = (href: string) => (href === '/' ? path === '/' : path === href.replace(/\/+$/, ''));
+// Section links stay highlighted on their child pages (e.g. /tools/email-security).
+const isCurrent = (href: string) => {
+  if (href === '/') return path === '/';
+  const base = href.replace(/\/+$/, '');
+  return path === base || path.startsWith(`${base}/`);
+};
 ---
 
 <header class="hdr" id="site-header">

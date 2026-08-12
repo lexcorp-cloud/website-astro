@@ -231,6 +231,39 @@ const marquee = [...technologies, ...technologies];
     </div>
   </section>
 
+  <!-- ================= FREE TOOL ================= -->
+  <section class="section tool-sec">
+    <div class="container">
+      <div class="tool-band reveal">
+        <div class="tool-band-copy">
+          <span class="eyebrow">Free tool &mdash; no signup</span>
+          <h2 class="h2">Can someone send email pretending to be you?</h2>
+          <p class="lead">
+            Most domains are missing at least one of SPF, DKIM or DMARC &mdash;
+            which is how phishing and invoice fraud get through. Check yours in
+            about five seconds.
+          </p>
+          <div class="tool-band-actions">
+            <a href="/tools/email-security" class="btn btn-primary">
+              Scan my domain
+              <span class="arrow"><Icon name="arrow" size={17} /></span>
+            </a>
+            <a href="/tools" class="btn btn-ghost">All free tools</a>
+          </div>
+        </div>
+
+        <div class="tool-band-visual" aria-hidden="true">
+          <div class="mini-report">
+            <span class="mini-row"><i class="ok"></i> SPF &nbsp;<b>configured</b></span>
+            <span class="mini-row"><i class="ok"></i> DKIM &nbsp;<b>active</b></span>
+            <span class="mini-row"><i class="bad"></i> DMARC &nbsp;<b>missing</b></span>
+            <span class="mini-row"><i class="ok"></i> MX &nbsp;<b>healthy</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= CTA ================= -->
   <section class="section cta-sec">
     <div class="container">
@@ -581,6 +614,67 @@ const marquee = [...technologies, ...technologies];
     font-size: 0.9rem;
     color: var(--text-muted);
     line-height: 1.65;
+  }
+
+  /* ---------------- FREE TOOL BAND ---------------- */
+  .tool-sec { padding-block: clamp(20px, 3vw, 40px); }
+
+  .tool-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    align-items: center;
+    gap: clamp(26px, 4vw, 56px);
+    padding: clamp(30px, 4vw, 52px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background:
+      radial-gradient(ellipse 70% 100% at 8% 0%, rgba(108, 124, 255, 0.16), transparent 62%),
+      var(--bg-elev);
+  }
+
+  .tool-band .lead { margin-bottom: 0; }
+
+  .tool-band-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .mini-report {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--term-border);
+    background: var(--term-bg);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--term-text);
+  }
+
+  .mini-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mini-row b { color: #fff; font-weight: 600; }
+
+  .mini-row i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .mini-row .ok { background: var(--term-ok); box-shadow: 0 0 10px 1px rgba(110, 231, 160, 0.7); }
+  .mini-row .bad { background: var(--accent-red); box-shadow: 0 0 10px 1px rgba(255, 77, 109, 0.7); }
+
+  @media (max-width: 860px) {
+    .tool-band { grid-template-columns: minmax(0, 1fr); }
+    .tool-band-visual { order: -1; }
   }
 
   /* ---------------- CTA ---------------- */

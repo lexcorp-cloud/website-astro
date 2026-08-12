@@ -1,0 +1,199 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+// Single source for the tools listing — the homepage teaser reads from here too,
+// so a new tool only needs adding in one place.
+export const tools = [
+  {
+    href: '/tools/email-security',
+    icon: 'mail',
+    name: 'Email Security Scanner',
+    tagline: 'SPF · DKIM · DMARC',
+    description:
+      'Check whether someone can send email pretending to be your domain. Returns a graded report with the exact records found and plain-English fixes.',
+    status: 'live',
+  },
+];
+
+const principles = [
+  { icon: 'bolt', title: 'No signup', text: 'No account, no email wall, no credit card.' },
+  { icon: 'shield', title: 'Nothing stored', text: 'Checks run in your browser. We never see the domains you look up.' },
+  { icon: 'check', title: 'Actually actionable', text: 'Every finding explains the risk and the fix, not just a pass or fail.' },
+];
+---
+
+<BaseLayout
+  title="Free Infrastructure Tools"
+  description="Free tools from Lex Corp for checking your infrastructure — email authentication (SPF, DKIM, DMARC) and more. No signup, nothing stored, runs entirely in your browser."
+>
+  <section class="section t-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a t-orb" data-parallax="0.14"></div>
+
+    <div class="container t-in">
+      <span class="eyebrow">Free tools</span>
+      <h1 class="t-title">Check your infrastructure in seconds.</h1>
+      <p class="lead">
+        The same diagnostics we run at the start of an engagement, made free and
+        public. No signup, no data stored &mdash; everything runs in your browser.
+      </p>
+    </div>
+  </section>
+
+  <section class="section list-sec">
+    <div class="container">
+      <div class="tool-grid">
+        {tools.map((t) => (
+          <a href={t.href} class="reveal glass-card tool" data-tilt>
+            <div class="tool-top">
+              <span class="icon-tile"><Icon name={t.icon} /></span>
+              <span class="tool-status">{t.status === 'live' ? 'Live' : 'Soon'}</span>
+            </div>
+            <span class="tool-tagline mono">{t.tagline}</span>
+            <h2 class="h3">{t.name}</h2>
+            <p>{t.description}</p>
+            <span class="tool-go">
+              Open tool <span class="arrow"><Icon name="arrow" size={15} /></span>
+            </span>
+          </a>
+        ))}
+
+        <div class="reveal glass-card tool tool-next">
+          <div class="tool-top">
+            <span class="icon-tile"><Icon name="pipeline" /></span>
+          </div>
+          <span class="tool-tagline mono">In progress</span>
+          <h2 class="h3">More on the way</h2>
+          <p>
+            DNS record inspection and a <code>.np</code> domain availability check
+            are next. Tell us which would help you most.
+          </p>
+          <a href="/contact" class="tool-go">
+            Suggest a tool <span class="arrow"><Icon name="arrow" size={15} /></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section why-sec">
+    <div class="container">
+      <div class="grid grid-3">
+        {principles.map((p) => (
+          <div class="reveal glass-card pr">
+            <span class="icon-tile"><Icon name={p.icon} /></span>
+            <h3 class="h3">{p.title}</h3>
+            <p>{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .t-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    padding-bottom: clamp(32px, 4vw, 52px);
+    overflow: hidden;
+  }
+
+  .t-orb { width: 520px; height: 520px; top: -220px; right: -160px; opacity: 0.28; }
+  .t-in { position: relative; z-index: 1; }
+  .t-in > * { max-width: 46rem; }
+
+  .t-title {
+    margin-bottom: 18px;
+    font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .list-sec { padding-top: clamp(20px, 3vw, 36px); }
+
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .tool {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tool-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .tool-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(110, 231, 160, 0.32);
+    background: rgba(110, 231, 160, 0.1);
+    color: var(--term-ok);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .tool-tagline {
+    font-size: 0.64rem !important;
+    color: var(--accent-blue);
+    letter-spacing: 0.16em;
+  }
+
+  .tool h2 { margin: 2px 0 0; }
+
+  .tool p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .tool code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .tool-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: auto;
+    padding-top: 14px;
+    font-size: 0.85rem;
+    font-weight: 560;
+    color: var(--accent-blue);
+  }
+
+  .tool:hover .arrow { transform: translateX(4px); }
+  .arrow { transition: transform 0.35s var(--ease-out); }
+
+  .tool-next { border-style: dashed; }
+  .tool-next .icon-tile { opacity: 0.6; }
+
+  .why-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .pr h3 { margin: 14px 0 6px; }
+  .pr p { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+
+  @media (max-width: 760px) {
+    .tool-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

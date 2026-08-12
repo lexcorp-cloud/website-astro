@@ -82,6 +82,7 @@ src/
 │   ├── about.astro          # Vision, mission, stats, process, why.
 │   ├── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
 │   └── tools/
+│       ├── index.astro           # Tools hub. Exports `tools[]` — add new tools here.
 │       └── email-security.astro  # SPF/DKIM/DMARC scanner (see §6b).
 ├── scripts/
 │   ├── animations.js        # GSAP orchestration for every page. Loaded by BaseLayout.
@@ -204,6 +205,16 @@ they would pull volume but dilute an enterprise consultancy's positioning.
 **Tool pages must live on the main domain** (`/tools/…`), never a subdomain.
 Subdomains split ranking authority, which defeats the point. Each tool ends with
 a contextual CTA converting findings into a conversation.
+
+**Discoverability is part of shipping a tool.** A tool linked only from the
+footer is effectively invisible — that mistake was made once already. Every new
+tool needs all four:
+1. an entry in the `tools[]` array in `src/pages/tools/index.astro` (the hub),
+2. the header nav already covers it via the `/tools` section link, which stays
+   highlighted on child pages,
+3. a footer link, and
+4. consideration for a homepage band if it is a strong enough hook — the
+   homepage is where most visitors land.
 
 ### `email-security.astro` + `scripts/email-scan.js`
 Checks SPF, DKIM, DMARC and MX for any domain. **No backend** — Cloudflare's
