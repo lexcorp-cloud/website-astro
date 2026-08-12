@@ -21,7 +21,7 @@ Vercel, Linear, Cloudflare, NVIDIA, Awwwards winners).
 are the product here. Performance work is welcome; visual downgrades are not.
 
 - **Owner / founder:** Laxman Chaudhary
-- **Repo:** `github.com/lexcorp-cloud/website` (remote already configured)
+- **Repo:** `github.com/lexcorp-cloud/website-astro` (remote already configured)
 - **Local path:** `/Users/alex/github/lexcorp-cloud/website`
 - **Production domain (intended):** `https://www.lexcorp.com.np`
 - **Deploy target:** Vercel free tier (not yet connected — see §9)
