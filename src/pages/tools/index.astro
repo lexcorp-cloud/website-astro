@@ -2,19 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 
-// Single source for the tools listing — the homepage teaser reads from here too,
-// so a new tool only needs adding in one place.
-export const tools = [
-  {
-    href: '/tools/email-security',
-    icon: 'mail',
-    name: 'Email Security Scanner',
-    tagline: 'SPF · DKIM · DMARC',
-    description:
-      'Check whether someone can send email pretending to be your domain. Returns a graded report with the exact records found and plain-English fixes.',
-    status: 'live',
-  },
-];
+import { tools } from '../../data/tools.js';
 
 const principles = [
   { icon: 'bolt', title: 'No signup', text: 'No account, no email wall, no credit card.' },
@@ -59,20 +47,6 @@ const principles = [
           </a>
         ))}
 
-        <div class="reveal glass-card tool tool-next">
-          <div class="tool-top">
-            <span class="icon-tile"><Icon name="pipeline" /></span>
-          </div>
-          <span class="tool-tagline mono">In progress</span>
-          <h2 class="h3">More on the way</h2>
-          <p>
-            DNS record inspection and a <code>.np</code> domain availability check
-            are next. Tell us which would help you most.
-          </p>
-          <a href="/contact" class="tool-go">
-            Suggest a tool <span class="arrow"><Icon name="arrow" size={15} /></span>
-          </a>
-        </div>
       </div>
     </div>
   </section>
@@ -185,9 +159,6 @@ const principles = [
 
   .tool:hover .arrow { transform: translateX(4px); }
   .arrow { transition: transform 0.35s var(--ease-out); }
-
-  .tool-next { border-style: dashed; }
-  .tool-next .icon-tile { opacity: 0.6; }
 
   .why-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
   .pr h3 { margin: 14px 0 6px; }

@@ -67,7 +67,9 @@ broken when nothing is actually wrong. Use `npm run preview`.
 src/
 ├── config/site.js           # Contact details, LinkedIn, env-backed keys. SINGLE SOURCE OF TRUTH.
 ├── data/services.js         # Services (8), technologies, why-us, process, stats.
+├── data/tools.js            # TOOL REGISTRY — drives hub, switcher rail and footer.
 ├── layouts/BaseLayout.astro # <head>, SEO/OG/JSON-LD, theme bootstrap, header/footer, animation entry.
+├── layouts/ToolLayout.astro # Shared tool frame: breadcrumbs, switcher rail, CTA.
 ├── components/
 │   ├── Header.astro         # Sticky glass nav, frosts on scroll, mobile drawer.
 │   ├── Footer.astro         # 4-col footer + contact rows + status line.
@@ -75,18 +77,27 @@ src/
 │   ├── HeroScene.astro      # <canvas> + lazy loader for the 3D scene.
 │   ├── Terminal.astro       # Animated DevOps console. Fixed dark palette in BOTH themes.
 │   ├── PipelineFlow.astro   # CSS-only CI/CD pipeline with travelling pulse.
+│   ├── ScanForm.astro       # Shared domain input used by every scanner tool.
+│   ├── ScanResults.astro    # Shared score ring + findings shell.
 │   └── Icon.astro           # ALL icons. One 24×24 grid, stroke 1.6. Add new icons here.
 ├── pages/
 │   ├── index.astro          # Hero, stats, capabilities, ops/control-centre, process, why, CTA.
 │   ├── services.astro       # 8 service cards with #slug anchors.
 │   ├── about.astro          # Vision, mission, stats, process, why.
 │   ├── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
-│   └── tools/
-│       ├── index.astro           # Tools hub. Exports `tools[]` — add new tools here.
-│       └── email-security.astro  # SPF/DKIM/DMARC scanner (see §6b).
+│   └── tools/                   # One page per tool — see §6b for why not tabs.
+│       ├── index.astro           # Hub, driven by src/data/tools.js
+│       ├── email-security.astro  # SPF/DKIM/DMARC scanner
+│       ├── dns-health.astro      # NS/DNSSEC/CAA/IPv6/TTL audit
+│       ├── ssl-checker.astro     # Certificate expiry via CT logs
+│       └── downtime-cost.astro   # Cost calculator (no network)
 ├── scripts/
 │   ├── animations.js        # GSAP orchestration for every page. Loaded by BaseLayout.
-│   └── hero-scene.js        # Three.js scene. Lazily imported by HeroScene.astro only.
+│   ├── hero-scene.js        # Three.js scene. Lazily imported by HeroScene.astro only.
+│   ├── tool-ui.js           # wireScanner() + findingCard() shared by all scanners.
+│   ├── email-scan.js        # SPF/DKIM/DMARC logic (also exports the DoH helper).
+│   ├── dns-health.js        # DNS resilience checks.
+│   └── ssl-check.js         # Certificate Transparency lookup.
 ├── styles/global.css        # Design tokens + all shared component classes.
 └── assets/                  # Logos (processed by astro:assets → webp).
 
@@ -216,6 +227,24 @@ tool needs all four:
 4. consideration for a homepage band if it is a strong enough hook — the
    homepage is where most visitors land.
 
+### Structure — separate URLs, one experience
+Each tool is its **own page**, deliberately. Merging them into a tabbed
+single page would look tidier but collapse four sets of ranking keywords into
+one URL, discarding the main reason to build tools at all. Cohesion comes from
+`layouts/ToolLayout.astro` instead, which gives every tool the same frame:
+breadcrumbs (visual + JSON-LD), hero, a switcher rail linking the other tools,
+and a shared CTA.
+
+Adding a tool = one entry in `src/data/tools.js` + one page file. The registry
+drives the hub, the switcher, and the footer automatically. Shared pieces:
+`components/ScanForm.astro`, `components/ScanResults.astro`, and
+`scripts/tool-ui.js` (`wireScanner` handles loading, errors, the `?domain=`
+deep link; `findingCard` renders a result). Result CSS lives in `global.css`
+under "Scanner tool results".
+
+Findings share one shape: `{ status: pass|warn|fail|unknown, title, detail,
+record?, fix? }`.
+
 ### `email-security.astro` + `scripts/email-scan.js`
 Checks SPF, DKIM, DMARC and MX for any domain. **No backend** — Cloudflare's
 DNS-over-HTTPS resolver is CORS-open, so it all runs in the visitor's browser.
@@ -234,6 +263,22 @@ Design rules that matter more than the score:
 - SPF's 10-DNS-lookup limit is counted; exceeding it silently breaks evaluation.
 
 Accepts `?domain=example.com` for deep links and shareable results.
+
+### `dns-health.astro` + `scripts/dns-health.js`
+Nameserver redundancy (flags all-NS-at-one-provider, the most common real
+resilience gap), DNSSEC via DS record, CAA, A/AAAA, and TTL sanity. DoH only.
+
+### `ssl-checker.astro` + `scripts/ssl-check.js`
+Certificate expiry, issuer and history from Certificate Transparency (crt.sh,
+CORS-open). **States its own limit in the UI**: CT logs show certificates that
+were *issued*, not the one a server currently presents, and a browser cannot
+open a raw TLS socket — so cipher suites and chain validation are out of reach
+without a backend. Do not let this drift into implying a full handshake audit.
+
+### `downtime-cost.astro`
+Pure arithmetic, no network. Revenue ÷ 2,080 trading hours + (staff × salary) ÷
+2,080 work hours. Also prices each SLA tier in the visitor's own numbers, which
+is what makes "99.9%" land. Currency via `Intl.NumberFormat`.
 
 **Feasibility notes for future tools** (verified from a browser, not assumed):
 DNS-over-HTTPS ✅ CORS-open · RDAP `rdap.org` ✅ CORS-open · fetching arbitrary

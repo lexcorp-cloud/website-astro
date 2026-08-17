@@ -1,0 +1,241 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { tools, getTool } from '../data/tools.js';
+
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  heading: string;
+  intro: string;
+}
+
+const { slug, title, description, heading, intro } = Astro.props;
+const current = getTool(slug);
+
+// Breadcrumbs are rendered visually and as JSON-LD — Google shows the trail in
+// results, which reads better than a bare URL for a deep tool page.
+const crumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: 'Tools', item: new URL('/tools', Astro.site).toString() },
+    { '@type': 'ListItem', position: 3, name: current?.name ?? heading },
+  ],
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(crumbSchema)} />
+
+  <section class="section tl-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a tl-orb" data-parallax="0.14"></div>
+
+    <div class="container tl-in">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/tools">Tools</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{current?.short ?? heading}</span>
+      </nav>
+
+      <h1 class="tl-title">{heading}</h1>
+      <p class="lead">{intro}</p>
+
+      <slot name="input" />
+    </div>
+  </section>
+
+  <!-- Results and any tool-specific sections -->
+  <slot />
+
+  <!-- ---------- switcher: separate URLs, one continuous experience ---------- -->
+  <section class="section switch-sec">
+    <div class="container">
+      <div class="switch-head">
+        <span class="eyebrow">More free tools</span>
+        <h2 class="h3">Check something else</h2>
+      </div>
+
+      <div class="switch-rail">
+        {tools.map((t) => (
+          <a
+            href={t.href}
+            class:list={['switch-pill', t.slug === slug && 'is-current']}
+            aria-current={t.slug === slug ? 'page' : undefined}
+          >
+            <span class="switch-icon"><Icon name={t.icon} size={17} /></span>
+            <span class="switch-text">
+              <b>{t.short}</b>
+              <i>{t.tagline}</i>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- shared conversion block ---------- -->
+  <section class="section tl-cta-sec">
+    <div class="container">
+      <div class="tl-cta glass-card">
+        <div>
+          <h2 class="h3">Found something you&rsquo;d rather not fix yourself?</h2>
+          <p>
+            Configuring DNS, TLS and email authentication properly &mdash; without
+            breaking live traffic &mdash; is part of our cybersecurity and managed
+            services work.
+          </p>
+        </div>
+        <a href="/contact" class="btn btn-primary">
+          Talk to an engineer
+          <span class="arrow"><Icon name="arrow" size={17} /></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tl-hero {
+    position: relative;
+    padding-top: clamp(48px, 7vw, 84px);
+    padding-bottom: clamp(32px, 4vw, 52px);
+    overflow: hidden;
+  }
+
+  .tl-orb { width: 520px; height: 520px; top: -230px; right: -170px; opacity: 0.26; }
+  .tl-in { position: relative; z-index: 1; }
+  .tl-in > * { max-width: 46rem; }
+
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .crumbs a { transition: color 0.25s var(--ease-out); }
+  .crumbs a:hover { color: var(--accent-blue); }
+  .crumbs [aria-current] { color: var(--text); }
+
+  .tl-title {
+    margin-bottom: 16px;
+    font-size: clamp(2rem, 4.2vw, 3rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- switcher ---------- */
+  .switch-sec {
+    padding-block: clamp(36px, 5vw, 64px);
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+  }
+
+  .switch-head { margin-bottom: 22px; }
+  .switch-head h2 { margin: 0; }
+
+  .switch-rail {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .switch-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out),
+      background-color 0.3s var(--ease-out);
+  }
+
+  .switch-pill:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+  }
+
+  .switch-pill.is-current {
+    border-color: var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 12%, transparent);
+  }
+
+  .switch-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: linear-gradient(150deg, rgba(108, 124, 255, 0.22), rgba(255, 77, 109, 0.12));
+    color: var(--text);
+  }
+
+  .switch-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .switch-text b {
+    font-size: 0.88rem;
+    font-weight: 570;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .switch-text i {
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ---------- shared CTA ---------- */
+  .tl-cta-sec { padding-block: clamp(40px, 5vw, 72px); }
+
+  .tl-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+    background: radial-gradient(ellipse 80% 120% at 10% 0%, rgba(108, 124, 255, 0.16), transparent 60%), var(--surface);
+  }
+
+  .tl-cta h2 { margin-bottom: 6px; }
+  .tl-cta p { margin: 0; font-size: 0.9rem; max-width: 56ch; }
+  .tl-cta .btn { flex: none; }
+
+  @media (max-width: 900px) {
+    .switch-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 720px) {
+    .tl-cta { flex-direction: column; align-items: flex-start; }
+    .tl-cta .btn { width: 100%; }
+  }
+
+  @media (max-width: 460px) {
+    .switch-rail { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

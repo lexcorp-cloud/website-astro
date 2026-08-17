@@ -1,0 +1,39 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  placeholder?: string;
+  cta?: string;
+  note?: string;
+}
+
+const {
+  placeholder = 'yourcompany.com.np',
+  cta = 'Run check',
+  note = 'Runs in your browser over DNS-over-HTTPS · nothing is sent to us or stored',
+} = Astro.props;
+---
+
+<form id="scan-form" class="scan-form" novalidate>
+  <div class="scan-field">
+    <label for="domain" class="visually-hidden">Domain to check</label>
+    <span class="scan-icon"><Icon name="globe" size={19} /></span>
+    <input
+      type="text"
+      id="domain"
+      name="domain"
+      placeholder={placeholder}
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      required
+    />
+  </div>
+  <button type="submit" class="btn btn-primary" id="scan-btn">
+    <span class="btn-label">{cta}</span>
+    <span class="arrow"><Icon name="arrow" size={17} /></span>
+  </button>
+</form>
+
+<p class="scan-note mono">{note}</p>
+<p class="scan-error" id="scan-error" role="alert"></p>

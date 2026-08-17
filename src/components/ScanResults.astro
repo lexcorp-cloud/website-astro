@@ -1,0 +1,25 @@
+---
+// Empty shell the shared renderer fills in. Hidden until a scan completes.
+---
+
+<section class="section results-sec" id="results" hidden aria-live="polite">
+  <div class="container">
+    <div class="score-card glass-card">
+      <div class="score-ring" id="score-ring">
+        <span class="score-letter" id="score-letter">–</span>
+        <span class="score-num"><span id="score-num">0</span><i>/100</i></span>
+      </div>
+      <div class="score-copy">
+        <span class="eyebrow" id="score-label">Result</span>
+        <h2 class="h2" id="score-domain">—</h2>
+        <p id="score-summary">—</p>
+      </div>
+    </div>
+
+    <div class="findings" id="findings"></div>
+  </div>
+</section>
+
+<style>
+  .results-sec { padding-block: clamp(20px, 3vw, 40px); }
+</style>

@@ -1,0 +1,337 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+// Minutes of allowed downtime per year for each SLA tier — the numbers most
+// people are surprised by when they see them written out.
+const slaTiers = [
+  { pct: '99%', year: '3d 15h', month: '7h 18m' },
+  { pct: '99.9%', year: '8h 46m', month: '43m 50s' },
+  { pct: '99.95%', year: '4h 23m', month: '21m 55s' },
+  { pct: '99.99%', year: '52m 36s', month: '4m 23s' },
+];
+---
+
+<ToolLayout
+  slug="downtime-cost"
+  title="Downtime Cost Calculator"
+  description="Work out what an hour of downtime costs your business in lost revenue and idle staff time, and see what each uptime SLA tier actually allows. Free, no signup."
+  heading="What does an hour of downtime actually cost you?"
+  intro="Outages are easy to tolerate in the abstract and hard to ignore once they carry a number. Put your figures in below — nothing is sent anywhere."
+>
+  <div slot="input" class="calc">
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label for="revenue">Annual revenue</label>
+        <div class="calc-input">
+          <select id="currency" aria-label="Currency">
+            <option value="NPR" selected>NPR</option>
+            <option value="USD">USD</option>
+            <option value="INR">INR</option>
+            <option value="EUR">EUR</option>
+          </select>
+          <input type="number" id="revenue" min="0" step="any" value="50000000" />
+        </div>
+      </div>
+
+      <div class="calc-field">
+        <label for="staff">Employees affected</label>
+        <div class="calc-input">
+          <input type="number" id="staff" min="0" step="1" value="10" />
+        </div>
+      </div>
+
+      <div class="calc-field">
+        <label for="salary">Average annual salary</label>
+        <div class="calc-input">
+          <input type="number" id="salary" min="0" step="any" value="900000" />
+        </div>
+      </div>
+
+      <div class="calc-field">
+        <label for="hours">Downtime hours per year</label>
+        <div class="calc-input">
+          <input type="number" id="hours" min="0" step="0.5" value="8" />
+        </div>
+      </div>
+    </div>
+
+    <p class="calc-note mono">
+      Revenue loss assumes trading hours of 8×5. Staff cost assumes 2,080 working hours a year.
+    </p>
+  </div>
+
+  <section class="section calc-out-sec">
+    <div class="container">
+      <div class="calc-out">
+        <div class="calc-headline glass-card">
+          <span class="eyebrow">Cost per hour of downtime</span>
+          <span class="big" id="per-hour">—</span>
+          <p id="per-hour-note">Revenue lost plus staff time paid for but not productive.</p>
+        </div>
+
+        <div class="calc-splits">
+          <div class="glass-card split">
+            <span class="split-label mono">Lost revenue / hour</span>
+            <span class="split-value" id="rev-hour">—</span>
+          </div>
+          <div class="glass-card split">
+            <span class="split-label mono">Idle staff cost / hour</span>
+            <span class="split-value" id="staff-hour">—</span>
+          </div>
+          <div class="glass-card split split-total">
+            <span class="split-label mono">Total at your current downtime</span>
+            <span class="split-value" id="annual">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section sla-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">For context</span>
+        <h2 class="h2">What each SLA tier actually permits.</h2>
+        <p class="lead">
+          &ldquo;Three nines&rdquo; sounds close to perfect until you write it out as
+          time. This is the allowance the number really buys you.
+        </p>
+      </div>
+
+      <div class="sla-table" role="table" aria-label="Uptime SLA allowances">
+        <div class="sla-row sla-head" role="row">
+          <span role="columnheader">Uptime</span>
+          <span role="columnheader">Downtime / year</span>
+          <span role="columnheader">Downtime / month</span>
+          <span role="columnheader">Cost / year</span>
+        </div>
+        {slaTiers.map((t) => (
+          <div class="sla-row" role="row" data-sla={t.pct}>
+            <span role="cell"><b>{t.pct}</b></span>
+            <span role="cell">{t.year}</span>
+            <span role="cell">{t.month}</span>
+            <span role="cell" class="sla-cost">—</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  /* ---------- inputs ---------- */
+  .calc { margin-top: 30px; max-width: 46rem; }
+
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .calc-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    font-weight: 560;
+    color: var(--text-soft);
+  }
+
+  .calc-input {
+    display: flex;
+    align-items: stretch;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    overflow: hidden;
+    transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+
+  .calc-input:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(108, 124, 255, 0.14);
+  }
+
+  .calc-input input,
+  .calc-input select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.98rem;
+  }
+
+  .calc-input input:focus,
+  .calc-input select:focus { outline: none; }
+
+  .calc-input select {
+    width: auto;
+    flex: none;
+    padding-inline: 14px 8px;
+    border-right: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .calc-note { margin-top: 14px; font-size: 0.62rem !important; color: var(--text-muted); letter-spacing: 0.08em; }
+
+  /* ---------- output ---------- */
+  .calc-out-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .calc-out { display: grid; gap: 16px; }
+
+  .calc-headline { text-align: center; padding-block: clamp(30px, 4vw, 46px); }
+
+  .big {
+    display: block;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 680;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .calc-headline p { margin: 14px 0 0; font-size: 0.88rem; color: var(--text-muted); }
+
+  .calc-splits {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .split { text-align: center; }
+
+  .split-label {
+    display: block;
+    font-size: 0.62rem !important;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .split-value {
+    display: block;
+    font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    font-weight: 620;
+    letter-spacing: -0.02em;
+  }
+
+  .split-total { border-color: var(--accent-blue); }
+  .split-total .split-value { color: var(--accent-red); }
+
+  /* ---------- SLA table ---------- */
+  .sla-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+
+  .sla-table {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .sla-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1.2fr 1.4fr;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .sla-row:last-child { border-bottom: 0; }
+
+  .sla-head {
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .sla-row b { color: var(--text); font-weight: 620; }
+  .sla-cost { color: var(--accent-red); font-weight: 560; }
+
+  @media (max-width: 720px) {
+    .calc-grid { grid-template-columns: minmax(0, 1fr); }
+    .calc-splits { grid-template-columns: minmax(0, 1fr); }
+    .sla-row { grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 0.82rem; }
+    .sla-head { display: none; }
+    .sla-row span:nth-child(2)::before { content: 'year: '; color: var(--text-muted); }
+    .sla-row span:nth-child(3)::before { content: 'month: '; color: var(--text-muted); }
+    .sla-row span:nth-child(4)::before { content: 'cost: '; color: var(--text-muted); }
+  }
+</style>
+
+<script>
+  // Pure arithmetic — no network, nothing to fail, nothing leaves the browser.
+  const TRADING_HOURS_PER_YEAR = 8 * 5 * 52; // 2,080
+  const WORK_HOURS_PER_YEAR = 2080;
+
+  // Downtime minutes per year permitted by each SLA tier.
+  const SLA_HOURS = { '99%': 87.6, '99.9%': 8.76, '99.95%': 4.38, '99.99%': 0.876 };
+
+  const $ = (id) => document.getElementById(id);
+  const fields = ['revenue', 'staff', 'salary', 'hours', 'currency'].map($);
+
+  function money(amount, currency) {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency,
+        maximumFractionDigits: 0,
+      }).format(Math.round(amount));
+    } catch {
+      return `${currency} ${Math.round(amount).toLocaleString()}`;
+    }
+  }
+
+  function recalc() {
+    const currency = ($('currency') as HTMLSelectElement)?.value || 'NPR';
+    const revenue = Math.max(0, Number(($('revenue') as HTMLInputElement)?.value) || 0);
+    const staff = Math.max(0, Number(($('staff') as HTMLInputElement)?.value) || 0);
+    const salary = Math.max(0, Number(($('salary') as HTMLInputElement)?.value) || 0);
+    const hours = Math.max(0, Number(($('hours') as HTMLInputElement)?.value) || 0);
+
+    const revenuePerHour = revenue / TRADING_HOURS_PER_YEAR;
+    const staffPerHour = (staff * salary) / WORK_HOURS_PER_YEAR;
+    const totalPerHour = revenuePerHour + staffPerHour;
+
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+
+    set('per-hour', money(totalPerHour, currency));
+    set('rev-hour', money(revenuePerHour, currency));
+    set('staff-hour', money(staffPerHour, currency));
+    set('annual', money(totalPerHour * hours, currency));
+
+    const note = $('per-hour-note');
+    if (note) {
+      note.textContent =
+        hours > 0
+          ? `At ${hours} hour${hours === 1 ? '' : 's'} of downtime a year, that totals ${money(totalPerHour * hours, currency)}.`
+          : 'Revenue lost plus staff time paid for but not productive.';
+    }
+
+    // Cost column on the SLA table, so the tiers are priced in your numbers.
+    document.querySelectorAll('[data-sla]').forEach((row) => {
+      const tier = row.getAttribute('data-sla');
+      const cell = row.querySelector('.sla-cost');
+      if (cell && tier && SLA_HOURS[tier] != null) {
+        cell.textContent = money(totalPerHour * SLA_HOURS[tier], currency);
+      }
+    });
+  }
+
+  fields.forEach((el) => {
+    el?.addEventListener('input', recalc);
+    el?.addEventListener('change', recalc);
+  });
+
+  recalc();
+</script>

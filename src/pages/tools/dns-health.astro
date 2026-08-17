@@ -1,0 +1,74 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ScanForm from '../../components/ScanForm.astro';
+import ScanResults from '../../components/ScanResults.astro';
+import Icon from '../../components/Icon.astro';
+
+const checks = [
+  { icon: 'server', name: 'Nameservers', desc: 'Redundancy, and whether one provider outage takes you offline' },
+  { icon: 'shield', name: 'DNSSEC', desc: 'Cryptographic proof that DNS answers are genuine' },
+  { icon: 'check', name: 'CAA', desc: 'Which certificate authorities may issue for you' },
+  { icon: 'globe', name: 'A / AAAA', desc: 'IPv4 and IPv6 reachability' },
+  { icon: 'clock', name: 'TTL', desc: 'How fast you can move during a migration' },
+];
+---
+
+<ToolLayout
+  slug="dns-health"
+  title="Free DNS Health Check"
+  description="Free DNS health checker. Audit nameserver redundancy, DNSSEC, CAA records, IPv6 and TTLs for any domain. Runs in your browser — no signup, nothing stored."
+  heading="Would a DNS outage take your business offline?"
+  intro="Most domains run every nameserver at a single provider, with no DNSSEC and no CAA record. This checks the gaps that only become obvious during an incident."
+>
+  <ScanForm slot="input" cta="Check DNS" />
+
+  <ScanResults />
+
+  <section class="section explain-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">What gets checked</span>
+        <h2 class="h2">Five signals that decide how resilient your DNS is.</h2>
+      </div>
+
+      <div class="grid grid-3">
+        {checks.map((c) => (
+          <div class="reveal glass-card ex">
+            <span class="icon-tile"><Icon name={c.icon} /></span>
+            <h3 class="h3">{c.name}</h3>
+            <p>{c.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .explain-sec { padding-block: clamp(40px, 5vw, 72px); }
+  .ex h3 { margin: 14px 0 6px; }
+  .ex p { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+</style>
+
+<script>
+  import { scanDns } from '../../scripts/dns-health.js';
+  import { wireScanner, findingCard } from '../../scripts/tool-ui.js';
+
+  wireScanner({
+    scan: scanDns,
+
+    summarise: (r) =>
+      r.score >= 90
+        ? 'This domain’s DNS is set up resiliently.'
+        : r.score >= 60
+          ? 'Workable, but there are resilience gaps worth closing before they bite.'
+          : 'This DNS setup has real single points of failure. The items below are the ones to fix first.',
+
+    render: (r) =>
+      findingCard('Nameservers — redundancy', r.ns) +
+      findingCard('DNSSEC — response integrity', r.dnssec) +
+      findingCard('CAA — certificate authority control', r.caa) +
+      findingCard('A / AAAA — reachability', r.addr) +
+      findingCard('TTL — change agility', r.ttl),
+  });
+</script>

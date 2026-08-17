@@ -1,0 +1,99 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ScanForm from '../../components/ScanForm.astro';
+import ScanResults from '../../components/ScanResults.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="ssl-checker"
+  title="Free SSL Certificate Expiry Checker"
+  description="Check when a domain's SSL/TLS certificate expires, who issued it, and every certificate ever issued for it via public Certificate Transparency logs. Free, no signup."
+  heading="When does your SSL certificate expire?"
+  intro="An expired certificate takes a site down with a full-page browser warning — and it happens to companies of every size. Check the expiry date, the issuer, and every certificate publicly issued for a domain."
+>
+  <ScanForm
+    slot="input"
+    cta="Check certificate"
+    note="Reads public Certificate Transparency logs via crt.sh · nothing is sent to us or stored"
+  />
+
+  <ScanResults />
+
+  <section class="section note-sec">
+    <div class="container">
+      <div class="glass-card caveat">
+        <span class="icon-tile"><Icon name="shield" /></span>
+        <div>
+          <h2 class="h3">What this can and cannot tell you</h2>
+          <p>
+            This reads <b>Certificate Transparency</b> logs &mdash; the public,
+            append-only record of every certificate issued by a trusted authority.
+            It reliably answers when your newest certificate expires, who issued it,
+            and whether anything unexpected has been issued for your domain.
+          </p>
+          <p class="caveat-limit">
+            It cannot inspect the certificate your server is <i>currently presenting</i>,
+            nor the cipher suites or protocol versions it negotiates &mdash; a browser
+            cannot open a raw TLS connection to another host. A full handshake audit
+            needs a server-side scan, which we run as part of a security assessment.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .note-sec { padding-block: clamp(30px, 4vw, 56px); }
+
+  .caveat {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .caveat h2 { margin-bottom: 10px; }
+
+  .caveat p {
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .caveat p:last-child { margin-bottom: 0; }
+  .caveat b { color: var(--text-soft); font-weight: 600; }
+
+  .caveat-limit {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 560px) {
+    .caveat { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<script>
+  import { checkCertificate } from '../../scripts/ssl-check.js';
+  import { wireScanner, findingCard } from '../../scripts/tool-ui.js';
+
+  wireScanner({
+    scan: checkCertificate,
+
+    summarise: (r) =>
+      r.score >= 90
+        ? 'Certificate is healthy with comfortable time before expiry.'
+        : r.score >= 60
+          ? 'Valid, but renewal is close enough to be worth confirming.'
+          : 'This certificate needs attention now — an expiry here means visitors see a security warning.',
+
+    render: (r) =>
+      findingCard('Expiry — current certificate', r.current) +
+      findingCard('Issuer — certificate authority', r.issuers) +
+      findingCard('Coverage — hostnames', r.coverage) +
+      findingCard('Transparency — public log history', r.history),
+  });
+</script>

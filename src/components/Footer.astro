@@ -4,6 +4,7 @@ import Icon from './Icon.astro';
 import logoWhite from '../assets/logo-white-horizontal.png';
 import logoBlack from '../assets/logo-black-horizontal.png';
 import { CONTACT, COMPANY } from '../config/site.js';
+import { tools } from '../data/tools.js';
 
 const year = new Date().getFullYear();
 
@@ -28,9 +29,10 @@ const columns = [
   },
   {
     title: 'Free Tools',
+    // Driven by the registry so a new tool appears here automatically.
     links: [
       { href: '/tools', label: 'All Tools' },
-      { href: '/tools/email-security', label: 'Email Security Scanner' },
+      ...tools.map((t) => ({ href: t.href, label: t.short })),
     ],
   },
 ];

@@ -707,3 +707,213 @@ p {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ============================================================
+   Scanner tool results — shared by every tool that returns a
+   graded report (email security, DNS health, SSL). Kept here
+   rather than per-page so a new tool inherits the look for free.
+   ============================================================ */
+
+.scan-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+  max-width: 42rem;
+}
+
+.scan-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.scan-field .scan-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.scan-field input {
+  width: 100%;
+  padding: 16px 18px 16px 48px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+.scan-field input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 4px rgba(108, 124, 255, 0.14);
+}
+
+.scan-note {
+  margin-top: 14px;
+  font-size: 0.64rem !important;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.scan-error {
+  margin-top: 10px;
+  min-height: 20px;
+  font-size: 0.88rem;
+  color: var(--accent-red);
+}
+
+/* ---------- score ---------- */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(22px, 4vw, 46px);
+  margin-bottom: 20px;
+}
+
+.score-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  flex: none;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color, var(--accent-blue)) var(--ring, 0turn), var(--surface-strong) 0);
+  transition: background 0.8s var(--ease-out);
+}
+
+.score-ring::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: var(--bg-elev);
+}
+
+.score-letter {
+  position: relative;
+  z-index: 1;
+  font-size: 2.5rem;
+  font-weight: 680;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ring-color, var(--accent-blue));
+}
+
+.score-num {
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.score-num i { font-style: normal; opacity: 0.6; }
+.score-copy h2 { margin: 6px 0 10px; word-break: break-word; }
+.score-copy p { margin: 0; }
+
+/* ---------- findings ---------- */
+.findings {
+  display: grid;
+  gap: 14px;
+}
+
+.finding {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  padding: 22px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.f-badge {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.f-pass { background: rgba(110, 231, 160, 0.12); border: 1px solid rgba(110, 231, 160, 0.35); color: var(--term-ok); }
+.f-warn { background: rgba(254, 188, 46, 0.12); border: 1px solid rgba(254, 188, 46, 0.35); color: #febc2e; }
+.f-fail { background: rgba(255, 77, 109, 0.12); border: 1px solid rgba(255, 77, 109, 0.35); color: var(--accent-red); }
+.f-unknown { background: var(--surface-strong); border: 1px solid var(--border-strong); color: var(--text-muted); }
+
+.f-kind {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.f-title {
+  margin: 4px 0 8px;
+  font-size: 1.02rem;
+  font-weight: 580;
+  letter-spacing: -0.015em;
+}
+
+.f-detail {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+.f-record {
+  display: block;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-xs);
+  background: var(--term-bg);
+  border: 1px solid var(--term-border);
+  color: var(--term-text);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.f-fix {
+  display: flex;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.f-fix b { color: var(--accent-blue); font-weight: 600; flex: none; }
+
+@media (max-width: 720px) {
+  .scan-form { flex-direction: column; }
+  .scan-form .btn { width: 100%; }
+  .score-card { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 520px) {
+  .finding { grid-template-columns: minmax(0, 1fr); }
+  .f-badge { width: 40px; height: 40px; }
+}
