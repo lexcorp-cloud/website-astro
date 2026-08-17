@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import { Image } from 'astro:assets';
 import { whyLexCorp, process, stats } from '../data/services.js';
+import { team } from '../data/team.js';
 import { COMPANY, CONTACT } from '../config/site.js';
 
 const mission = [
@@ -66,6 +68,63 @@ const mission = [
             <span class="stat-value" data-counter={s.value} data-counter-suffix={s.suffix}>0{s.suffix}</span>
             <span class="stat-label">{s.label}</span>
           </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section a-team-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">The team</span>
+        <h2 class="h2">Who you&rsquo;ll actually be working with.</h2>
+        <p class="lead">
+          Engagements are delivered by the people you meet &mdash; not passed to
+          someone you never speak to.
+        </p>
+      </div>
+
+      <div class="a-team">
+        {team.map((person) => (
+          <article class="reveal glass-card person">
+            <div class="person-photo">
+              <Image
+                src={person.photo}
+                alt={`${person.name}, ${person.role} at Lex Corp`}
+                widths={[280, 560]}
+                sizes="(max-width: 720px) 100vw, 280px"
+                loading="lazy"
+              />
+            </div>
+
+            <div class="person-body">
+              <h3 class="h3">{person.name}</h3>
+              <span class="person-role mono">{person.role}</span>
+
+              <ul class="person-focus">
+                {person.focus.map((f) => <li>{f}</li>)}
+              </ul>
+
+              <p>{person.bio}</p>
+
+              {person.credentials.length > 0 && (
+                <ul class="person-creds">
+                  {person.credentials.map((c) => (
+                    <li><span class="tick"><Icon name="check" size={13} /></span>{c}</li>
+                  ))}
+                </ul>
+              )}
+
+              <div class="person-links">
+                <a href={person.linkedin} target="_blank" rel="noopener noreferrer">
+                  <Icon name="linkedin" size={16} /> LinkedIn
+                </a>
+                <a href={person.email}>
+                  <Icon name="mail" size={16} /> Email
+                </a>
+              </div>
+            </div>
+          </article>
         ))}
       </div>
     </div>
@@ -218,6 +277,143 @@ const mission = [
 
   .a-stats-sec { padding-block: clamp(40px, 5vw, 64px); }
   .stat { text-align: center; }
+
+  /* ---------- team ---------- */
+  /* auto-fit so a second hire needs a registry entry and nothing else */
+  .a-team {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 18px;
+  }
+
+  .person {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: clamp(20px, 3vw, 32px);
+    align-items: start;
+  }
+
+  .person-photo {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  /* Deliberately NOT using mix-blend-mode here. Blending a portrait into the
+     brand gradient tints the face, which looks stylised at best and unflattering
+     at worst — the wrong trade for a founder headshot, where looking like a real
+     person matters more than matching the palette. The white studio background
+     is softened with a vignette instead, so it sits on the dark card without
+     recolouring the subject. */
+  .person-photo :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .person-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 78% 78% at 50% 42%, transparent 55%, rgba(5, 6, 11, 0.42) 100%),
+      linear-gradient(to bottom, transparent 60%, rgba(5, 6, 11, 0.3) 100%);
+  }
+
+  :root[data-theme='light'] .person-photo::after { display: none; }
+
+  .person:hover .person-photo :global(img) { transform: scale(1.03); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .person:hover .person-photo :global(img) { transform: none; }
+  }
+
+  .person-body h3 { margin: 0 0 6px; }
+
+  .person-role {
+    display: block;
+    font-size: 0.66rem !important;
+    color: var(--accent-blue);
+    margin-bottom: 16px;
+  }
+
+  .person-focus {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+  }
+
+  .person-focus li {
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    font-size: 0.72rem;
+    color: var(--text-soft);
+  }
+
+  .person-body p {
+    margin: 0 0 16px;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .person-creds {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+
+  .person-creds li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    align-items: start;
+    gap: 11px;
+    font-size: 0.88rem;
+    color: var(--text-soft);
+  }
+
+  .person-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .person-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    transition: border-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  }
+
+  .person-links a:hover {
+    border-color: var(--accent-blue);
+    color: var(--text);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 620px) {
+    .person { grid-template-columns: minmax(0, 1fr); }
+    .person-photo { max-width: 220px; }
+  }
 
   .a-proc-sec {
     position: relative;

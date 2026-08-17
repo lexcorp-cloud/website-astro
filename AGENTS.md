@@ -68,6 +68,7 @@ src/
 ├── config/site.js           # Contact details, LinkedIn, env-backed keys. SINGLE SOURCE OF TRUTH.
 ├── data/services.js         # Services (8), technologies, why-us, process, stats.
 ├── data/tools.js            # TOOL REGISTRY — drives hub, switcher rail and footer.
+├── data/team.js             # TEAM REGISTRY — rendered by the About page.
 ├── layouts/BaseLayout.astro # <head>, SEO/OG/JSON-LD, theme bootstrap, header/footer, animation entry.
 ├── layouts/ToolLayout.astro # Shared tool frame: breadcrumbs, switcher rail, CTA.
 ├── components/
@@ -431,6 +432,22 @@ first, then change this config — Vercel will accept it once it is verified.
 Note this is a **repo-local** setting; the global config still points elsewhere,
 so a fresh clone on another machine will hit the same Vercel error until this is
 set again there.
+
+---
+
+## 10b. Team section
+
+`src/data/team.js` drives the team block on the About page. Adding a person is
+one registry entry; the grid is `auto-fit`, so nothing else changes.
+
+Two things to preserve:
+- **`credentials` starts empty and must only be filled from facts the person
+  supplied.** Years of experience, certifications and client names are claims a
+  buyer may check. The section renders correctly with an empty array — leave it
+  empty rather than adding a plausible-sounding guess.
+- **No `mix-blend-mode` on the portrait.** Blending it into the brand gradient
+  tints the face; a vignette softens the white studio background instead,
+  without recolouring the subject.
 
 ---
 
