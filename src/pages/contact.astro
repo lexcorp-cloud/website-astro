@@ -7,7 +7,7 @@ const rows = [
   { icon: 'pin', label: 'Location', value: CONTACT.location, href: null, note: 'Serving clients locally and internationally' },
   { icon: 'phone', label: 'Phone', value: CONTACT.phone, href: CONTACT.phoneHref, note: 'Sun–Fri, 9:00–18:00 NPT' },
   { icon: 'mail', label: 'Email', value: CONTACT.email, href: CONTACT.emailHref, note: 'Replies within one business day' },
-  { icon: 'linkedin', label: 'LinkedIn', value: CONTACT.linkedinLabel, href: CONTACT.linkedin, note: 'Connect with our founder', external: true },
+  { icon: 'linkedin', label: 'LinkedIn', value: CONTACT.linkedinLabel, href: CONTACT.linkedin, note: 'Follow our company page', external: true },
 ];
 ---
 
@@ -77,6 +77,7 @@ const rows = [
           action="https://api.web3forms.com/submit"
           method="POST"
           novalidate
+          data-fallback-email={CONTACT.email}
         >
           <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
           <input type="hidden" name="subject" value="New enquiry from lexcorp.com.np" />
@@ -307,6 +308,11 @@ const rows = [
   const statusEl = document.getElementById('form-status');
   const btn = document.getElementById('submit-btn') as HTMLButtonElement | null;
 
+  // Read the address off the form rather than hardcoding it here — config/site.js
+  // stays the single source of truth, so changing it never leaves a stale
+  // address buried in an error message.
+  const fallbackEmail = form?.dataset.fallbackEmail || '';
+
   const setStatus = (state: string, html: string) => {
     if (!statusEl) return;
     if (state) statusEl.setAttribute('data-state', state);
@@ -369,10 +375,10 @@ const rows = [
         );
         form.reset();
       } else {
-        setStatus('error', `Something went wrong. Please email us directly at info@lexcorp.com.np`);
+        setStatus('error', `Something went wrong. Please email us directly at ${fallbackEmail}`);
       }
     } catch (err) {
-      setStatus('error', 'Network error — please check your connection or email info@lexcorp.com.np');
+      setStatus('error', `Network error — please check your connection or email ${fallbackEmail}`);
     } finally {
       setLoading(false);
       // hCaptcha tokens are single-use and form.reset() does not clear the

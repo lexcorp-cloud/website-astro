@@ -300,8 +300,8 @@ reintroduce `laxman.chaudhary@lexcorp.com.np` anywhere:
 ```
 Location  Kathmandu, Nepal
 Phone     +977-9842028183
-Email     info@lexcorp.com.np
-LinkedIn  https://www.linkedin.com/in/laxman-chaudhary
+Email     enquiries@lexcorp.com.np
+LinkedIn  https://www.linkedin.com/company/lex-corp-nepal/  (company page, not the founder profile)
 ```
 
 Service copy derives from the company profile at
