@@ -1,0 +1,283 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="speed-test"
+  title="Free Internet Speed Test"
+  description="Test your internet download speed, upload speed, latency and jitter in your browser. No app, no signup, nothing stored."
+  heading="How fast is your connection, really?"
+  intro="Measures download and upload throughput, latency and jitter directly in your browser — no plugin, no signup, and nothing recorded."
+>
+  <div slot="input" class="st-start">
+    <button class="btn btn-primary st-go" id="start-btn" type="button">
+      <span class="btn-label">Start speed test</span>
+      <span class="arrow"><Icon name="arrow" size={17} /></span>
+    </button>
+    <p class="st-meta mono" id="st-meta">Uses about 26 MB of data</p>
+  </div>
+
+  <section class="section st-sec">
+    <div class="container">
+      <!-- live gauge -->
+      <div class="glass-card gauge-card" id="gauge-card" hidden>
+        <span class="gauge-phase mono" id="gauge-phase">Measuring latency</span>
+        <div class="gauge-value">
+          <span id="gauge-number">0.0</span><i id="gauge-unit">ms</i>
+        </div>
+        <div class="gauge-bar"><span id="gauge-fill"></span></div>
+      </div>
+
+      <!-- results -->
+      <div class="st-results" id="st-results" hidden>
+        <div class="glass-card metric metric-primary">
+          <span class="metric-label mono">Download</span>
+          <span class="metric-value" id="r-down">—</span>
+          <span class="metric-unit">Mbps</span>
+        </div>
+        <div class="glass-card metric">
+          <span class="metric-label mono">Upload</span>
+          <span class="metric-value" id="r-up">—</span>
+          <span class="metric-unit">Mbps</span>
+        </div>
+        <div class="glass-card metric">
+          <span class="metric-label mono">Latency</span>
+          <span class="metric-value" id="r-lat">—</span>
+          <span class="metric-unit">ms</span>
+        </div>
+        <div class="glass-card metric">
+          <span class="metric-label mono">Jitter</span>
+          <span class="metric-value" id="r-jit">—</span>
+          <span class="metric-unit">ms</span>
+        </div>
+      </div>
+
+      <div class="glass-card verdict" id="verdict" hidden>
+        <span class="icon-tile"><Icon name="pulse" /></span>
+        <div>
+          <h2 class="h3" id="verdict-title">—</h2>
+          <p id="verdict-note">—</p>
+          <p class="verdict-lat" id="verdict-lat">—</p>
+        </div>
+      </div>
+
+      <p class="st-error" id="st-error" role="alert"></p>
+    </div>
+  </section>
+
+  <section class="section note-sec">
+    <div class="container">
+      <div class="glass-card caveat">
+        <span class="icon-tile"><Icon name="globe" /></span>
+        <div>
+          <h2 class="h3">How to read this result</h2>
+          <p>
+            The test measures your connection to the nearest
+            <b>Cloudflare edge</b>, using the same public endpoints their own speed
+            test uses. That makes it a good measure of real-world internet
+            performance, but it is a route to one network &mdash; not a universal
+            figure, and not the same as the number on your ISP contract.
+          </p>
+          <p class="caveat-limit">
+            Browser-based tests also sit above the operating system&rsquo;s networking
+            stack, so Wi-Fi conditions, VPNs, other devices on the same line and
+            browser overhead all affect the number. For a reliable baseline, run it
+            a few times over a wired connection.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .st-start { margin-top: 28px; }
+  .st-go { min-width: 220px; }
+  .st-meta { margin-top: 12px; font-size: 0.62rem !important; color: var(--text-muted); letter-spacing: 0.08em; }
+
+  .st-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  /* ---------- live gauge ---------- */
+  .gauge-card { text-align: center; margin-bottom: 18px; padding-block: clamp(26px, 4vw, 40px); }
+
+  .gauge-phase { display: block; font-size: 0.66rem !important; color: var(--text-muted); margin-bottom: 14px; }
+
+  .gauge-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+  }
+
+  .gauge-value span {
+    font-size: clamp(2.6rem, 8vw, 4.4rem);
+    font-weight: 620;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .gauge-value i { font-style: normal; font-size: 1rem; color: var(--text-muted); }
+
+  .gauge-bar {
+    height: 5px;
+    margin-top: 24px;
+    border-radius: 3px;
+    background: var(--surface-strong);
+    overflow: hidden;
+  }
+
+  .gauge-bar span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: var(--gradient-brand);
+    transition: width 0.35s var(--ease-out);
+  }
+
+  /* ---------- results ---------- */
+  .st-results {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .metric { text-align: center; }
+
+  .metric-label { display: block; font-size: 0.62rem !important; color: var(--text-muted); margin-bottom: 12px; }
+
+  .metric-value {
+    display: block;
+    font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+    font-weight: 660;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-primary .metric-value {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .metric-unit { display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .verdict h2 { margin-bottom: 8px; }
+  .verdict p { margin: 0 0 8px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  .verdict-lat { padding-top: 10px; border-top: 1px solid var(--border); }
+
+  .st-error { margin-top: 14px; min-height: 20px; font-size: 0.88rem; color: var(--accent-red); }
+
+  /* ---------- caveat ---------- */
+  .note-sec { padding-block: clamp(30px, 4vw, 56px); background: var(--bg-elev); border-top: 1px solid var(--border); }
+
+  .caveat { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .caveat h2 { margin-bottom: 10px; }
+  .caveat p { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .caveat p:last-child { margin-bottom: 0; }
+  .caveat b { color: var(--text-soft); font-weight: 600; }
+  .caveat-limit { padding-top: 12px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 860px) {
+    .st-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 560px) {
+    .caveat, .verdict { grid-template-columns: minmax(0, 1fr); }
+    .st-go { width: 100%; }
+  }
+</style>
+
+<script>
+  import { runSpeedTest } from '../../scripts/speed-test.js';
+
+  const $ = (id) => document.getElementById(id);
+  const btn = $('start-btn');
+
+  const PHASES = {
+    latency: { label: 'Measuring latency', unit: 'ms' },
+    download: { label: 'Measuring download', unit: 'Mbps' },
+    upload: { label: 'Measuring upload', unit: 'Mbps' },
+  };
+
+  let running = false;
+
+  btn?.addEventListener('click', async () => {
+    if (running) return;
+    running = true;
+
+    const err = $('st-error');
+    if (err) err.textContent = '';
+    if ($('gauge-card')) $('gauge-card').hidden = false;
+    if ($('st-results')) $('st-results').hidden = true;
+    if ($('verdict')) $('verdict').hidden = true;
+
+    btn.disabled = true;
+    const label = btn.querySelector('.btn-label');
+    if (label) label.textContent = 'Testing…';
+
+    const setGauge = (n, unit) => {
+      const num = $('gauge-number');
+      const u = $('gauge-unit');
+      if (num) num.textContent = Number(n).toFixed(1);
+      if (u) u.textContent = unit;
+    };
+
+    try {
+      const result = await runSpeedTest({
+        onPhase: (phase) => {
+          const meta = PHASES[phase];
+          if (meta && $('gauge-phase')) $('gauge-phase').textContent = meta.label;
+          if (meta) setGauge(0, meta.unit);
+          if ($('gauge-fill')) $('gauge-fill').style.width = '0%';
+        },
+        onProgress: (phase, pct, current) => {
+          if ($('gauge-fill')) $('gauge-fill').style.width = `${Math.round(pct * 100)}%`;
+          if (current != null) setGauge(current, PHASES[phase].unit);
+        },
+      });
+
+      const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+      set('r-down', result.download.toFixed(1));
+      set('r-up', result.upload.toFixed(1));
+      set('r-lat', result.latency.toFixed(0));
+      set('r-jit', result.jitter.toFixed(1));
+
+      set('verdict-title', `${result.speedVerdict.label} connection`);
+      set('verdict-note', result.speedVerdict.note);
+      set('verdict-lat', `Latency ${result.latency.toFixed(0)} ms — ${result.latencyVerdict.label.toLowerCase()}. ${result.latencyVerdict.note}`);
+
+      if ($('gauge-card')) $('gauge-card').hidden = true;
+      if ($('st-results')) $('st-results').hidden = false;
+      if ($('verdict')) $('verdict').hidden = false;
+      $('st-results')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) {
+      if (err) err.textContent = e?.message || 'The speed test could not complete. A blocker or network restriction may be interfering.';
+      if ($('gauge-card')) $('gauge-card').hidden = true;
+    } finally {
+      running = false;
+      btn.disabled = false;
+      if (label) label.textContent = 'Test again';
+    }
+  });
+</script>

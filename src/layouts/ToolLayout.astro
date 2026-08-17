@@ -147,9 +147,11 @@ const crumbSchema = {
   .switch-head { margin-bottom: 22px; }
   .switch-head h2 { margin: 0; }
 
+  /* auto-fit rather than a fixed count, so the rail absorbs new tools
+     without needing a media-query rewrite each time one is added */
   .switch-rail {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 12px;
   }
 
@@ -226,16 +228,9 @@ const crumbSchema = {
   .tl-cta p { margin: 0; font-size: 0.9rem; max-width: 56ch; }
   .tl-cta .btn { flex: none; }
 
-  @media (max-width: 900px) {
-    .switch-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-
   @media (max-width: 720px) {
     .tl-cta { flex-direction: column; align-items: flex-start; }
     .tl-cta .btn { width: 100%; }
   }
 
-  @media (max-width: 460px) {
-    .switch-rail { grid-template-columns: minmax(0, 1fr); }
-  }
 </style>

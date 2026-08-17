@@ -90,7 +90,9 @@ src/
 │       ├── email-security.astro  # SPF/DKIM/DMARC scanner
 │       ├── dns-health.astro      # NS/DNSSEC/CAA/IPv6/TTL audit
 │       ├── ssl-checker.astro     # Certificate expiry via CT logs
-│       └── downtime-cost.astro   # Cost calculator (no network)
+│       ├── downtime-cost.astro   # Cost calculator (no network)
+│       ├── my-ip.astro           # Public IP + device/connection details
+│       └── speed-test.astro      # Download/upload/latency measurement
 ├── scripts/
 │   ├── animations.js        # GSAP orchestration for every page. Loaded by BaseLayout.
 │   ├── hero-scene.js        # Three.js scene. Lazily imported by HeroScene.astro only.
@@ -280,12 +282,34 @@ Pure arithmetic, no network. Revenue ÷ 2,080 trading hours + (staff × salary) 
 2,080 work hours. Also prices each SLA tier in the visitor's own numbers, which
 is what makes "99.9%" land. Currency via `Intl.NumberFormat`.
 
+### `my-ip.astro` + `scripts/ip-info.js`
+Public IPv4 **and** IPv6 (asked for separately — which family the browser
+prefers varies), ISP/ASN/city, Cloudflare edge, plus device facts that need no
+network call at all: GPU, cores, RAM, screen, timezone, connection type. Geo
+enrichment via ipapi.co is rate-limited on the free tier, so its failure is
+tolerated and the rest still renders. Rows with no value are omitted rather
+than printed as "unknown".
+
+### `speed-test.astro` + `scripts/speed-test.js`
+Download/upload/latency/jitter against Cloudflare's public measurement
+endpoints. Two accuracy details worth preserving: a **warm-up request is
+discarded** (the first request pays DNS/TLS/slow-start), and downloads run over
+**parallel streams** because a single TCP stream under-reports fast links.
+Capped at ~26MB total so it stays honest without burning mobile data. The page
+states that it measures the route to Cloudflare's edge, not a universal figure.
+
 **Feasibility notes for future tools** (verified from a browser, not assumed):
-DNS-over-HTTPS ✅ CORS-open · RDAP `rdap.org` ✅ CORS-open · fetching arbitrary
-site HTML ❌ CORS-blocked, needs a proxy · `.np` WHOIS ❌ **does not exist** —
-IANA's record for `.np` has an empty `refer:` field, so no port-43 server is
-published even from a VPS. A `.np` checker can only infer registration from
-`NXDOMAIN` vs `NOERROR`.
+DNS-over-HTTPS (Cloudflare + Google) ✅ · RDAP `rdap.org` ✅ · crt.sh ✅ ·
+ipify / ipapi.co / Cloudflare trace ✅ · `speed.cloudflare.com` `__down`/`__up` ✅.
+
+❌ Fetching arbitrary site HTML or headers — CORS-blocked, needs a proxy.
+❌ `.np` WHOIS **does not exist**: IANA's record for `.np` has an empty `refer:`
+field, so no port-43 server is published even from a VPS. A `.np` checker can
+only infer registration from `NXDOMAIN` vs `NOERROR`.
+❌ **DNSBL / blacklist checks are not viable client-side.** Spamhaus returns the
+sentinel `127.255.255.254` for *every* query made through a public resolver —
+including its own always-listed test address — so results would be uniformly
+meaningless. This needs a backend running its own resolver.
 
 ---
 

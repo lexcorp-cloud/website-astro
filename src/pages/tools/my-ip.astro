@@ -1,0 +1,354 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="my-ip"
+  title="What Is My IP Address?"
+  description="See your public IPv4 and IPv6 address, ISP, location, browser, device and connection details. Free, instant, and nothing is stored."
+  heading="What is my IP address?"
+  intro="Your public address as the rest of the internet sees it, plus what your browser reveals about your device and connection. Nothing here is logged or stored."
+>
+  <div slot="input" class="ip-hero">
+    <div class="ip-primary glass-card">
+      <span class="ip-label mono">Your public IP address</span>
+      <div class="ip-value-row">
+        <span class="ip-value" id="ip-primary">Detecting…</span>
+        <button class="copy-btn" id="copy-primary" type="button" aria-label="Copy IP address" hidden>
+          <Icon name="check" size={16} />
+          <span class="copy-text">Copy</span>
+        </button>
+      </div>
+      <div class="ip-secondary" id="ip-secondary" hidden>
+        <span class="mono">Also reachable at</span>
+        <code id="ip-alt"></code>
+      </div>
+    </div>
+  </div>
+
+  <section class="section ip-sec">
+    <div class="container">
+      <div class="ip-grid">
+        <div class="glass-card panel">
+          <div class="panel-head">
+            <span class="icon-tile"><Icon name="pin" /></span>
+            <h2 class="h3">Location &amp; network</h2>
+          </div>
+          <dl class="rows" id="rows-network"><div class="row-skeleton"></div></dl>
+        </div>
+
+        <div class="glass-card panel">
+          <div class="panel-head">
+            <span class="icon-tile"><Icon name="globe" /></span>
+            <h2 class="h3">Browser &amp; system</h2>
+          </div>
+          <dl class="rows" id="rows-browser"></dl>
+        </div>
+
+        <div class="glass-card panel">
+          <div class="panel-head">
+            <span class="icon-tile"><Icon name="server" /></span>
+            <h2 class="h3">Device</h2>
+          </div>
+          <dl class="rows" id="rows-device"></dl>
+        </div>
+
+        <div class="glass-card panel">
+          <div class="panel-head">
+            <span class="icon-tile"><Icon name="shield" /></span>
+            <h2 class="h3">Connection &amp; privacy</h2>
+          </div>
+          <dl class="rows" id="rows-privacy"></dl>
+        </div>
+      </div>
+
+      <p class="ip-note mono" id="ip-note"></p>
+    </div>
+  </section>
+
+  <section class="section why-sec">
+    <div class="container">
+      <div class="glass-card explain">
+        <span class="icon-tile"><Icon name="shield" /></span>
+        <div>
+          <h2 class="h3">Why does a website know all this?</h2>
+          <p>
+            Your IP address is unavoidable &mdash; every server you connect to needs
+            somewhere to send the reply, which is how your approximate location and
+            ISP become visible. Everything else on this page is volunteered by your
+            browser to help sites render correctly: screen size, GPU, language,
+            timezone.
+          </p>
+          <p>
+            Together those details form a reasonably distinctive fingerprint, which
+            is how tracking works without cookies. We compute all of it in your
+            browser and send none of it anywhere.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .ip-hero { margin-top: 28px; max-width: 46rem; }
+
+  .ip-primary { padding: clamp(24px, 3vw, 34px); }
+
+  .ip-label {
+    display: block;
+    font-size: 0.64rem !important;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .ip-value-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .ip-value {
+    font-family: var(--font-mono);
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    word-break: break-all;
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+
+  .copy-btn:hover { border-color: var(--accent-blue); color: var(--text); }
+  .copy-btn svg { opacity: 0.6; }
+
+  .ip-secondary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .ip-secondary .mono { font-size: 0.62rem !important; color: var(--text-muted); }
+
+  .ip-secondary code {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    word-break: break-all;
+  }
+
+  /* ---------- panels ---------- */
+  .ip-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .ip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .panel-head h2 { margin: 0; }
+
+  .rows { margin: 0; display: grid; gap: 0; }
+
+  .rows > div {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 16px;
+    padding: 11px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .rows > div:first-child { border-top: 0; padding-top: 0; }
+
+  .rows dt { color: var(--text-muted); }
+
+  .rows dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 520;
+    word-break: break-word;
+    text-align: right;
+  }
+
+  .row-skeleton {
+    height: 120px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(90deg, var(--surface), var(--surface-strong), var(--surface));
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
+  .ip-note {
+    margin-top: 18px;
+    font-size: 0.62rem !important;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ---------- explainer ---------- */
+  .why-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+
+  .explain {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .explain h2 { margin-bottom: 10px; }
+  .explain p { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .explain p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 860px) {
+    .ip-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    .explain { grid-template-columns: minmax(0, 1fr); }
+    .rows > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .rows dd { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row-skeleton { animation: none; }
+  }
+</style>
+
+<script>
+  import { collect } from '../../scripts/ip-info.js';
+
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  /** Render only the rows that actually have a value — no "unknown" filler. */
+  function rows(target, pairs) {
+    const el = document.getElementById(target);
+    if (!el) return;
+    el.innerHTML = pairs
+      .filter(([, v]) => v != null && v !== '')
+      .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
+      .join('');
+  }
+
+  (async () => {
+    try {
+      const info = await collect();
+      const { addresses, geo, edge, device } = info;
+
+      const primary = addresses.v4 || addresses.v6;
+      const alt = addresses.v4 && addresses.v6 ? addresses.v6 : null;
+
+      const primaryEl = document.getElementById('ip-primary');
+      if (primaryEl) primaryEl.textContent = primary || 'Unavailable';
+
+      const copyBtn = document.getElementById('copy-primary');
+      if (copyBtn && primary) {
+        copyBtn.hidden = false;
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(primary);
+            const label = copyBtn.querySelector('.copy-text');
+            if (label) {
+              label.textContent = 'Copied';
+              setTimeout(() => { label.textContent = 'Copy'; }, 1800);
+            }
+          } catch { /* clipboard blocked — nothing useful to do */ }
+        });
+      }
+
+      if (alt) {
+        const sec = document.getElementById('ip-secondary');
+        const altEl = document.getElementById('ip-alt');
+        if (sec && altEl) {
+          altEl.textContent = alt;
+          sec.hidden = false;
+        }
+      }
+
+      rows('rows-network', [
+        ['City', geo?.city],
+        ['Region', geo?.region],
+        ['Country', geo?.country || edge.country],
+        ['ISP', geo?.org],
+        ['Network (ASN)', geo?.asn],
+        ['Nearest edge', edge.colo],
+        ['IP version', addresses.v6 && !addresses.v4 ? 'IPv6 only' : addresses.v4 && addresses.v6 ? 'IPv4 + IPv6' : 'IPv4 only'],
+      ]);
+
+      rows('rows-browser', [
+        ['Browser', device.browser],
+        ['Operating system', device.os],
+        ['Languages', device.languages],
+        ['Timezone', device.timezone],
+        ['Colour scheme', device.colourScheme],
+        ['Reduced motion', device.reducedMotion],
+      ]);
+
+      rows('rows-device', [
+        ['Screen', device.screen],
+        ['Pixel ratio', device.pixelRatio],
+        ['Viewport', device.viewport],
+        ['CPU cores', device.cores],
+        ['Memory', device.memory],
+        ['Graphics', device.gpu],
+        ['Touchscreen', device.touch],
+      ]);
+
+      rows('rows-privacy', [
+        ['Connection', device.connectionType],
+        ['Estimated speed', device.downlink],
+        ['Round-trip time', device.rtt],
+        ['TLS version', edge.tls],
+        ['HTTP protocol', edge.http],
+        ['VPN / WARP', edge.warp ? 'Cloudflare WARP detected' : 'None detected'],
+        ['Cookies', device.cookies],
+        ['Do Not Track', device.doNotTrack],
+      ]);
+
+      const note = document.getElementById('ip-note');
+      if (note) {
+        note.textContent = geo
+          ? 'Location is derived from your IP and is approximate — often the ISP’s exchange rather than your actual position.'
+          : 'Location lookup unavailable right now (rate limited); IP and device details are unaffected.';
+      }
+    } catch (err) {
+      const primaryEl = document.getElementById('ip-primary');
+      if (primaryEl) primaryEl.textContent = 'Could not detect your IP';
+      const note = document.getElementById('ip-note');
+      if (note) note.textContent = 'The lookup service could not be reached. A privacy extension or blocker may be preventing it.';
+    }
+  })();
+</script>

@@ -58,6 +58,30 @@ export const tools = [
       'Work out what an hour of downtime actually costs your business in lost revenue and idle staff time, and what each SLA tier really allows.',
     status: 'live',
   },
+  {
+    slug: 'my-ip',
+    href: '/tools/my-ip',
+    icon: 'pin',
+    short: 'My IP',
+    name: 'What Is My IP',
+    tagline: 'IP · ISP · Device',
+    category: 'Network',
+    description:
+      'Your public IPv4 and IPv6 address, ISP, location, and everything your browser reveals about your device and connection.',
+    status: 'live',
+  },
+  {
+    slug: 'speed-test',
+    href: '/tools/speed-test',
+    icon: 'pulse',
+    short: 'Speed Test',
+    name: 'Internet Speed Test',
+    tagline: 'Download · Upload · Latency',
+    category: 'Network',
+    description:
+      'Measure download and upload throughput, latency and jitter straight from your browser. No app, no signup.',
+    status: 'live',
+  },
 ];
 
 export const getTool = (slug) => tools.find((t) => t.slug === slug);
