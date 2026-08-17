@@ -84,7 +84,8 @@ src/
 ├── pages/
 │   ├── index.astro          # Hero, stats, capabilities, ops/control-centre, process, why, CTA.
 │   ├── services.astro       # 8 service cards with #slug anchors.
-│   ├── about.astro          # Vision, mission, stats, process, why.
+│   ├── about.astro          # Vision, mission, stats, team teaser, process, why.
+│   ├── team.astro           # Full team profiles (see §10b).
 │   ├── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
 │   └── tools/                   # One page per tool — see §6b for why not tabs.
 │       ├── index.astro           # Hub, driven by src/data/tools.js
@@ -437,8 +438,13 @@ set again there.
 
 ## 10b. Team section
 
-`src/data/team.js` drives the team block on the About page. Adding a person is
-one registry entry; the grid is `auto-fit`, so nothing else changes.
+`src/data/team.js` drives **`/team`** (full profiles) and the short teaser on
+About. Adding a person is one registry entry; both surfaces update and the grid
+is `auto-fit`, so nothing else changes.
+
+**The About teaser is deliberately not a copy of `/team`.** Two URLs carrying
+the same profile block would compete with each other in search; About carries a
+one-line pointer, and the full content lives on `/team` only.
 
 Two things to preserve:
 - **`credentials` starts empty and must only be filled from facts the person

@@ -1,0 +1,322 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { Image } from 'astro:assets';
+import { team } from '../data/team.js';
+import { CONTACT } from '../config/site.js';
+
+const principles = [
+  {
+    icon: 'users',
+    title: 'You work with the engineer',
+    text: 'The person who scopes your project is the person who builds it. Nothing is handed to someone you have never spoken to.',
+  },
+  {
+    icon: 'route',
+    title: 'Decisions are written down',
+    text: 'Architecture choices come with the reasoning behind them, so you are never dependent on one person’s memory.',
+  },
+  {
+    icon: 'shield',
+    title: 'No lock-in by obscurity',
+    text: 'Infrastructure as code, documented and handed over. You could take it to another team tomorrow.',
+  },
+];
+---
+
+<BaseLayout
+  title="Our Team — Engineers Behind Lex Corp"
+  description="Meet the engineering team at Lex Corp — the people who design, automate and operate your cloud infrastructure. Based in Kathmandu, Nepal."
+>
+  <section class="section t-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a t-orb" data-parallax="0.14"></div>
+
+    <div class="container t-in">
+      <span class="eyebrow">Our team</span>
+      <h1 class="t-title">The engineers behind the work.</h1>
+      <p class="lead">
+        Lex Corp is deliberately small. That means the person who scopes your
+        project is the one who builds and runs it &mdash; and you always know who
+        to call.
+      </p>
+    </div>
+  </section>
+
+  <section class="section people-sec">
+    <div class="container">
+      <div class="people">
+        {team.map((person) => (
+          <article class="reveal glass-card person">
+            <div class="person-photo">
+              <Image
+                src={person.photo}
+                alt={`${person.name}, ${person.role} at Lex Corp`}
+                widths={[320, 640]}
+                sizes="(max-width: 720px) 100vw, 320px"
+                loading="eager"
+              />
+            </div>
+
+            <div class="person-body">
+              <h2 class="h3">{person.name}</h2>
+              <span class="person-role mono">{person.role}</span>
+
+              <ul class="person-focus">
+                {person.focus.map((f) => <li>{f}</li>)}
+              </ul>
+
+              <p>{person.bio}</p>
+
+              {person.credentials.length > 0 && (
+                <ul class="person-creds">
+                  {person.credentials.map((c) => (
+                    <li><span class="tick"><Icon name="check" size={13} /></span>{c}</li>
+                  ))}
+                </ul>
+              )}
+
+              <div class="person-links">
+                <a href={person.linkedin} target="_blank" rel="noopener noreferrer">
+                  <Icon name="linkedin" size={16} /> LinkedIn
+                </a>
+                <a href={person.email}>
+                  <Icon name="mail" size={16} /> Email
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section how-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How we work with you</span>
+        <h2 class="h2">A small team is a feature, not a limitation.</h2>
+      </div>
+
+      <div class="grid grid-3">
+        {principles.map((p) => (
+          <div class="reveal glass-card pr">
+            <span class="icon-tile"><Icon name={p.icon} /></span>
+            <h3 class="h3">{p.title}</h3>
+            <p>{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section join-sec">
+    <div class="container">
+      <div class="join glass-card">
+        <div>
+          <span class="eyebrow">Working with us</span>
+          <h2 class="h3">Interested in joining, or in working together?</h2>
+          <p>
+            We take on selective engagements and occasionally look for engineers
+            who care about doing infrastructure properly. Either way, the same
+            inbox reaches us.
+          </p>
+        </div>
+        <a href={CONTACT.emailHref} class="btn btn-primary">
+          Get in touch
+          <span class="arrow"><Icon name="arrow" size={17} /></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .t-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    padding-bottom: clamp(32px, 4vw, 52px);
+    overflow: hidden;
+  }
+
+  .t-orb { width: 520px; height: 520px; top: -220px; right: -160px; opacity: 0.28; }
+  .t-in { position: relative; z-index: 1; }
+  .t-in > * { max-width: 46rem; }
+
+  .t-title {
+    margin-bottom: 18px;
+    font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- people ---------- */
+  .people-sec { padding-top: clamp(20px, 3vw, 36px); }
+
+  /* auto-fit: one person reads as a featured profile, more form a grid */
+  .people {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 18px;
+  }
+
+  .person {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: clamp(22px, 3vw, 36px);
+    align-items: start;
+  }
+
+  .person-photo {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  /* No mix-blend-mode: blending a portrait into the brand gradient tints the
+     face. A vignette softens the white studio background instead. */
+  .person-photo :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .person-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 78% 78% at 50% 42%, transparent 55%, rgba(5, 6, 11, 0.42) 100%),
+      linear-gradient(to bottom, transparent 60%, rgba(5, 6, 11, 0.3) 100%);
+  }
+
+  :root[data-theme='light'] .person-photo::after { display: none; }
+  .person:hover .person-photo :global(img) { transform: scale(1.03); }
+
+  .person-body h2 { margin: 0 0 6px; }
+
+  .person-role {
+    display: block;
+    font-size: 0.66rem !important;
+    color: var(--accent-blue);
+    margin-bottom: 16px;
+  }
+
+  .person-focus {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+  }
+
+  .person-focus li {
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    font-size: 0.72rem;
+    color: var(--text-soft);
+  }
+
+  .person-body p {
+    margin: 0 0 16px;
+    font-size: 0.94rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .person-creds {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+
+  .person-creds li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    align-items: start;
+    gap: 11px;
+    font-size: 0.88rem;
+    color: var(--text-soft);
+  }
+
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    border-radius: 50%;
+    background: rgba(110, 231, 160, 0.12);
+    border: 1px solid rgba(110, 231, 160, 0.3);
+    color: var(--term-ok);
+  }
+
+  .person-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .person-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    transition: border-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  }
+
+  .person-links a:hover {
+    border-color: var(--accent-blue);
+    color: var(--text);
+    transform: translateY(-2px);
+  }
+
+  /* ---------- principles ---------- */
+  .how-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .pr h3 { margin: 14px 0 6px; }
+  .pr p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
+
+  /* ---------- join ---------- */
+  .join-sec { padding-block: clamp(40px, 5vw, 72px); }
+
+  .join {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+    background: radial-gradient(ellipse 80% 120% at 10% 0%, rgba(108, 124, 255, 0.16), transparent 60%), var(--surface);
+  }
+
+  .join h2 { margin-bottom: 6px; }
+  .join p { margin: 0; font-size: 0.9rem; color: var(--text-muted); max-width: 56ch; }
+  .join .btn { flex: none; }
+
+  @media (max-width: 720px) {
+    .person { grid-template-columns: minmax(0, 1fr); }
+    .person-photo { max-width: 240px; }
+    .join { flex-direction: column; align-items: flex-start; }
+    .join .btn { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .person:hover .person-photo :global(img) { transform: none; }
+  }
+</style>
