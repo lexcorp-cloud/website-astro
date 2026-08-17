@@ -351,6 +351,17 @@ them present.
 | `PUBLIC_WEB3FORMS_ACCESS_KEY` | Contact form. Already set locally. Publishable by design — it ships in the page source, so it can be recovered from `dist/contact/index.html` if `.env` is lost. |
 | `PUBLIC_SITE_URL` | Canonical/OG/sitemap origin. |
 | `PUBLIC_ANALYTICS_ID` | GA4 measurement id. Set locally to `G-QK4R30ST26`. `BaseLayout.astro` injects the standard gtag.js snippet only when this is non-empty, on every page. |
+| `PUBLIC_CLARITY_ID` | Microsoft Clarity project id (`y3qdoyqfcl`). Session recordings and heatmaps. Injected the same way, independently of GA. |
+
+**GA4 and Clarity run side by side deliberately** — GA answers "how many, from
+where", Clarity answers "what did they actually do" (recordings, heatmaps, rage
+and dead clicks). They do not conflict; verified in-browser that `window.gtag`
+and `window.clarity` are both live globals and both callable. Either can be
+disabled on its own by blanking its variable.
+
+Both snippets use `is:inline` + `set:html` so they emit verbatim. **Do not switch
+either to `define:vars`** — it wraps the body in an IIFE, which would trap
+`gtag`/`clarity` in a closure and break later calls (see §10).
 
 **Analytics setup used the "Install manually" method in Google's wizard, but the
 snippet is never pasted by hand** — `BaseLayout.astro` emits it from this variable.
