@@ -13,12 +13,20 @@ const { title, description } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImageURL = new URL('/og-image.png', Astro.site);
 const siteName = COMPANY.legalName;
-const fullTitle = title === siteName ? `${siteName} — Cloud, DevOps & AI Engineering` : `${title} | ${siteName}`;
+
+// Titles use the SHORT brand: "Pvt. Ltd." is legal boilerplate that eats 10 of
+// the ~60 characters Google displays and has no search demand. The legal name
+// still appears in the footer, the About page, and schema.org legalName.
+// Pages pass a keyword-led title; the brand is appended only if not already
+// present, so a page can opt out by naming the brand itself.
+const brand = COMPANY.shortName;
+const fullTitle = title.includes(brand) ? title : `${title} | ${brand}`;
 
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: siteName,
+  legalName: siteName,
   alternateName: COMPANY.shortName,
   url: Astro.site?.toString(),
   logo: new URL('/favicon-512.png', Astro.site).toString(),
