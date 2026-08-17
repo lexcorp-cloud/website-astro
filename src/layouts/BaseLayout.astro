@@ -42,7 +42,9 @@ const schema = {
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'sales',
-    telephone: CONTACT.phone,
+    // Phone deliberately omitted while CONTACT.phoneMasked is true — publishing
+    // it here would undo the visible masking. Email remains the contact route.
+    ...(CONTACT.phoneMasked ? {} : { telephone: CONTACT.phoneParts.join('') }),
     email: CONTACT.email,
     areaServed: 'Worldwide',
     availableLanguage: ['en', 'ne'],

@@ -1,0 +1,94 @@
+---
+import { CONTACT } from '../config/site.js';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Base64 rather than split-plaintext: adjacent parts in the markup could simply
+// be concatenated by a scraper, whereas an encoded blob contains no digit
+// pattern for a harvester's regex to match at all. This stops automated
+// harvesting, not a person who reads the page source — that is the realistic
+// goal for a number that still has to be reachable by clients.
+const encoded = Buffer.from(CONTACT.phoneParts.join(''), 'utf8').toString('base64');
+---
+
+{CONTACT.phoneMasked ? (
+  <button
+    type="button"
+    class:list={['phone-reveal', className]}
+    data-n={encoded}
+    aria-label="Reveal phone number"
+  >
+    <span class="phone-text">{CONTACT.phoneDisplay}</span>
+    <span class="phone-hint mono">show</span>
+  </button>
+) : (
+  <a class:list={['phone-plain', className]} href={`tel:${CONTACT.phoneParts.join('').replace(/-/g, '')}`}>
+    {CONTACT.phoneParts.join('')}
+  </a>
+)}
+
+<style>
+  .phone-reveal {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .phone-text {
+    font-weight: 550;
+    letter-spacing: 0.01em;
+    transition: color 0.25s var(--ease-out);
+  }
+
+  .phone-reveal:hover .phone-text { color: var(--accent-blue); }
+
+  .phone-hint {
+    font-size: 0.56rem !important;
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    transition: opacity 0.25s var(--ease-out);
+  }
+
+  .phone-reveal.is-revealed { cursor: text; }
+  .phone-reveal.is-revealed .phone-hint { display: none; }
+
+  .phone-plain { font-weight: 550; }
+</style>
+
+<script>
+  document.querySelectorAll('.phone-reveal').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('is-revealed')) return;
+
+      const encoded = (btn as HTMLElement).dataset.n || '';
+      const full = encoded ? atob(encoded) : '';
+      if (!full) return;
+
+      const label = btn.querySelector('.phone-text');
+      if (label) label.textContent = full;
+      btn.classList.add('is-revealed');
+      btn.setAttribute('aria-label', `Call ${full}`);
+
+      // Once revealed, make it dialable on mobile by swapping in a real link.
+      const link = document.createElement('a');
+      link.href = `tel:${full.replace(/[^\d+]/g, '')}`;
+      link.className = btn.className.replace('phone-reveal', 'phone-plain').replace('is-revealed', '');
+      link.textContent = full;
+      btn.replaceWith(link);
+    });
+  });
+</script>

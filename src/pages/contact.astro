@@ -2,10 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { WEB3FORMS_ACCESS_KEY, CONTACT } from '../config/site.js';
+import PhoneReveal from '../components/PhoneReveal.astro';
 
 const rows = [
   { icon: 'pin', label: 'Location', value: CONTACT.location, href: null, note: 'Serving clients locally and internationally' },
-  { icon: 'phone', label: 'Phone', value: CONTACT.phone, href: CONTACT.phoneHref, note: 'Sun–Fri, 9:00–18:00 NPT' },
   { icon: 'mail', label: 'Email', value: CONTACT.email, href: CONTACT.emailHref, note: 'Replies within one business day' },
   { icon: 'linkedin', label: 'LinkedIn', value: CONTACT.linkedinLabel, href: CONTACT.linkedin, note: 'Follow our company page', external: true },
 ];
@@ -62,6 +62,17 @@ const rows = [
               )}
             </div>
           ))}
+
+          <!-- Phone is its own row: the number is masked until clicked, so it
+               needs the reveal component rather than a plain value. -->
+          <div class="contact-row">
+            <span class="icon-tile"><Icon name="phone" size={20} /></span>
+            <div class="c-body">
+              <span class="c-label mono">Phone</span>
+              <span class="c-value"><PhoneReveal /></span>
+              <span class="c-note">Sun–Fri, 9:00–18:00 NPT</span>
+            </div>
+          </div>
         </div>
       </div>
 

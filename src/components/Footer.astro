@@ -5,6 +5,7 @@ import logoWhite from '../assets/logo-white-horizontal.png';
 import logoBlack from '../assets/logo-black-horizontal.png';
 import { CONTACT, COMPANY } from '../config/site.js';
 import { tools } from '../data/tools.js';
+import PhoneReveal from './PhoneReveal.astro';
 
 const year = new Date().getFullYear();
 
@@ -74,7 +75,7 @@ const columns = [
         </li>
         <li>
           <Icon name="phone" size={16} />
-          <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+          <PhoneReveal />
         </li>
         <li>
           <Icon name="mail" size={16} />
@@ -85,7 +86,10 @@ const columns = [
   </div>
 
   <div class="container ftr-btm">
-    <p>&copy; {year} {COMPANY.legalName} All rights reserved.</p>
+    <p>
+      &copy; {year} {COMPANY.legalName} All rights reserved.
+      <a class="ftr-legal" href="/privacy">Privacy Policy</a>
+    </p>
     <p class="mono ftr-status"><span class="live"></span> All systems operational</p>
   </div>
 </footer>
@@ -200,6 +204,16 @@ const columns = [
     font-size: 0.8rem;
     color: var(--text-muted);
   }
+
+  .ftr-legal {
+    margin-left: 14px;
+    padding-left: 14px;
+    border-left: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: color 0.25s var(--ease-out);
+  }
+
+  .ftr-legal:hover { color: var(--accent-blue); }
 
   .ftr-status {
     display: inline-flex;

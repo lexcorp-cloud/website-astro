@@ -68,12 +68,26 @@ const principles = [
 
               <p>{person.bio}</p>
 
-              {person.credentials.length > 0 && (
-                <ul class="person-creds">
-                  {person.credentials.map((c) => (
-                    <li><span class="tick"><Icon name="check" size={13} /></span>{c}</li>
-                  ))}
-                </ul>
+              {person.credentials?.length > 0 && (
+                <div class="cred-block">
+                  <span class="cred-label mono">Credentials</span>
+                  <ul class="person-creds">
+                    {person.credentials.map((c) => (
+                      <li><span class="tick"><Icon name="check" size={13} /></span>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {person.highlights?.length > 0 && (
+                <div class="cred-block">
+                  <span class="cred-label mono">Selected results</span>
+                  <ul class="person-creds person-highlights">
+                    {person.highlights.map((h) => (
+                      <li><span class="tick tick-alt"><Icon name="bolt" size={12} /></span>{h}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               <div class="person-links">
@@ -233,12 +247,31 @@ const principles = [
     line-height: 1.7;
   }
 
+  .cred-block {
+    margin-bottom: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .cred-label {
+    display: block;
+    font-size: 0.6rem !important;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
   .person-creds {
     list-style: none;
-    margin: 0 0 18px;
+    margin: 0;
     padding: 0;
     display: grid;
     gap: 9px;
+  }
+
+  .tick-alt {
+    background: rgba(108, 124, 255, 0.12) !important;
+    border-color: rgba(108, 124, 255, 0.32) !important;
+    color: var(--accent-blue) !important;
   }
 
   .person-creds li {

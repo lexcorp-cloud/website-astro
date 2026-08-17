@@ -87,6 +87,8 @@ src/
 │   ├── about.astro          # Vision, mission, stats, team teaser, process, why.
 │   ├── team.astro           # Full team profiles (see §10b).
 │   ├── contact.astro        # Contact rows + Web3Forms form + hCaptcha (see §6a).
+│   ├── privacy.astro        # Privacy policy — update in the SAME change as any
+│   │                        #   new data-handling service.
 │   └── tools/                   # One page per tool — see §6b for why not tabs.
 │       ├── index.astro           # Hub, driven by src/data/tools.js
 │       ├── email-security.astro  # SPF/DKIM/DMARC scanner
@@ -457,14 +459,40 @@ is `auto-fit`, so nothing else changes.
 the same profile block would compete with each other in search; About carries a
 one-line pointer, and the full content lives on `/team` only.
 
+**Personal vs company contacts:** a person's card links their own LinkedIn and
+email; the company LinkedIn and `enquiries@` belong in the footer and contact
+page. Do not collapse the two.
+
 Two things to preserve:
-- **`credentials` starts empty and must only be filled from facts the person
-  supplied.** Years of experience, certifications and client names are claims a
-  buyer may check. The section renders correctly with an empty array — leave it
-  empty rather than adding a plausible-sounding guess.
+- **`credentials` and `highlights` are sourced from Laxman's own profile**
+  (`~/Desktop/LEX CORP/Founder/README.md`). Certifications are named exactly as
+  issued and figures are the ones he states. Do not add a claim without a source
+  — these are things a buyer may verify.
 - **No `mix-blend-mode` on the portrait.** Blending it into the brand gradient
   tints the face; a vignette softens the white studio background instead,
   without recolouring the subject.
+
+---
+
+## 10c. Masked phone number
+
+`CONTACT.phoneMasked` is `true`, which changes three things at once. They only
+work together, so keep them consistent:
+
+1. The visible number is `phoneDisplay` (`+977-98420•••••`).
+2. `PhoneReveal.astro` ships the real number **base64-encoded** in a data
+   attribute and decodes it on click, then swaps in a real `tel:` link. Adjacent
+   plaintext parts would just be concatenated by a scraper; an encoded blob
+   contains no digit pattern to match.
+3. `telephone` is **omitted from the Organization JSON-LD**. Masking the visible
+   copy while publishing it in structured data would defeat the whole exercise.
+
+This stops automated harvesting, not a person reading the source — the realistic
+goal for a number that clients still need to reach. Verified: the full number and
+its trailing digits appear nowhere in the build, and there are no `tel:` links.
+
+To publish openly again, set `phoneMasked: false`; the component and schema both
+follow automatically.
 
 ---
 
