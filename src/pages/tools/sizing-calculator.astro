@@ -1,0 +1,352 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="sizing-calculator"
+  title="Server & Kubernetes Sizing Calculator"
+  description="Size workers, pods, CPU and memory from your traffic and latency using Little's Law, and get a Kubernetes resources block. Runs entirely in your browser."
+  heading="How much capacity does this workload actually need?"
+  intro="Enter your traffic and latency and get the concurrency you have to serve, the workers and pods that implies, and a Kubernetes resources block you can paste in."
+>
+  <div slot="input" class="sz-input">
+    <div class="sz-fields">
+      <label class="fld">
+        <span>Peak requests / second</span>
+        <input type="number" id="f-rps" value="250" min="0" step="any" />
+      </label>
+      <label class="fld">
+        <span>Average response time (ms)</span>
+        <input type="number" id="f-latency" value="120" min="1" step="any" />
+      </label>
+      <label class="fld">
+        <span>Concurrency per worker</span>
+        <input type="number" id="f-conc" value="8" min="1" step="1" />
+      </label>
+      <label class="fld">
+        <span>Memory per worker (MB)</span>
+        <input type="number" id="f-mem" value="180" min="1" step="any" />
+      </label>
+      <label class="fld">
+        <span>Target utilisation (%)</span>
+        <input type="number" id="f-util" value="70" min="10" max="95" step="1" />
+      </label>
+      <label class="fld">
+        <span>Workers per pod</span>
+        <input type="number" id="f-per-pod" value="4" min="1" step="1" />
+      </label>
+      <label class="fld">
+        <span>CPU cores per worker</span>
+        <input type="number" id="f-cpu" value="0.5" min="0.05" step="0.05" />
+      </label>
+    </div>
+    <p class="sz-note mono">Nothing is sent anywhere — all arithmetic runs in your browser</p>
+  </div>
+
+  <section class="section sz-sec">
+    <div class="container">
+      <div class="sz-top">
+        <div class="glass-card metric metric-lead">
+          <span class="m-label mono">Concurrent requests to serve</span>
+          <span class="m-value" id="r-conc">—</span>
+          <span class="m-sub" id="r-conc-sub">—</span>
+        </div>
+        <div class="glass-card metric">
+          <span class="m-label mono">Workers needed</span>
+          <span class="m-value" id="r-workers">—</span>
+          <span class="m-sub">at target utilisation</span>
+        </div>
+        <div class="glass-card metric">
+          <span class="m-label mono">Pods / replicas</span>
+          <span class="m-value" id="r-pods">—</span>
+          <span class="m-sub" id="r-pods-sub">—</span>
+        </div>
+      </div>
+
+      <div class="sz-grid">
+        <div class="glass-card">
+          <h2 class="h3 sz-h">Resource totals</h2>
+          <dl class="rows" id="sz-rows"></dl>
+        </div>
+
+        <div class="glass-card">
+          <div class="sz-yaml-head">
+            <h2 class="h3 sz-h">Kubernetes resources</h2>
+            <button type="button" class="btn btn-ghost btn-sm" id="sz-copy">Copy</button>
+          </div>
+          <pre class="out-block" id="sz-yaml"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section sz-notes-sec">
+    <div class="container">
+      <div class="glass-card note">
+        <span class="icon-tile"><Icon name="route" /></span>
+        <div>
+          <h2 class="h3">The model, so you can argue with it</h2>
+          <p>
+            Concurrency comes from <b>Little&rsquo;s Law</b>:
+            <code>L = λ × W</code> &mdash; requests in flight equals arrival rate
+            times how long each one takes. 250 req/s at 120&nbsp;ms means about 30
+            requests being handled at any instant, and that is what you must have
+            capacity for, not the request rate itself.
+          </p>
+          <p>
+            Worker count divides that by per-worker concurrency, then divides again
+            by target utilisation. <b>Sizing to 100% is how you get an outage</b> —
+            queues grow without bound as utilisation approaches saturation, so
+            latency degrades sharply well before you reach it. 70% is a reasonable
+            default; go lower if traffic is spiky.
+          </p>
+          <p>
+            <b>CPU is an input, not a guess.</b> A worker's core appetite depends
+            entirely on whether the work is CPU-bound (image processing, crypto)
+            or I/O-bound (waiting on a database), so you state it and the tool
+            multiplies. Memory carries 25% headroom per pod because memory is not
+            compressible &mdash; an over-committed pod is OOM-killed rather than
+            slowed down.
+          </p>
+          <p class="note-limit">
+            Treat the output as a <b>starting point for a load test</b>, not a
+            final answer. It assumes requests are independent and evenly arriving,
+            and it knows nothing about your GC behaviour, connection-pool ceilings,
+            database contention, or the fact that real traffic arrives in bursts.
+            Measure, then adjust.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .sz-input { margin-top: 26px; max-width: none; }
+
+  .sz-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    gap: 14px;
+  }
+
+  .fld { display: flex; flex-direction: column; gap: 8px; }
+
+  .fld > span { font-size: 0.8rem; color: var(--text-soft); }
+
+  .fld input {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .fld input:focus { outline: none; border-color: var(--accent-blue); }
+
+  .sz-note { margin-top: 14px; font-size: 0.6rem !important; color: var(--text-muted); }
+
+  .sz-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .sz-top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .metric { text-align: center; }
+
+  .m-label { display: block; font-size: 0.6rem !important; color: var(--text-muted); margin-bottom: 12px; }
+
+  .m-value {
+    display: block;
+    font-size: clamp(1.9rem, 4vw, 2.8rem);
+    font-weight: 660;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-lead .m-value {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .m-sub { display: block; margin-top: 10px; font-size: 0.72rem; color: var(--text-muted); }
+
+  .sz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+  }
+
+  .sz-h { margin: 0 0 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+
+  .sz-yaml-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .sz-yaml-head .sz-h { flex: 1; }
+
+  .rows { margin: 0; display: grid; }
+
+  .rows > :global(div) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 11px 0;
+    border-top: 1px dashed var(--border);
+    font-size: 0.87rem;
+  }
+
+  .rows > :global(div:first-child) { border-top: 0; padding-top: 0; }
+  .rows :global(dt) { color: var(--text-muted); flex: none; }
+
+  .rows :global(dd) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-align: right;
+  }
+
+  .out-block {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--radius-xs);
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .sz-notes-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .note { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .note h2 { margin-bottom: 12px; }
+  .note p { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .note p:last-child { margin-bottom: 0; }
+  .note b { color: var(--text-soft); font-weight: 600; }
+  .note-limit { padding-top: 12px; border-top: 1px solid var(--border); }
+
+  .note code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 560px) {
+    .note { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const num = (id, fallback = 0) => {
+    const v = Number(($(id) as HTMLInputElement)?.value);
+    return Number.isFinite(v) && v >= 0 ? v : fallback;
+  };
+
+  function recalc() {
+    const rps = num('f-rps');
+    const latencyMs = Math.max(1, num('f-latency', 1));
+    const perWorker = Math.max(1, num('f-conc', 1));
+    const memPerWorker = num('f-mem');
+    const util = Math.min(95, Math.max(10, num('f-util', 70))) / 100;
+    const perPod = Math.max(1, num('f-per-pod', 1));
+
+    // Little's Law: concurrency = arrival rate × service time.
+    const concurrency = rps * (latencyMs / 1000);
+
+    // Divide by target utilisation rather than sizing to saturation.
+    const workersRaw = concurrency / perWorker / util;
+    const workers = Math.max(1, Math.ceil(workersRaw));
+    const pods = Math.max(1, Math.ceil(workers / perPod));
+
+    // CPU comes from a stated input rather than being inferred. A worker's CPU
+    // appetite depends entirely on whether the workload is CPU- or I/O-bound,
+    // so the user declares it instead of the tool guessing.
+    const cpuPerWorker = Math.max(0.05, num('f-cpu', 0.5));
+    const workersPerPodActual = Math.ceil(workers / pods);
+
+    const cpuCores = workers * cpuPerWorker;
+    const memTotalMb = workers * memPerWorker;
+    const memPerPodMb = Math.ceil(workersPerPodActual * memPerWorker * 1.25); // 25% headroom
+    const cpuPerPodM = Math.max(50, Math.round(workersPerPodActual * cpuPerWorker * 1000));
+
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+
+    set('r-conc', concurrency < 10 ? concurrency.toFixed(1) : Math.ceil(concurrency).toLocaleString());
+    set('r-conc-sub', `${rps.toLocaleString()} req/s × ${latencyMs} ms`);
+    set('r-workers', workers.toLocaleString());
+    set('r-pods', pods.toLocaleString());
+    set('r-pods-sub', `${perPod} worker${perPod === 1 ? '' : 's'} per pod`);
+
+    const rows = $('sz-rows');
+    if (rows) {
+      rows.innerHTML = [
+        ['Concurrency (Little’s Law)', concurrency < 10 ? concurrency.toFixed(2) : Math.ceil(concurrency).toLocaleString()],
+        ['Workers at 100% (unsafe)', Math.max(1, Math.ceil(concurrency / perWorker)).toLocaleString()],
+        [`Workers at ${Math.round(util * 100)}% target`, workers.toLocaleString()],
+        ['Workers per pod (actual)', workersPerPodActual.toLocaleString()],
+        ['Total CPU', `${cpuCores.toFixed(2)} cores @ ${cpuPerWorker} per worker`],
+        ['Total memory', memTotalMb >= 1024 ? `${(memTotalMb / 1024).toFixed(2)} GiB` : `${Math.ceil(memTotalMb)} MiB`],
+        ['Per pod — CPU request', `${cpuPerPodM}m`],
+        ['Per pod — memory limit', `${memPerPodMb} Mi`],
+        ['Headroom before saturation', `${Math.round((1 - util) * 100)}%`],
+        ['Max sustainable req/s', `${Math.floor((workers * perWorker) / (latencyMs / 1000)).toLocaleString()}`],
+      ]
+        .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
+        .join('');
+    }
+
+    // Requests are the scheduling guarantee; limits are the ceiling. CPU limit
+    // is set to double the request so a burst is absorbed without throttling
+    // every pod, while memory request == limit because memory is not
+    // compressible — an over-committed pod gets OOM-killed instead of slowed.
+    const yaml = `resources:
+  requests:
+    cpu: ${cpuPerPodM}m
+    memory: ${memPerPodMb}Mi
+  limits:
+    cpu: ${cpuPerPodM * 2}m
+    memory: ${memPerPodMb}Mi
+
+# replicas: ${pods}
+# HPA target: ${Math.round(util * 100)}% CPU`;
+
+    const out = $('sz-yaml');
+    if (out) out.textContent = yaml;
+  }
+
+  ['f-rps', 'f-latency', 'f-conc', 'f-mem', 'f-util', 'f-per-pod', 'f-cpu'].forEach((id) => {
+    $(id)?.addEventListener('input', recalc);
+  });
+
+  $('sz-copy')?.addEventListener('click', async () => {
+    const btn = $('sz-copy');
+    try {
+      await navigator.clipboard.writeText($('sz-yaml')?.textContent || '');
+      if (btn) { btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy'), 1600); }
+    } catch { /* clipboard blocked */ }
+  });
+
+  recalc();
+</script>

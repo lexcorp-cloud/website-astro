@@ -1,0 +1,303 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="yaml-json"
+  title="YAML to JSON Converter"
+  description="Convert YAML to JSON and back in your browser, with parse errors reported by line. Handles multi-document YAML and anchors. Nothing is uploaded."
+  heading="Convert between YAML and JSON"
+  intro="Paste either format and convert in the direction you need. Parse errors are reported with a line number, which is usually all you need to find a broken manifest."
+>
+  <div slot="input" class="yj-bar">
+    <div class="yj-actions">
+      <button type="button" class="btn btn-primary btn-sm" id="to-json">
+        YAML → JSON
+        <span class="arrow"><Icon name="arrow" size={15} /></span>
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" id="to-yaml">
+        JSON → YAML
+        <span class="arrow"><Icon name="arrow" size={15} /></span>
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" id="yj-sample">Load sample</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="yj-clear">Clear</button>
+    </div>
+
+    <label class="yj-indent">
+      <span class="io-label mono">Indent</span>
+      <select id="yj-indent">
+        <option value="2" selected>2 spaces</option>
+        <option value="4">4 spaces</option>
+      </select>
+    </label>
+  </div>
+
+  <section class="section yj-sec">
+    <div class="container">
+      <div class="yj-grid">
+        <div class="glass-card pane">
+          <div class="pane-head">
+            <h2 class="h3">YAML</h2>
+            <span class="pane-stat mono" id="yaml-stat">—</span>
+          </div>
+          <textarea id="yaml-in" rows="18" spellcheck="false" placeholder="apiVersion: apps/v1&#10;kind: Deployment&#10;metadata:&#10;  name: api"></textarea>
+        </div>
+
+        <div class="glass-card pane">
+          <div class="pane-head">
+            <h2 class="h3">JSON</h2>
+            <span class="pane-stat mono" id="json-stat">—</span>
+          </div>
+          <textarea id="json-in" rows="18" spellcheck="false" placeholder='{ "apiVersion": "apps/v1" }'></textarea>
+        </div>
+      </div>
+
+      <p class="yj-error" id="yj-error" role="alert"></p>
+    </div>
+  </section>
+
+  <section class="section yj-notes-sec">
+    <div class="container">
+      <div class="glass-card note">
+        <span class="icon-tile"><Icon name="transform" /></span>
+        <div>
+          <h2 class="h3">What survives the round trip, and what doesn&rsquo;t</h2>
+          <p>
+            JSON is a subset of YAML, so <b>YAML → JSON is lossy by nature</b>.
+            Comments, anchors and aliases, multi-document files and explicit tags
+            have no JSON equivalent. Anchors are resolved into their expanded
+            values rather than preserved.
+          </p>
+          <p class="note-limit">
+            One YAML behaviour worth knowing: unquoted <code>yes</code>,
+            <code>no</code>, <code>on</code> and <code>off</code> are booleans in
+            YAML 1.1, and a leading zero like <code>0755</code> may be read as
+            octal. If a value must stay a string, quote it &mdash; this is a
+            frequent cause of manifests that parse but behave unexpectedly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .yj-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    max-width: none;
+  }
+
+  .yj-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .yj-indent { display: flex; align-items: center; gap: 10px; }
+  .io-label { font-size: 0.6rem !important; color: var(--text-muted); }
+
+  .yj-indent select {
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  .yj-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .yj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 16px;
+  }
+
+  .pane { display: flex; flex-direction: column; }
+
+  .pane-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pane-head h2 { margin: 0; }
+  .pane-stat { font-size: 0.6rem !important; color: var(--text-muted); }
+
+  .pane textarea {
+    width: 100%;
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--term-border);
+    background: var(--term-bg);
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.75;
+    resize: vertical;
+    tab-size: 2;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .pane textarea:focus { outline: none; border-color: var(--accent-blue); }
+
+  .yj-error {
+    margin: 16px 0 0;
+    min-height: 22px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-red);
+    white-space: pre-wrap;
+  }
+
+  .yj-notes-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .note { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .note h2 { margin-bottom: 12px; }
+  .note p { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .note p:last-child { margin-bottom: 0; }
+  .note b { color: var(--text-soft); font-weight: 600; }
+  .note-limit { padding-top: 12px; border-top: 1px solid var(--border); }
+
+  .note code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 560px) {
+    .note { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const yamlIn = $('yaml-in') as HTMLTextAreaElement;
+  const jsonIn = $('json-in') as HTMLTextAreaElement;
+  const errorEl = $('yj-error');
+
+  // js-yaml is ~30KB gz, so it loads on demand rather than on page load —
+  // the page is useful (and fast) before the first conversion.
+  let yamlLib = null;
+  async function loadYaml() {
+    if (!yamlLib) yamlLib = await import('js-yaml');
+    return yamlLib;
+  }
+
+  const indent = () => Number(($('yj-indent') as HTMLSelectElement).value) || 2;
+  const setError = (msg) => { if (errorEl) errorEl.textContent = msg || ''; };
+
+  function stats() {
+    const s = (el, id) => {
+      const text = el.value;
+      const el2 = $(id);
+      if (el2) {
+        el2.textContent = text
+          ? `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`
+          : '—';
+      }
+    };
+    s(yamlIn, 'yaml-stat');
+    s(jsonIn, 'json-stat');
+  }
+
+  async function yamlToJson() {
+    setError('');
+    if (!yamlIn.value.trim()) return;
+    try {
+      const { loadAll } = await loadYaml();
+      const docs: unknown[] = [];
+      loadAll(yamlIn.value, (d) => docs.push(d));
+      // A multi-document YAML file has no single JSON equivalent, so it becomes
+      // an array — stated rather than silently dropping all but the first.
+      const value = docs.length === 1 ? docs[0] : docs;
+      jsonIn.value = JSON.stringify(value, null, indent());
+      if (docs.length > 1) {
+        setError(`Note: ${docs.length} YAML documents were combined into a JSON array.`);
+      }
+    } catch (e: any) {
+      const line = e?.mark?.line != null ? ` (line ${e.mark.line + 1})` : '';
+      setError(`YAML parse error${line}: ${e?.reason || e?.message || 'unknown'}`);
+    }
+    stats();
+  }
+
+  async function jsonToYaml() {
+    setError('');
+    if (!jsonIn.value.trim()) return;
+    try {
+      const parsed = JSON.parse(jsonIn.value);
+      const { dump } = await loadYaml();
+      yamlIn.value = dump(parsed, { indent: indent(), lineWidth: 100, noRefs: true });
+    } catch (e: any) {
+      // V8 has changed this message format over time: older builds report
+      // "at position N", newer ones sometimes "line N column M", and sometimes
+      // neither. Handle both and fall through quietly rather than showing a
+      // wrong line number.
+      const msg = e?.message || '';
+      let where = '';
+      const pos = /position (\d+)/.exec(msg);
+      const line = /line (\d+)/.exec(msg);
+      if (pos) {
+        where = ` (line ${jsonIn.value.slice(0, Number(pos[1])).split('\n').length})`;
+      } else if (line) {
+        where = ` (line ${line[1]})`;
+      }
+      setError(`JSON parse error${where}: ${e?.message || 'unknown'}`);
+    }
+    stats();
+  }
+
+  $('to-json')?.addEventListener('click', yamlToJson);
+  $('to-yaml')?.addEventListener('click', jsonToYaml);
+  yamlIn?.addEventListener('input', stats);
+  jsonIn?.addEventListener('input', stats);
+  $('yj-indent')?.addEventListener('change', () => { if (jsonIn.value.trim()) yamlToJson(); });
+
+  $('yj-sample')?.addEventListener('click', () => {
+    yamlIn.value = `# A small Kubernetes deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: api
+          image: registry.lexcorp/api:1.8.2
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+`;
+    yamlToJson();
+  });
+
+  $('yj-clear')?.addEventListener('click', () => {
+    yamlIn.value = '';
+    jsonIn.value = '';
+    setError('');
+    stats();
+  });
+
+  stats();
+</script>

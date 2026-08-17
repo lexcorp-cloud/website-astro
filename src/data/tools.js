@@ -118,6 +118,54 @@ export const tools = [
       'Four everyday conversions in one place: Base64 encode and decode, UUID v4 generation, SHA hashing, and Unix timestamp conversion.',
     status: 'live',
   },
+  {
+    slug: 'jwt-decoder',
+    href: '/tools/jwt-decoder',
+    icon: 'shield',
+    short: 'JWT Decoder',
+    name: 'JWT Decoder',
+    tagline: 'Header · Claims · Expiry',
+    category: 'Developer',
+    description:
+      'Decode a JSON Web Token to inspect its header and claims, with expiry and timing checks in readable dates. Decoding happens locally — the token is never sent anywhere.',
+    status: 'live',
+  },
+  {
+    slug: 'password-generator',
+    href: '/tools/password-generator',
+    icon: 'bolt',
+    short: 'Password Gen',
+    name: 'Password & Passphrase Generator',
+    tagline: 'Entropy · Crack time',
+    category: 'Security',
+    description:
+      'Generate cryptographically random passwords or passphrases, with the actual entropy in bits and an honest estimate of how long an offline attack would take.',
+    status: 'live',
+  },
+  {
+    slug: 'yaml-json',
+    href: '/tools/yaml-json',
+    icon: 'transform',
+    short: 'YAML ⇄ JSON',
+    name: 'YAML ⇄ JSON Converter',
+    tagline: 'Two-way · Validating',
+    category: 'Developer',
+    description:
+      'Convert between YAML and JSON in either direction, with parse errors reported by line so a broken manifest is quick to find.',
+    status: 'live',
+  },
+  {
+    slug: 'sizing-calculator',
+    href: '/tools/sizing-calculator',
+    icon: 'server',
+    short: 'Sizing Calc',
+    name: 'Server & Kubernetes Sizing',
+    tagline: 'Concurrency · CPU · Memory',
+    category: 'Calculators',
+    description:
+      'Size workers, pods, CPU and memory from your traffic and latency using Little’s Law, and get a Kubernetes resources block you can paste in.',
+    status: 'live',
+  },
 ];
 
 export const getTool = (slug) => tools.find((t) => t.slug === slug);
