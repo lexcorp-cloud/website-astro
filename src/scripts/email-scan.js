@@ -17,9 +17,17 @@ const DOH = 'https://cloudflare-dns.com/dns-query';
 // chosen by whoever set it up — it cannot be enumerated from DNS. We probe
 // the selectors used by the major providers; a miss proves nothing.
 const COMMON_SELECTORS = [
-  'google', 'default', 'selector1', 'selector2', 'k1', 'k2',
-  'mail', 'dkim', 's1', 's2', 'zoho', 'sendgrid', 'mandrill',
-  'protonmail', 'fm1', 'amazonses', 'pm', 'mxvault',
+  // Google Workspace / generic
+  'google', 'default', 'mail', 'dkim', 'dkim1', 'smtp',
+  // Microsoft 365
+  'selector1', 'selector2',
+  // Zoho — 'zmail' is the default and was missing here originally, which made
+  // the tool report "no DKIM" for a domain that had it correctly configured.
+  // A missed selector produces a false negative, so err toward covering more.
+  'zoho', 'zmail',
+  // Mailchimp / Mandrill / SendGrid / SES / Postmark / Proton / Fastmail
+  'k1', 'k2', 's1', 's2', 'mandrill', 'sendgrid', 'amazonses',
+  'pm', 'protonmail', 'fm1', 'mxvault', 'titan1',
 ];
 
 export async function dnsQuery(name, type) {
