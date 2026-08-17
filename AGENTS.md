@@ -302,18 +302,126 @@ discarded** (the first request pays DNS/TLS/slow-start), and downloads run over
 Capped at ~26MB total so it stays honest without burning mobile data. The page
 states that it measures the route to Cloudflare's edge, not a universal figure.
 
-**Feasibility notes for future tools** (verified from a browser, not assumed):
+### Batch 3 tools (DNS, network, developer utilities)
+
+**`whois-lookup.astro` + `scripts/rdap-lookup.js`** — RDAP client for domain
+registration details: registrar, expiry date, EPP transfer/delete locks (the
+anti-hijacking pair), DNSSEC status, nameservers. Handles `.np` gracefully —
+IANA publishes no RDAP server for Nepal's registry, so the page falls back to
+DNS delegation and explains the limit. Links to np-domain-check for further
+checking.
+
+**`np-domain-check.astro`** — Availability checker for `.np`, `.com.np`, `.org.np`,
+`.net.np`, `.edu.np`, `.gov.np`. Since no WHOIS/RDAP exists, uses DS queries
+against the parent zone (stronger than NS-only probes). Renders three verdicts:
+REGISTERED (records exist or parent acknowledges it), LIKELY AVAILABLE (authoritatively
+NXDOMAIN, with inline caveat that manual approval can delay registration), UNCERTAIN
+(SERVFAIL, orphaned records, etc). Wildcard detection guards false positives.
+
+**`dns-propagation.astro` + `scripts/dns-propagate.js`** — Queries a record against
+two CORS-open DoH endpoints (Cloudflare + Google) simultaneously to check cache
+consistency. Order-independent record comparison (DNS round-robin rotates answer
+order by design). Highlights multi-provider zones (GitHub actually has NS from two
+vendors; SOA serials differ permanently) and EDNS Client Subnet effects (Cloudflare
+does not forward it, Google does, so CDN-fronted or latency-routed records
+permanently disagree). States this limit boldly — it is a two-resolver check, not
+twenty locations, but still a real tool for catching stale caches.
+
+**`reverse-dns.astro` + `scripts/reverse-dns.js`** — PTR lookup for IPv4 and IPv6,
+with forward-confirmed check (does the PTR hostname resolve back to the original IP?
+Mail servers require this match). IPv6 nibble expansion (full :: normalisation,
+produces 32 reversed nibbles + ip6.arpa). Accepts hostnames and resolves them first.
+"Use my IP" button from ipify/ipv4.icanhazip. Shows the authoritative SOA/NS for
+the reverse zone, not just the PTR.
+
+**`text-diff.astro`** — LCS-based line diff. Side-by-side (4-col: line#/original,
+line#/changed), unified (traditional +/- format), and unified-patch views. Long
+unchanged runs fold to 3 context lines with a "N unchanged - show all" toggle. 
+Word-level highlighting on changed line pairs. Enforces size caps (4,000 lines,
+2M chars) to prevent hangs. Pre-loaded with an nginx config example.
+
+### Batch 4 tools (file/media/content processing)
+
+**Heavy dependencies are LAZILY IMPORTED** — qrcode, pdf-lib, marked, and dompurify
+are installed but never loaded in the initial bundle. Each is dynamically imported
+inside the handler that first needs it. pdf-lib (~300KB) is where this matters most
+for Core Web Vitals.
+
+**`qr-generator.astro`** — Live QR code generator. Text/URL input, controls for
+size (100–600px), error-correction level (L/M/Q/H with damage tolerance), and
+foreground/background colours. Canvas preview + PNG download + SVG source. Validates
+contrast (warns if <3:1) so the generated code will actually scan. Explains quiet
+zones (mandatory per spec, not decorative) and why shortening a URL raises scan
+reliability.
+
+**`image-compressor.astro`** — Canvas-based client-side compressor. Drag-and-drop,
+multi-format (WebP / JPEG / PNG), quality slider (disabled/greyed for PNG since it
+is lossless). Shows before/after previews and byte savings. Warns if compressed
+file is larger than original and recommends keeping the original. Mentions EXIF
+stripping as a privacy benefit (removes GPS location). Explains why WebP typically
+beats JPEG at the same perceived quality.
+
+**`favicon-generator.astro`** — Two modes: upload an image or generate from a
+monogram (text, background colour, text colour, border radius, font weight). Renders
+all standard sizes (16, 32, 48, 180 apple-touch-icon, 192 and 512 PWA). Individual
+PNG downloads. Outputs exact HTML `<link>` tags and minimal web app manifest JSON.
+Uses high-quality Canvas downscaling with step-down halving for large reductions.
+States plainly: cannot produce multi-resolution .ico (Canvas limitation), but modern
+browsers accept PNG favicons.
+
+**`pdf-tools.astro`** — Merge and split modes (tabs). Merge: reorder PDFs, combine
+them, download. Split: extract a page range (e.g. "1-3,7") or one file per page.
+Handles encrypted PDFs gracefully (catches the error, explains clearly). Parses
+ranges robustly (ignores whitespace, rejects out-of-bounds). Emphasises client-side
+processing — no uploads. Shows page count and a progress line for large files.
+
+**`markdown-preview.astro`** — Split-pane live editor. Supports GFM: tables, task
+lists, fenced code, strikethrough. **Sanitised with DOMPurify** — marked's output is
+run through `DOMPurify.sanitize()` before DOM insertion, since rendering user input
+as HTML is an XSS vector and this is a cybersecurity company's website. States this
+on the page. Shows word count, character count, estimated reading time. Buttons to
+copy rendered HTML and sanitised HTML source.
+
+**`contrast-checker.astro`** — WCAG 2.1 formula: sRGB → linear (piecewise at 0.03928
+threshold), relative luminance (coefficients 0.2126 / 0.7152 / 0.0722),
+`(L_lighter + 0.05) / (L_darker + 0.05)`. Verified: black on white = exactly 21:1,
+#777777 on #fff ≈ 4.48:1. Two colour pickers (hex input, accepts 3 or 6 digits with
+or without #). Pass/fail verdicts for AA (4.5 normal, 3 large) + AAA (7 normal, 4.5
+large) + UI (3). Live preview text samples. Suggests nearest passing colour by
+adjusting lightness so the user gets a fix, not just a verdict. Explains "large text"
+precisely (18.66px bold or 24px regular), that contrast is a proxy not a perfect
+model, and that APCA is the emerging successor.
+
+### All 18 tools, by category
+
+**Email (1):** Email Security Scanner
+
+**DNS (5):** DNS Health Check, Domain WHOIS Lookup, .np Domain Checker, DNS
+Propagation Checker, Reverse DNS Lookup
+
+**Security (2):** SSL Certificate Checker, Password & Passphrase Generator
+
+**Network (2):** My IP, Internet Speed Test, Subnet / CIDR Calculator
+
+**Calculators (2):** Downtime Cost Calculator, Server & Kubernetes Sizing
+
+**Developer (6):** YAML ⇄ JSON Converter, Cron Expression Explainer, Developer
+Utilities, JWT Decoder, Text Diff Checker, QR Code Generator, Image Compressor,
+Favicon Generator, PDF Merge & Split, Markdown Preview, WCAG Contrast Checker
+
+**Feasibility notes** (verified from a browser, not assumed):
 DNS-over-HTTPS (Cloudflare + Google) ✅ · RDAP `rdap.org` ✅ · crt.sh ✅ ·
-ipify / ipapi.co / Cloudflare trace ✅ · `speed.cloudflare.com` `__down`/`__up` ✅.
+ipify / ipapi.co ✅ · `speed.cloudflare.com` ✅ · qrcode ✅ · pdf-lib ✅ ·
+marked + DOMPurify ✅ · Canvas image compression ✅.
 
 ❌ Fetching arbitrary site HTML or headers — CORS-blocked, needs a proxy.
-❌ `.np` WHOIS **does not exist**: IANA's record for `.np` has an empty `refer:`
-field, so no port-43 server is published even from a VPS. A `.np` checker can
-only infer registration from `NXDOMAIN` vs `NOERROR`.
+❌ `.np` WHOIS — IANA's record has an empty `refer:` field (no server exists).
 ❌ **DNSBL / blacklist checks are not viable client-side.** Spamhaus returns the
-sentinel `127.255.255.254` for *every* query made through a public resolver —
-including its own always-listed test address — so results would be uniformly
+sentinel `127.255.255.254` for *every* query made through a public resolver,
+including its own always-listed test address — results would be uniformly
 meaningless. This needs a backend running its own resolver.
+❌ Port scanner, ping, traceroute, uptime monitoring, security headers, tech
+detector — all require backend or outbound network access from the server.
 
 ---
 
@@ -506,3 +614,8 @@ follow automatically.
   on the form status, `aria-current` on nav, `aria-hidden` on decorative canvas/SVG,
   visible focus rings, a skip link, and a full `prefers-reduced-motion` path.
 - Every page passes `title` + `description` to `BaseLayout`.
+- **Lazy-import heavy dependencies.** qrcode, pdf-lib, marked, and dompurify are
+  installed but never loaded in the initial JS bundle. Each is dynamically imported
+  inside the handler that first needs it, via `const lib = await import('pkg')`.
+  This keeps the page bundle small and Core Web Vitals strong. pdf-lib (~300KB) is
+  where this discipline matters most.
