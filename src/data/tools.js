@@ -82,6 +82,42 @@ export const tools = [
       'Measure download and upload throughput, latency and jitter straight from your browser. No app, no signup.',
     status: 'live',
   },
+  {
+    slug: 'subnet-calculator',
+    href: '/tools/subnet-calculator',
+    icon: 'globe',
+    short: 'Subnet Calc',
+    name: 'Subnet / CIDR Calculator',
+    tagline: 'CIDR · Mask · Hosts',
+    category: 'Network',
+    description:
+      'Work out network and broadcast addresses, usable host range, netmask and wildcard for any IPv4 CIDR block — and split a network into equal subnets.',
+    status: 'live',
+  },
+  {
+    slug: 'cron-explainer',
+    href: '/tools/cron-explainer',
+    icon: 'clock',
+    short: 'Cron Explainer',
+    name: 'Cron Expression Explainer',
+    tagline: 'Schedule · Next runs',
+    category: 'Developer',
+    description:
+      'Translate a crontab expression into plain English and see the next five times it will actually fire, so a misplaced asterisk is obvious before it ships.',
+    status: 'live',
+  },
+  {
+    slug: 'dev-utilities',
+    href: '/tools/dev-utilities',
+    icon: 'code',
+    short: 'Dev Utilities',
+    name: 'Developer Utilities',
+    tagline: 'Base64 · UUID · Hash · Epoch',
+    category: 'Developer',
+    description:
+      'Four everyday conversions in one place: Base64 encode and decode, UUID v4 generation, SHA hashing, and Unix timestamp conversion.',
+    status: 'live',
+  },
 ];
 
 export const getTool = (slug) => tools.find((t) => t.slug === slug);

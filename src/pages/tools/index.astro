@@ -2,7 +2,14 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 
-import { tools } from '../../data/tools.js';
+import { tools, categories } from '../../data/tools.js';
+
+// Grouped rather than one flat grid: past a handful of tools a single list stops
+// being scannable, and the category headings give each group its own anchor.
+const grouped = categories.map((c) => ({
+  name: c,
+  items: tools.filter((t) => t.category === c),
+}));
 
 const principles = [
   { icon: 'bolt', title: 'No signup', text: 'No account, no email wall, no credit card.' },
@@ -31,23 +38,32 @@ const principles = [
 
   <section class="section list-sec">
     <div class="container">
-      <div class="tool-grid">
-        {tools.map((t) => (
-          <a href={t.href} class="reveal glass-card tool" data-tilt>
-            <div class="tool-top">
-              <span class="icon-tile"><Icon name={t.icon} /></span>
-              <span class="tool-status">{t.status === 'live' ? 'Live' : 'Soon'}</span>
-            </div>
-            <span class="tool-tagline mono">{t.tagline}</span>
-            <h2 class="h3">{t.name}</h2>
-            <p>{t.description}</p>
-            <span class="tool-go">
-              Open tool <span class="arrow"><Icon name="arrow" size={15} /></span>
-            </span>
-          </a>
-        ))}
+      {grouped.map((group) => (
+        <div class="cat">
+          <div class="cat-head">
+            <h2 class="cat-name">{group.name}</h2>
+            <span class="cat-count mono">{group.items.length}</span>
+            <span class="cat-rule"></span>
+          </div>
 
-      </div>
+          <div class="tool-grid">
+            {group.items.map((t) => (
+              <a href={t.href} class="reveal glass-card tool" data-tilt>
+                <div class="tool-top">
+                  <span class="icon-tile"><Icon name={t.icon} /></span>
+                  <span class="tool-status">{t.status === 'live' ? 'Live' : 'Soon'}</span>
+                </div>
+                <span class="tool-tagline mono">{t.tagline}</span>
+                <h3 class="h3">{t.name}</h3>
+                <p>{t.description}</p>
+                <span class="tool-go">
+                  Open tool <span class="arrow"><Icon name="arrow" size={15} /></span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   </section>
 
@@ -88,6 +104,39 @@ const principles = [
   }
 
   .list-sec { padding-top: clamp(20px, 3vw, 36px); }
+
+  .cat + .cat { margin-top: clamp(38px, 5vw, 60px); }
+
+  .cat-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .cat-name {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .cat-count {
+    padding: 2px 9px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.6rem !important;
+    color: var(--text-muted);
+  }
+
+  .cat-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  .tool h3 { margin: 2px 0 0; }
 
   .tool-grid {
     display: grid;

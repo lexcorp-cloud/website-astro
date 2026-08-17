@@ -1,0 +1,312 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const examples = [
+  { expr: '*/15 * * * *', label: 'Every 15 minutes' },
+  { expr: '0 2 * * *', label: 'Nightly at 02:00' },
+  { expr: '0 */6 * * 1-5', label: 'Every 6h, weekdays' },
+  { expr: '30 3 1 * *', label: 'Monthly' },
+  { expr: '@daily', label: 'Shorthand' },
+];
+
+const gotchas = [
+  {
+    icon: 'shield',
+    title: 'Day-of-month and weekday are OR, not AND',
+    text: 'If both fields are restricted, cron runs when EITHER matches. “0 0 13 * 5” fires on the 13th and on every Friday — not only on Friday the 13th. This surprises almost everyone once.',
+  },
+  {
+    icon: 'clock',
+    title: 'It runs in the server’s timezone',
+    text: 'Cron uses the system timezone unless CRON_TZ or TZ is set in the crontab. Daylight saving can make a job run twice or not at all on the changeover day.',
+  },
+  {
+    icon: 'bolt',
+    title: 'Ranges with steps start at the range beginning',
+    text: '“0-30/10” gives 0, 10, 20, 30 — not 10, 20, 30. And “*/7” on minutes gives 0, 7, 14 … 56, then jumps back to 0, so the gap across the hour boundary is only 4 minutes.',
+  },
+];
+---
+
+<ToolLayout
+  slug="cron-explainer"
+  title="Cron Expression Explainer"
+  description="Free cron expression parser. Translate any crontab schedule into plain English and see the next five times it will run. No signup, runs in your browser."
+  heading="What does this cron expression actually do?"
+  intro="Paste a crontab line to get it in plain English, field by field, plus the next five times it will fire — so a misplaced asterisk is obvious before it reaches production."
+>
+  <div slot="input" class="cr-input">
+    <form id="cr-form" class="scan-form" novalidate>
+      <div class="scan-field">
+        <label for="expr" class="visually-hidden">Cron expression</label>
+        <span class="scan-icon"><Icon name="clock" size={19} /></span>
+        <input
+          type="text"
+          id="expr"
+          value="0 */6 * * 1-5"
+          placeholder="0 */6 * * 1-5"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <span class="btn-label">Explain</span>
+        <span class="arrow"><Icon name="arrow" size={17} /></span>
+      </button>
+    </form>
+
+    <div class="cr-examples">
+      {examples.map((e) => (
+        <button type="button" class="ex-chip" data-expr={e.expr} title={e.label}>{e.expr}</button>
+      ))}
+    </div>
+
+    <p class="scan-error" id="cr-error" role="alert"></p>
+  </div>
+
+  <section class="section cr-out-sec">
+    <div class="container">
+      <div id="cr-results" hidden>
+        <div class="glass-card cr-main">
+          <span class="mono cr-eyebrow">In plain English</span>
+          <p class="cr-desc" id="cr-desc">—</p>
+          <code class="cr-expr" id="cr-expr">—</code>
+        </div>
+
+        <div class="cr-grid">
+          <div class="glass-card">
+            <h2 class="h3 cr-h">Field by field</h2>
+            <div class="fields" id="cr-fields"></div>
+          </div>
+
+          <div class="glass-card">
+            <h2 class="h3 cr-h">Next five runs</h2>
+            <ul class="runs" id="cr-runs"></ul>
+            <p class="runs-note mono" id="cr-tz"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cr-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Gotchas</span>
+        <h2 class="h2">Three cron behaviours that cause real incidents.</h2>
+      </div>
+      <div class="grid grid-3">
+        {gotchas.map((g) => (
+          <div class="reveal glass-card nt">
+            <span class="icon-tile"><Icon name={g.icon} /></span>
+            <h3 class="h3">{g.title}</h3>
+            <p>{g.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .cr-input { margin-top: 26px; max-width: 46rem; }
+
+  .cr-examples {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .ex-chip {
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+
+  .ex-chip:hover { border-color: var(--accent-blue); color: var(--text); }
+
+  .cr-out-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .cr-main { margin-bottom: 16px; }
+  .cr-eyebrow { display: block; font-size: 0.62rem !important; color: var(--text-muted); margin-bottom: 12px; }
+
+  .cr-desc {
+    margin: 0 0 18px;
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    line-height: 1.5;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+
+  .cr-desc :global(strong) {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 660;
+  }
+
+  .cr-expr {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: var(--radius-xs);
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    color: var(--term-ok);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+  }
+
+  .cr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+  }
+
+  .cr-h { margin: 0 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+
+  /* JS-injected → :global selectors required */
+  .fields > :global(div) {
+    display: grid;
+    grid-template-columns: 1fr auto 1.2fr;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--border);
+    font-size: 0.85rem;
+  }
+
+  .fields > :global(div:first-child) { border-top: 0; padding-top: 0; }
+  .fields :global(.fn) { color: var(--text-muted); }
+
+  .fields :global(.fr) {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: var(--surface-strong);
+  }
+
+  .fields :global(.fm) {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--text-soft);
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .runs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+
+  .runs :global(li) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .runs :global(li:last-child) { border-bottom: 0; padding-bottom: 0; }
+  .runs :global(.rel) { color: var(--text-muted); font-size: 0.74rem; }
+
+  .runs-note { margin: 16px 0 0; font-size: 0.6rem !important; color: var(--text-muted); }
+
+  .cr-notes-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .nt h3 { margin: 14px 0 6px; font-size: 1rem; }
+  .nt p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
+</style>
+
+<script>
+  import { parseCron } from '../../scripts/cron-parse.js';
+
+  const $ = (id) => document.getElementById(id);
+  const form = $('cr-form');
+  const input = $('expr') as HTMLInputElement;
+  const errorEl = $('cr-error');
+
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  const relative = (d) => {
+    const diff = d.getTime() - Date.now();
+    const mins = Math.round(diff / 60000);
+    if (mins < 60) return `in ${mins} min`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 48) return `in ${hrs} h`;
+    return `in ${Math.round(hrs / 24)} d`;
+  };
+
+  function run(value) {
+    if (!errorEl) return;
+    errorEl.textContent = '';
+
+    let r;
+    try {
+      r = parseCron(value);
+    } catch (err: any) {
+      errorEl.textContent = err?.message || 'Could not parse that expression.';
+      $('cr-results')!.hidden = true;
+      return;
+    }
+
+    // The describer marks the OR caveat with **…**; render it as emphasis.
+    const desc = esc(r.description).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    $('cr-desc')!.innerHTML = desc;
+    $('cr-expr')!.textContent = r.shorthand ? `${r.shorthand}  →  ${r.expression}` : r.expression;
+
+    const fields = $('cr-fields');
+    if (fields) {
+      fields.innerHTML = r.fields.length
+        ? r.fields
+            .map((f) => `<div><span class="fn">${esc(f.name)}</span><span class="fr">${esc(f.raw)}</span><span class="fm">${esc(f.matches)}</span></div>`)
+            .join('')
+        : '<div><span class="fn">No schedule fields</span><span class="fr">@reboot</span><span class="fm">boot only</span></div>';
+    }
+
+    const runs = $('cr-runs');
+    if (runs) {
+      runs.innerHTML = r.next.length
+        ? r.next
+            .map((d) => `<li><span>${d.toLocaleString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span><span class="rel">${relative(d)}</span></li>`)
+            .join('')
+        : '<li><span>No upcoming runs</span></li>';
+    }
+
+    const tz = $('cr-tz');
+    if (tz) {
+      tz.textContent = `Times shown in your browser timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}). Cron uses the server's timezone.`;
+    }
+
+    $('cr-results')!.hidden = false;
+  }
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(input.value);
+  });
+
+  document.querySelectorAll('.ex-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const v = (chip as HTMLElement).dataset.expr || '';
+      input.value = v;
+      run(v);
+    });
+  });
+
+  const preset = new URLSearchParams(location.search).get('expr');
+  if (preset) input.value = preset;
+  run(input.value);
+</script>

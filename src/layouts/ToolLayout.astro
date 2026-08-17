@@ -14,6 +14,11 @@ interface Props {
 const { slug, title, description, heading, intro } = Astro.props;
 const current = getTool(slug);
 
+// Showing every tool in the rail stops scaling past a handful, so it lists the
+// siblings in this tool's own category and links to the hub for the rest.
+const siblings = tools.filter((t) => t.category === current?.category && t.slug !== slug);
+const related = siblings.length ? siblings : tools.filter((t) => t.slug !== slug).slice(0, 3);
+
 // Breadcrumbs are rendered visually and as JSON-LD — Google shows the trail in
 // results, which reads better than a bare URL for a deep tool page.
 const crumbSchema = {
@@ -57,17 +62,19 @@ const crumbSchema = {
   <section class="section switch-sec">
     <div class="container">
       <div class="switch-head">
-        <span class="eyebrow">More free tools</span>
-        <h2 class="h3">Check something else</h2>
+        <div>
+          <span class="eyebrow">{current?.category ? `More ${current.category.toLowerCase()} tools` : 'More free tools'}</span>
+          <h2 class="h3">Check something else</h2>
+        </div>
+        <a class="switch-all" href="/tools">
+          All {tools.length} tools
+          <span class="arrow"><Icon name="arrow" size={15} /></span>
+        </a>
       </div>
 
       <div class="switch-rail">
-        {tools.map((t) => (
-          <a
-            href={t.href}
-            class:list={['switch-pill', t.slug === slug && 'is-current']}
-            aria-current={t.slug === slug ? 'page' : undefined}
-          >
+        {related.map((t) => (
+          <a href={t.href} class="switch-pill">
             <span class="switch-icon"><Icon name={t.icon} size={17} /></span>
             <span class="switch-text">
               <b>{t.short}</b>
@@ -144,8 +151,30 @@ const crumbSchema = {
     border-top: 1px solid var(--border);
   }
 
-  .switch-head { margin-bottom: 22px; }
+  .switch-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
   .switch-head h2 { margin: 0; }
+  .switch-head > div { flex: 1; }
+
+  .switch-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.84rem;
+    font-weight: 550;
+    color: var(--accent-blue);
+    white-space: nowrap;
+  }
+
+  .switch-all:hover .arrow { transform: translateX(4px); }
+  .switch-all .arrow { transition: transform 0.3s var(--ease-out); }
 
   /* auto-fit rather than a fixed count, so the rail absorbs new tools
      without needing a media-query rewrite each time one is added */

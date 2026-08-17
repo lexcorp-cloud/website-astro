@@ -1,0 +1,411 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const examples = ['10.0.0.0/8', '172.16.0.0/12', '192.168.1.0/24', '10.20.30.0/26', '203.0.113.5/31'];
+
+const notes = [
+  {
+    icon: 'check',
+    title: 'Why /31 and /32 differ',
+    text: 'A /31 is a point-to-point link (RFC 3021) and a /32 is a single host — neither reserves network and broadcast addresses, so both addresses are usable. Many calculators get this wrong and report −2 hosts.',
+  },
+  {
+    icon: 'shield',
+    title: 'Wildcard masks',
+    text: 'The wildcard is the inverse of the netmask. Cisco ACLs and some firewall syntaxes want it instead of the mask, and getting the two confused is a common source of rules that silently match nothing.',
+  },
+  {
+    icon: 'route',
+    title: 'Leave room to grow',
+    text: 'Sizing a subnet exactly to today’s host count means renumbering later. Pick the next prefix up unless address space is genuinely scarce.',
+  },
+];
+---
+
+<ToolLayout
+  slug="subnet-calculator"
+  title="Subnet & CIDR Calculator"
+  description="Free IPv4 subnet calculator. Enter a CIDR block or address and netmask to get network, broadcast, usable host range, wildcard mask and subnet splits. Runs entirely in your browser."
+  heading="Subnet and CIDR calculator"
+  intro="Enter an IPv4 block as CIDR (10.0.0.0/24) or as an address and netmask. Everything is calculated in your browser — no network request is made."
+>
+  <div slot="input" class="sn-input">
+    <form id="sn-form" class="scan-form" novalidate>
+      <div class="scan-field">
+        <label for="cidr" class="visually-hidden">IPv4 network</label>
+        <span class="scan-icon"><Icon name="globe" size={19} /></span>
+        <input
+          type="text"
+          id="cidr"
+          value="10.0.0.0/24"
+          placeholder="10.0.0.0/24"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary" id="sn-btn">
+        <span class="btn-label">Calculate</span>
+        <span class="arrow"><Icon name="arrow" size={17} /></span>
+      </button>
+    </form>
+
+    <div class="sn-examples">
+      <span class="mono">Try</span>
+      {examples.map((e) => <button type="button" class="ex-chip" data-cidr={e}>{e}</button>)}
+    </div>
+
+    <p class="scan-error" id="sn-error" role="alert"></p>
+  </div>
+
+  <section class="section sn-out-sec">
+    <div class="container">
+      <div class="sn-grid" id="sn-results" hidden>
+        <div class="glass-card sn-main">
+          <div class="sn-head">
+            <span class="mono" id="sn-label">Network</span>
+            <span class="sn-type" id="sn-type">—</span>
+          </div>
+          <span class="sn-cidr" id="sn-cidr">—</span>
+          <p class="sn-range" id="sn-range">—</p>
+          <p class="sn-note" id="sn-note" hidden></p>
+        </div>
+
+        <div class="glass-card">
+          <dl class="rows" id="sn-rows"></dl>
+        </div>
+      </div>
+
+      <!-- subnet splitting -->
+      <div class="glass-card sn-split" id="sn-split" hidden>
+        <div class="split-head">
+          <div>
+            <span class="eyebrow">Split this network</span>
+            <h2 class="h3">Divide into equal subnets</h2>
+          </div>
+          <label class="split-select">
+            <span class="mono">New prefix</span>
+            <select id="sn-prefix"></select>
+          </label>
+        </div>
+        <div class="split-table" id="sn-table"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section sn-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Worth knowing</span>
+        <h2 class="h2">Three things that catch people out.</h2>
+      </div>
+      <div class="grid grid-3">
+        {notes.map((n) => (
+          <div class="reveal glass-card nt">
+            <span class="icon-tile"><Icon name={n.icon} /></span>
+            <h3 class="h3">{n.title}</h3>
+            <p>{n.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .sn-input { margin-top: 26px; max-width: 46rem; }
+
+  .sn-examples {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .sn-examples .mono { font-size: 0.6rem !important; color: var(--text-muted); margin-right: 4px; }
+
+  .ex-chip {
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+
+  .ex-chip:hover { border-color: var(--accent-blue); color: var(--text); }
+
+  .sn-out-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .sn-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sn-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .sn-head .mono { font-size: 0.62rem !important; color: var(--text-muted); }
+
+  .sn-type {
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .sn-cidr {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 3.6vw, 2.2rem);
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    word-break: break-all;
+  }
+
+  .sn-range {
+    margin: 14px 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: var(--text-soft);
+  }
+
+  .sn-note {
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.84rem;
+    color: var(--text-muted);
+  }
+
+  /* rows re-use the shared dl pattern; JS-injected so selectors need :global */
+  .rows { margin: 0; display: grid; }
+
+  .rows > :global(div) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 11px 0;
+    border-top: 1px dashed var(--border);
+    font-size: 0.88rem;
+  }
+
+  .rows > :global(div:first-child) { border-top: 0; padding-top: 0; }
+  .rows :global(dt) { color: var(--text-muted); flex: none; }
+
+  .rows :global(dd) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 540;
+    text-align: right;
+    word-break: break-all;
+  }
+
+  /* ---------- split ---------- */
+  .sn-split { margin-bottom: 16px; }
+
+  .split-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .split-head h2 { margin: 0; }
+
+  .split-select { display: flex; align-items: center; gap: 10px; }
+  .split-select .mono { font-size: 0.6rem !important; color: var(--text-muted); }
+
+  .split-select select {
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  .split-table {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .split-table :global(.sr) {
+    display: grid;
+    grid-template-columns: 1.1fr 1.6fr 0.7fr;
+    gap: 12px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-soft);
+  }
+
+  .split-table :global(.sr:first-child) { border-top: 0; }
+
+  .split-table :global(.sr-head) {
+    position: sticky;
+    top: 0;
+    background: var(--bg-elev);
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  .split-table :global(.sr-more) {
+    color: var(--text-muted);
+    font-style: italic;
+    grid-column: 1 / -1;
+  }
+
+  .sn-notes-sec { background: var(--bg-elev); border-top: 1px solid var(--border); }
+  .nt h3 { margin: 14px 0 6px; }
+  .nt p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
+
+  @media (max-width: 860px) {
+    .sn-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<script>
+  import { calculate, subdivide } from '../../scripts/net-calc.js';
+
+  const $ = (id) => document.getElementById(id);
+  const form = $('sn-form');
+  const input = $('cidr') as HTMLInputElement;
+  const errorEl = $('sn-error');
+
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const fmt = (n) => n.toLocaleString();
+
+  let currentInput = '';
+
+  function renderSplit(prefix) {
+    const table = $('sn-table');
+    const result = subdivide(currentInput, prefix);
+    if (!table || !result) return;
+
+    table.innerHTML =
+      '<div class="sr sr-head"><span>Subnet</span><span>Range</span><span>Hosts</span></div>' +
+      result.rows
+        .map((r) => `<div class="sr"><span>${esc(r.cidr)}</span><span>${esc(r.range)}</span><span>${fmt(r.hosts)}</span></div>`)
+        .join('') +
+      (result.truncated
+        ? `<div class="sr sr-more">Showing the first ${result.shown} of ${fmt(result.count)} subnets.</div>`
+        : '');
+  }
+
+  function run(value) {
+    if (!errorEl) return;
+    errorEl.textContent = '';
+
+    const r = calculate(value);
+    if (!r) {
+      errorEl.textContent = 'Could not read that. Try a CIDR block like 10.0.0.0/24, or an address and netmask.';
+      $('sn-results')!.hidden = true;
+      $('sn-split')!.hidden = true;
+      return;
+    }
+
+    currentInput = r.input;
+
+    const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+    set('sn-cidr', r.input);
+    set('sn-type', r.type);
+    set('sn-range', `${r.range}  ·  ${fmt(r.usableHosts)} usable host${r.usableHosts === 1 ? '' : 's'}`);
+
+    const note = $('sn-note');
+    if (note) {
+      note.textContent = r.note || '';
+      note.hidden = !r.note;
+    }
+
+    const rows = $('sn-rows');
+    if (rows) {
+      rows.innerHTML = [
+        ['Netmask', r.netmask],
+        ['Wildcard mask', r.wildcard],
+        ['Network address', r.network],
+        ['Broadcast address', r.broadcast],
+        ['First usable host', r.firstHost],
+        ['Last usable host', r.lastHost],
+        ['Total addresses', fmt(r.totalAddresses)],
+        ['Usable hosts', fmt(r.usableHosts)],
+        ['Mask in binary', r.binaryMask],
+      ]
+        .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
+        .join('');
+    }
+
+    $('sn-results')!.hidden = false;
+
+    // Populate the split selector with every prefix smaller than this one.
+    const select = $('sn-prefix') as HTMLSelectElement;
+    if (select) {
+      const options: string[] = [];
+      for (let p = r.prefix + 1; p <= 32; p++) options.push(`<option value="${p}">/${p}</option>`);
+      if (options.length) {
+        select.innerHTML = options.join('');
+        // Default to a split that yields a handful of subnets, not hundreds.
+        select.value = String(Math.min(r.prefix + 2, 32));
+        $('sn-split')!.hidden = false;
+        renderSplit(Number(select.value));
+      } else {
+        $('sn-split')!.hidden = true;
+      }
+    }
+  }
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(input.value);
+  });
+
+  $('sn-prefix')?.addEventListener('change', (e) => {
+    renderSplit(Number((e.target as HTMLSelectElement).value));
+  });
+
+  document.querySelectorAll('.ex-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const v = (chip as HTMLElement).dataset.cidr || '';
+      input.value = v;
+      run(v);
+    });
+  });
+
+  // Deep link + first paint so the page is never an empty form.
+  const preset = new URLSearchParams(location.search).get('cidr');
+  if (preset) input.value = preset;
+  run(input.value);
+</script>
