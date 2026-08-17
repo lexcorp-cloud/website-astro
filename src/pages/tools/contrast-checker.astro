@@ -1,0 +1,534 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="contrast-checker"
+  title="WCAG Contrast Checker"
+  description="Check if a colour pair meets WCAG accessibility standards. Get a verdict for AA and AAA levels and suggestions for fixes."
+  heading="Check colour contrast"
+  intro="Enter foreground and background colours to check WCAG AA and AAA accessibility standards. Live calculation of contrast ratio with instant visual feedback."
+>
+  <div slot="input" class="cc-input">
+    <div class="cc-inputs">
+      <label class="cc-color-label">
+        <span class="io-label mono">Foreground</span>
+        <div class="cc-color-field">
+          <input type="text" id="cc-fg" placeholder="#000000" spellcheck="false">
+          <input type="color" id="cc-fg-picker">
+        </div>
+      </label>
+      <label class="cc-color-label">
+        <span class="io-label mono">Background</span>
+        <div class="cc-color-field">
+          <input type="text" id="cc-bg" placeholder="#FFFFFF" spellcheck="false">
+          <input type="color" id="cc-bg-picker">
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <section class="section cc-results-sec">
+    <div class="container">
+      <div id="cc-result" hidden class="cc-result-wrap">
+        <div class="cc-ratio glass-card">
+          <div class="cc-ratio-main">
+            <span class="cc-ratio-num" id="cc-ratio">21:1</span>
+            <span class="cc-ratio-label">Contrast Ratio</span>
+          </div>
+        </div>
+
+        <div class="cc-verdicts">
+          <div class="cc-verdict" id="cc-v-aa-normal">
+            <span class="cc-verdict-icon"><Icon name="check" /></span>
+            <div>
+              <h3>AA Normal</h3>
+              <p>4.5:1</p>
+            </div>
+          </div>
+          <div class="cc-verdict" id="cc-v-aa-large">
+            <span class="cc-verdict-icon"><Icon name="check" /></span>
+            <div>
+              <h3>AA Large</h3>
+              <p>3.0:1</p>
+            </div>
+          </div>
+          <div class="cc-verdict" id="cc-v-aaa-normal">
+            <span class="cc-verdict-icon"><Icon name="check" /></span>
+            <div>
+              <h3>AAA Normal</h3>
+              <p>7.0:1</p>
+            </div>
+          </div>
+          <div class="cc-verdict" id="cc-v-aaa-large">
+            <span class="cc-verdict-icon"><Icon name="check" /></span>
+            <div>
+              <h3>AAA Large</h3>
+              <p>4.5:1</p>
+            </div>
+          </div>
+          <div class="cc-verdict" id="cc-v-ui">
+            <span class="cc-verdict-icon"><Icon name="check" /></span>
+            <div>
+              <h3>UI & Graphics</h3>
+              <p>3.0:1</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cc-preview glass-card">
+          <div class="cc-preview-section">
+            <span class="cc-preview-label">Normal text (16px regular)</span>
+            <p class="cc-preview-text-normal" id="cc-prev-normal">The quick brown fox jumps over the lazy dog</p>
+          </div>
+          <div class="cc-preview-section">
+            <span class="cc-preview-label">Large text (24px bold)</span>
+            <p class="cc-preview-text-large" id="cc-prev-large">The quick brown fox</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="cc-error" id="cc-error" role="alert"></p>
+    </div>
+  </section>
+
+  <section class="section cc-notes-sec">
+    <div class="container">
+      <div class="glass-card">
+        <h2 class="h3">What "large text" means in WCAG</h2>
+        <p>
+          The W3C defines large text precisely to avoid ambiguity: 18.66px or larger at normal weight (400), OR 14px or larger when bold (700+). This distinction reflects the perceptual fact that bold text is harder to read than regular weight — the threshold can relax accordingly.
+        </p>
+        <p>
+          In practice, if your text is bigger than 18px, it counts as large. At 14–17px, it only qualifies if it&rsquo;s bold. Below 14px, it must meet the normal-text threshold even if bold.
+        </p>
+      </div>
+
+      <div class="glass-card">
+        <h2 class="h3">Contrast ratios are a proxy, not a guarantee</h2>
+        <p>
+          WCAG contrast math models relative luminance — how bright a colour appears — but it does not model colour perception holistically. Someone with deuteranopia (red-green colour blindness) may struggle with red-on-green pairs that pass WCAG AA mathematically, because the colours are perceptually similar to their eyes.
+        </p>
+        <p>
+          The formula catches most problematic pairs, but the best practice is to avoid relying on colour alone to convey information, and to test with actual users if accessibility is critical to your service.
+        </p>
+      </div>
+
+      <div class="glass-card">
+        <h2 class="h3">APCA: the next standard</h2>
+        <p>
+          The Accessible Perceptual Contrast Algorithm (APCA) is a newer model adopted by the W3C's Accessibility Guidelines Working Group as the basis for WCAG 3. It aims to predict perceived contrast more accurately by accounting for spatial frequency, colour, and font size together in one formula.
+        </p>
+        <p>
+          APCA uses "Lc" units instead of simple ratios, and thresholds vary by text size: stricter (higher Lc required) for small text, relaxed for large text. It skips the somewhat arbitrary two-tier (AA/AAA) system in favour of one scale that adjusts to real-world readability.
+        </p>
+        <p>
+          Until WCAG 3 reaches Candidate Recommendation status, WCAG 2.1 contrast remains the legal accessibility standard. But APCA is worth studying if you want to ship interfaces that are genuinely easy to read.
+        </p>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .cc-input {
+    margin-top: 26px;
+    max-width: 46rem;
+  }
+
+  .cc-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .cc-color-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: text;
+  }
+
+  .io-label {
+    font-size: 0.6rem !important;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .cc-color-field {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .cc-color-field input[type="text"],
+  .cc-color-field input[type="color"] {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .cc-color-field input[type="text"] {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cc-color-field input[type="color"] {
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    flex: none;
+    padding: 3px;
+  }
+
+  .cc-color-field input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  .cc-results-sec {
+    padding-block: clamp(20px, 3vw, 36px);
+  }
+
+  .cc-result-wrap {
+    padding: 20px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+  }
+
+  .cc-ratio {
+    display: grid;
+    place-items: center;
+    padding: 32px 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .cc-ratio-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cc-ratio-num {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent-blue);
+    font-family: var(--font-mono);
+  }
+
+  .cc-ratio-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .cc-verdicts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cc-verdict {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .cc-verdict.pass {
+    border-color: color-mix(in srgb, var(--term-ok) 40%, transparent);
+    background: color-mix(in srgb, var(--term-ok) 10%, transparent);
+  }
+
+  .cc-verdict.fail {
+    border-color: color-mix(in srgb, var(--accent-red) 40%, transparent);
+    background: color-mix(in srgb, var(--accent-red) 10%, transparent);
+  }
+
+  .cc-verdict-icon {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: var(--text-muted);
+    font-size: 0;
+    line-height: 1;
+  }
+
+  .cc-verdict.pass .cc-verdict-icon {
+    color: var(--term-ok);
+  }
+
+  .cc-verdict.fail .cc-verdict-icon {
+    color: var(--accent-red);
+  }
+
+  .cc-verdict h3 {
+    margin: 0 0 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .cc-verdict p {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .cc-preview {
+    padding: 20px;
+  }
+
+  .cc-preview-section {
+    margin-bottom: 18px;
+  }
+
+  .cc-preview-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .cc-preview-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .cc-preview-text-normal {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .cc-preview-text-large {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .cc-error {
+    color: var(--accent-red);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .cc-notes-sec {
+    padding-block: clamp(20px, 3vw, 36px);
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+  }
+
+  .cc-notes-sec .glass-card {
+    margin-bottom: 16px;
+  }
+
+  .cc-notes-sec .glass-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .cc-notes-sec h2 {
+    margin-bottom: 12px;
+    margin-top: 0;
+  }
+
+  .cc-notes-sec p {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .cc-notes-sec p:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 560px) {
+    .cc-inputs {
+      grid-template-columns: 1fr;
+    }
+
+    .cc-verdicts {
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+  }
+</style>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  /**
+   * Parse hex color string (3 or 6 digits, with or without #).
+   * Returns [r, g, b] in 0-1 range, or null if invalid.
+   */
+  function parseHex(hex) {
+    const clean = String(hex || '').trim().replace(/^#/, '');
+    if (!clean.match(/^[0-9a-f]{3}(?:[0-9a-f]{3})?$/i)) return null;
+
+    let full;
+    if (clean.length === 3) {
+      full = clean.split('').map(c => c + c).join('');
+    } else {
+      full = clean;
+    }
+
+    const num = parseInt(full, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+
+    return [r / 255, g / 255, b / 255];
+  }
+
+  /**
+   * Convert sRGB value to linear RGB using WCAG 2.1 formula.
+   */
+  function srgbToLinear(c) {
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+
+  /**
+   * Calculate relative luminance per WCAG 2.1.
+   */
+  function luminance([r, g, b]) {
+    const lr = srgbToLinear(r);
+    const lg = srgbToLinear(g);
+    const lb = srgbToLinear(b);
+    return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+  }
+
+  /**
+   * Calculate contrast ratio between two RGB colours.
+   */
+  function contrastRatio(fg, bg) {
+    const lfg = luminance(fg);
+    const lbg = luminance(bg);
+    const l1 = Math.max(lfg, lbg);
+    const l2 = Math.min(lfg, lbg);
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+
+  /**
+   * RGB to hex string.
+   */
+  function rgbToHex([r, g, b]) {
+    const toHex = (n) => Math.round(n * 255).toString(16).padStart(2, '0');
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+  }
+
+  function render() {
+    const fgInput = $('cc-fg') as HTMLInputElement | null;
+    const bgInput = $('cc-bg') as HTMLInputElement | null;
+    const resultEl = $('cc-result');
+    const errorEl = $('cc-error');
+
+    if (!fgInput || !bgInput || !errorEl) return;
+
+    const fgText = fgInput.value.trim();
+    const bgText = bgInput.value.trim();
+    const fg = parseHex(fgText);
+    const bg = parseHex(bgText);
+
+    errorEl.textContent = '';
+
+    if (!fgText || !bgText) {
+      if (resultEl) resultEl.hidden = true;
+      return;
+    }
+
+    if (!fg || !bg) {
+      errorEl.textContent = 'Invalid colour format. Use 3 or 6 digit hex, with or without # (e.g. fff or #000000).';
+      if (resultEl) resultEl.hidden = true;
+      return;
+    }
+
+    const ratio = contrastRatio(fg, bg);
+    const checks = [
+      { id: 'aa-normal', min: 4.5 },
+      { id: 'aa-large', min: 3.0 },
+      { id: 'aaa-normal', min: 7.0 },
+      { id: 'aaa-large', min: 4.5 },
+      { id: 'ui', min: 3.0 },
+    ];
+
+    const ratioEl = $('cc-ratio');
+    if (ratioEl) ratioEl.textContent = ratio.toFixed(2) + ':1';
+
+    for (const check of checks) {
+      const el = $(`cc-v-${check.id}`);
+      if (el) {
+        el.classList.toggle('pass', ratio >= check.min);
+        el.classList.toggle('fail', ratio < check.min);
+      }
+    }
+
+    const fgHex = rgbToHex(fg);
+    const bgHex = rgbToHex(bg);
+
+    const prevNormal = $('cc-prev-normal');
+    const prevLarge = $('cc-prev-large');
+    if (prevNormal) prevNormal.style.color = fgHex;
+    if (prevLarge) prevLarge.style.color = fgHex;
+
+    if (resultEl) {
+      (resultEl as HTMLElement).style.backgroundColor = bgHex;
+      (resultEl as HTMLElement).style.color = fgHex;
+      resultEl.hidden = false;
+    }
+  }
+
+  const fgInput = $('cc-fg') as HTMLInputElement | null;
+  const bgInput = $('cc-bg') as HTMLInputElement | null;
+  const fgPicker = $('cc-fg-picker') as HTMLInputElement | null;
+  const bgPicker = $('cc-bg-picker') as HTMLInputElement | null;
+
+  fgInput?.addEventListener('input', () => {
+    const parsed = parseHex(fgInput!.value);
+    if (parsed && fgPicker) fgPicker.value = rgbToHex(parsed);
+    render();
+  });
+
+  fgPicker?.addEventListener('change', () => {
+    if (fgInput) fgInput.value = fgPicker!.value;
+    render();
+  });
+
+  bgInput?.addEventListener('input', () => {
+    const parsed = parseHex(bgInput!.value);
+    if (parsed && bgPicker) bgPicker.value = rgbToHex(parsed);
+    render();
+  });
+
+  bgPicker?.addEventListener('change', () => {
+    if (bgInput) bgInput.value = bgPicker!.value;
+    render();
+  });
+
+  if (fgInput) fgInput.value = '#000000';
+  if (fgPicker) fgPicker.value = '#000000';
+  if (bgInput) bgInput.value = '#FFFFFF';
+  if (bgPicker) bgPicker.value = '#FFFFFF';
+
+  render();
+</script>

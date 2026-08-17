@@ -1,0 +1,567 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="qr-generator"
+  title="QR Code Generator"
+  description="Generate QR codes with live preview, customizable colors, error correction, and download as PNG or SVG. All processing happens in your browser."
+  heading="Generate a QR code"
+  intro="Convert any text or URL into a QR code with live preview. Customize size, colors, and error correction, then download as PNG or SVG. Everything runs locally — nothing is transmitted."
+>
+  <div slot="input" class="qr-input">
+    <div class="qr-io">
+      <label class="io-field" style="flex: 1; min-width: 0;">
+        <span class="io-label mono">Text or URL</span>
+        <textarea id="qr-text" rows="3" placeholder="https://example.com or any text" spellcheck="false"></textarea>
+      </label>
+      <div class="qr-preview-wrap glass-card">
+        <canvas id="qr-canvas" width="200" height="200"></canvas>
+        <p class="qr-preview-note" id="qr-preview-note">Enter text to generate</p>
+      </div>
+    </div>
+
+    <p class="qr-error" id="qr-error" role="alert"></p>
+    <p class="qr-warn" id="qr-warn" role="alert"></p>
+  </div>
+
+  <section class="section qr-controls-sec">
+    <div class="container">
+      <div class="glass-card qr-controls">
+        <h2 class="h3 qr-h">Options</h2>
+
+        <div class="qr-grid">
+          <div>
+            <label class="range-row">
+              <span>Size <b id="qr-size-val">200</b>px</span>
+              <input type="range" id="qr-size" min="100" max="600" value="200" step="50" />
+            </label>
+
+            <label class="sep-row">
+              <span class="io-label mono">Error correction</span>
+              <select id="qr-ec">
+                <option value="L">L (7% damage)</option>
+                <option value="M" selected>M (15% damage)</option>
+                <option value="Q">Q (25% damage)</option>
+                <option value="H">H (30% damage)</option>
+              </select>
+            </label>
+          </div>
+
+          <div>
+            <label class="color-row">
+              <span class="io-label mono">Foreground</span>
+              <div class="color-input">
+                <input type="color" id="qr-fg" value="#000000" />
+                <input type="text" id="qr-fg-text" class="color-text" maxlength="7" value="#000000" spellcheck="false" />
+              </div>
+            </label>
+
+            <label class="color-row">
+              <span class="io-label mono">Background</span>
+              <div class="color-input">
+                <input type="color" id="qr-bg" value="#ffffff" />
+                <input type="text" id="qr-bg-text" class="color-text" maxlength="7" value="#ffffff" spellcheck="false" />
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="qr-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="qr-dl-png">
+            <Icon name="cloud" size={15} />
+            Download PNG
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" id="qr-dl-svg">
+            <Icon name="code" size={15} />
+            Download SVG
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section qr-ec-sec">
+    <div class="container">
+      <div class="qr-ec-grid">
+        <div class="glass-card qr-ec-card">
+          <span class="icon-tile"><Icon name="shield" /></span>
+          <div>
+            <h3 class="h3">Error correction: L</h3>
+            <p>Recovers ~7% of lost or damaged data. Best for screens and clean digital displays where the code won't face real-world wear.</p>
+          </div>
+        </div>
+
+        <div class="glass-card qr-ec-card">
+          <span class="icon-tile"><Icon name="pulse" /></span>
+          <div>
+            <h3 class="h3">Error correction: M</h3>
+            <p>Recovers ~15% of data. A safe middle ground for most printed materials and everyday conditions. Default choice.</p>
+          </div>
+        </div>
+
+        <div class="glass-card qr-ec-card">
+          <span class="icon-tile"><Icon name="bolt" /></span>
+          <div>
+            <h3 class="h3">Error correction: Q &amp; H</h3>
+            <p>Recover ~25% and ~30% of data respectively. Use for outdoor signage, worn surfaces, or where the code shares space with decorative elements.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section qr-notes-sec">
+    <div class="container">
+      <div class="glass-card note">
+        <span class="icon-tile"><Icon name="code" /></span>
+        <div>
+          <h2 class="h3">Three things about QR codes</h2>
+
+          <h4 class="note-subhead">The quiet zone is mandatory, not decorative</h4>
+          <p>
+            Every QR code must have a margin of empty space around it — the &ldquo;quiet zone&rdquo; is part
+            of the specification, not optional padding. When you download the code, this margin is included.
+            Crop it away and the scanner may fail silently. The version you see in preview includes it.
+          </p>
+
+          <h4 class="note-subhead">Shortening a URL raises scan reliability</h4>
+          <p>
+            A longer URL means a denser QR code, which is harder to scan in dim light or from awkward angles.
+            If you're printing a code or posting it online, a shortened URL (like <code>bit.ly</code> or <code>lex.app</code>)
+            makes the code smaller and more resilient. The target is the same; the QR code is just simpler.
+          </p>
+
+          <h4 class="note-subhead">QR codes are not a security boundary</h4>
+          <p>
+            Anyone with the URL in the code can decode it — there is no secret key, no authentication built in.
+            Do not encode passwords, API keys, or sensitive credentials in a QR code. If the URL itself must be secret,
+            keep the code itself private (print it only for trusted recipients, or guard the web page it's on).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .qr-input { margin-top: 26px; max-width: 46rem; }
+
+  .qr-io {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .qr-preview-wrap {
+    display: grid;
+    place-items: center;
+    width: 220px;
+    height: 220px;
+    flex: none;
+    position: relative;
+  }
+
+  #qr-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+  }
+
+  .qr-preview-note {
+    position: absolute;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .qr-error {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 77, 109, 0.1);
+    border: 1px solid rgba(255, 77, 109, 0.3);
+    color: var(--accent-red);
+    font-size: 0.85rem;
+    display: none;
+  }
+
+  .qr-error.is-visible { display: block; }
+
+  .qr-warn {
+    margin: 8px 0 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(254, 188, 46, 0.1);
+    border: 1px solid rgba(254, 188, 46, 0.3);
+    color: #f59e0b;
+    font-size: 0.85rem;
+    display: none;
+  }
+
+  .qr-warn.is-visible { display: block; }
+
+  .qr-controls-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .qr-h { margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .range-row { display: block; margin-bottom: 20px; }
+  .range-row > span { display: block; font-size: 0.84rem; color: var(--text-soft); margin-bottom: 10px; }
+  .range-row b { color: var(--accent-blue); font-family: var(--font-mono); }
+
+  .range-row input[type='range'] {
+    width: 100%;
+    accent-color: var(--accent-blue);
+  }
+
+  .sep-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+  .sep-row .io-label { font-size: 0.6rem !important; color: var(--text-muted); margin: 0; }
+
+  .sep-row select {
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 0.82rem;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .color-row { display: flex; flex-direction: column; gap: 8px; }
+  .color-input { display: flex; gap: 10px; align-items: center; }
+
+  .color-input input[type='color'] {
+    width: 48px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .color-text {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .color-text:focus { outline: none; border-color: var(--accent-blue); }
+
+  .qr-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .qr-actions .btn { display: flex; align-items: center; gap: 8px; }
+
+  .qr-ec-sec { padding-block: clamp(20px, 3vw, 36px); background: var(--bg-elev); border-top: 1px solid var(--border); }
+
+  .qr-ec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 16px;
+  }
+
+  .qr-ec-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .qr-ec-card h3 { margin: 0; }
+  .qr-ec-card p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+
+  .qr-notes-sec { padding-block: clamp(40px, 5vw, 72px); background: var(--bg); }
+
+  .note { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .note h2 { margin: 0 0 20px; }
+
+  .note-subhead {
+    margin: 18px 0 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .note-subhead:first-of-type { margin-top: 0; }
+
+  .note p { margin: 0 0 12px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .note p:last-child { margin-bottom: 0; }
+
+  .note code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-strong);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 640px) {
+    .qr-io { flex-direction: column; }
+    .qr-preview-wrap { width: 100%; height: auto; aspect-ratio: 1; }
+    .note { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+
+<script>
+  const $ = (id: string) => document.getElementById(id);
+  const esc = (s: string | null | undefined) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  let qrModule: any = null;
+
+  async function loadQRModule() {
+    if (qrModule) return qrModule;
+    try {
+      qrModule = await import('qrcode');
+      return qrModule;
+    } catch (e) {
+      showError('Failed to load QR code library');
+      return null;
+    }
+  }
+
+  function showError(msg: string) {
+    const el = $('qr-error');
+    if (el) {
+      el.textContent = msg;
+      el.classList.add('is-visible');
+    }
+  }
+
+  function clearError() {
+    const el = $('qr-error');
+    if (el) {
+      el.classList.remove('is-visible');
+      el.textContent = '';
+    }
+  }
+
+  function showWarn(msg: string) {
+    const el = $('qr-warn');
+    if (el) {
+      el.textContent = msg;
+      el.classList.add('is-visible');
+    }
+  }
+
+  function clearWarn() {
+    const el = $('qr-warn');
+    if (el) {
+      el.classList.remove('is-visible');
+      el.textContent = '';
+    }
+  }
+
+  function isValidHex(color: string): boolean {
+    return /^#[0-9A-Fa-f]{6}$/.test(color);
+  }
+
+  function contrastRatio(hex1: string, hex2: string): number {
+    const rgb = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    };
+
+    const luminance = (col: { r: number; g: number; b: number }) => {
+      const [r, g, b] = [col.r, col.g, col.b].map((v) => {
+        v = v / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    const l1 = luminance(rgb(hex1));
+    const l2 = luminance(rgb(hex2));
+    const lmax = Math.max(l1, l2);
+    const lmin = Math.min(l1, l2);
+    return (lmax + 0.05) / (lmin + 0.05);
+  }
+
+  async function generate() {
+    clearError();
+    clearWarn();
+
+    const text = ($('qr-text') as HTMLTextAreaElement)?.value || '';
+    const size = parseInt(($('qr-size') as HTMLInputElement)?.value || '200');
+    const ec = ($('qr-ec') as HTMLSelectElement)?.value || 'M';
+    const fg = ($('qr-fg') as HTMLInputElement)?.value || '#000000';
+    const bg = ($('qr-bg') as HTMLInputElement)?.value || '#ffffff';
+
+    const canvas = $('qr-canvas') as HTMLCanvasElement;
+    const preview = $('qr-preview-note');
+
+    if (!text.trim()) {
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      if (preview) preview.style.display = 'block';
+      return;
+    }
+
+    if (text.length > 2953) {
+      showError('Input is too long for a QR code (max ~2953 characters depending on error correction)');
+      return;
+    }
+
+    if (!isValidHex(fg) || !isValidHex(bg)) {
+      showError('Invalid color format — use hex like #FF5733');
+      return;
+    }
+
+    const ratio = contrastRatio(fg, bg);
+    if (ratio < 3) {
+      showWarn(`Foreground and background colors have very low contrast (ratio: ${ratio.toFixed(1)}:1). The QR code may be hard to scan.`);
+    }
+
+    const qr = await loadQRModule();
+    if (!qr) return;
+
+    try {
+      if (canvas) {
+        await qr.toCanvas(canvas, text, {
+          width: size,
+          margin: 2,
+          color: { dark: fg, light: bg },
+          errorCorrectionLevel: ec,
+        });
+        if (preview) preview.style.display = 'none';
+      }
+    } catch (e) {
+      showError(`Failed to generate QR code: ${esc(String(e))}`);
+    }
+  }
+
+  async function downloadPNG() {
+    const canvas = $('qr-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showError('Failed to create PNG');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'qr-code.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    } catch (e) {
+      showError(`Download failed: ${esc(String(e))}`);
+    }
+  }
+
+  async function downloadSVG() {
+    const text = ($('qr-text') as HTMLTextAreaElement)?.value || '';
+    const ec = ($('qr-ec') as HTMLSelectElement)?.value || 'M';
+    const fg = ($('qr-fg') as HTMLInputElement)?.value || '#000000';
+    const bg = ($('qr-bg') as HTMLInputElement)?.value || '#ffffff';
+
+    if (!text.trim()) {
+      showError('Nothing to download');
+      return;
+    }
+
+    const qr = await loadQRModule();
+    if (!qr) return;
+
+    try {
+      const svg = await qr.toString(text, {
+        type: 'image/svg+xml',
+        margin: 2,
+        color: { dark: fg, light: bg },
+        errorCorrectionLevel: ec,
+      });
+
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'qr-code.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showError(`SVG download failed: ${esc(String(e))}`);
+    }
+  }
+
+  /* ---- wiring ---- */
+  ($('qr-text') as HTMLTextAreaElement)?.addEventListener('input', generate);
+  ($('qr-size') as HTMLInputElement)?.addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    const display = $('qr-size-val');
+    if (display) display.textContent = val;
+    generate();
+  });
+
+  (['qr-ec', 'qr-fg', 'qr-bg'] as const).forEach((id) => {
+    $(id)?.addEventListener('change', generate);
+  });
+
+  // Sync color text inputs with color pickers
+  ($('qr-fg') as HTMLInputElement)?.addEventListener('input', (e) => {
+    const text = $('qr-fg-text') as HTMLInputElement;
+    if (text) text.value = (e.target as HTMLInputElement).value;
+    generate();
+  });
+
+  ($('qr-fg-text') as HTMLInputElement)?.addEventListener('change', (e) => {
+    const val = (e.target as HTMLInputElement).value.toUpperCase();
+    if (isValidHex(val)) {
+      const picker = $('qr-fg') as HTMLInputElement;
+      if (picker) picker.value = val;
+      generate();
+    } else {
+      (e.target as HTMLInputElement).value = ($('qr-fg') as HTMLInputElement).value;
+    }
+  });
+
+  ($('qr-bg') as HTMLInputElement)?.addEventListener('input', (e) => {
+    const text = $('qr-bg-text') as HTMLInputElement;
+    if (text) text.value = (e.target as HTMLInputElement).value;
+    generate();
+  });
+
+  ($('qr-bg-text') as HTMLInputElement)?.addEventListener('change', (e) => {
+    const val = (e.target as HTMLInputElement).value.toUpperCase();
+    if (isValidHex(val)) {
+      const picker = $('qr-bg') as HTMLInputElement;
+      if (picker) picker.value = val;
+      generate();
+    } else {
+      (e.target as HTMLInputElement).value = ($('qr-bg') as HTMLInputElement).value;
+    }
+  });
+
+  $('qr-dl-png')?.addEventListener('click', downloadPNG);
+  $('qr-dl-svg')?.addEventListener('click', downloadSVG);
+</script>

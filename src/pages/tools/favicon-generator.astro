@@ -1,0 +1,810 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<ToolLayout
+  slug="favicon-generator"
+  title="Favicon Generator"
+  description="Generate favicons from an uploaded image or text monogram with custom colors. Output all standard sizes plus HTML and manifest snippets."
+  heading="Generate favicons in every standard size"
+  intro="Upload an image or create a monogram with custom colors and styles. Generate all standard favicons at once, from 16px to 512px, with download and code snippets."
+>
+  <div slot="input" class="fg-input">
+    <div class="mode-toggle" role="tablist">
+      <button type="button" class="mode is-active" data-mode="upload" role="tab" aria-selected="true">Upload image</button>
+      <button type="button" class="mode" data-mode="monogram" role="tab" aria-selected="false">Generate monogram</button>
+    </div>
+
+    <!-- Upload mode -->
+    <div id="opts-upload">
+      <label class="upload-box glass-card">
+        <input type="file" id="upload-file" accept="image/*" hidden />
+        <div class="upload-content">
+          <Icon name="cloud" size={28} />
+          <span class="upload-text">
+            <b>Drag & drop an image here</b>
+            <i>or click to browse</i>
+          </span>
+        </div>
+      </label>
+      <p class="fg-hint mono">PNG, JPEG, WebP, GIF — any format browsers support.</p>
+    </div>
+
+    <!-- Monogram mode -->
+    <div id="opts-monogram" hidden>
+      <div class="mono-grid">
+        <label class="mono-field">
+          <span class="io-label mono">Letter</span>
+          <input type="text" id="mono-text" maxlength="2" placeholder="A" value="A" />
+        </label>
+
+        <label class="mono-field">
+          <span class="io-label mono">Background</span>
+          <div class="color-input-wrapper">
+            <input type="color" id="mono-bg" value="#6c7cff" />
+            <span class="color-label" id="mono-bg-label">#6c7cff</span>
+          </div>
+        </label>
+
+        <label class="mono-field">
+          <span class="io-label mono">Text color</span>
+          <div class="color-input-wrapper">
+            <input type="color" id="mono-text-color" value="#ffffff" />
+            <span class="color-label" id="mono-text-label">#ffffff</span>
+          </div>
+        </label>
+
+        <label class="mono-field">
+          <span class="io-label mono">Corner radius</span>
+          <select id="mono-radius">
+            <option value="0">Square</option>
+            <option value="25">Subtle</option>
+            <option value="50" selected>Rounded</option>
+            <option value="100">Pill</option>
+          </select>
+        </label>
+
+        <label class="mono-field">
+          <span class="io-label mono">Font weight</span>
+          <select id="mono-weight">
+            <option value="400">Regular</option>
+            <option value="600" selected>Semibold</option>
+            <option value="700">Bold</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <p class="fg-error" id="fg-error" role="alert"></p>
+  </div>
+
+  <section class="section fg-sec">
+    <div class="container">
+      <div id="fg-out" hidden>
+        <div class="fg-previews">
+          <div class="fg-preview-group">
+            <h2 class="h3 fg-group-title">Standard sizes</h2>
+            <div class="fg-preview-grid">
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-16"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">16px</span>
+                  <button type="button" class="fg-dl-btn" data-size="16" aria-label="Download 16px favicon">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-32"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">32px</span>
+                  <button type="button" class="fg-dl-btn" data-size="32">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-48"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">48px</span>
+                  <button type="button" class="fg-dl-btn" data-size="48">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-180"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">180px</span>
+                  <span class="fg-badge">Apple</span>
+                  <button type="button" class="fg-dl-btn" data-size="180">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-192"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">192px</span>
+                  <span class="fg-badge">PWA</span>
+                  <button type="button" class="fg-dl-btn" data-size="192">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div class="fg-preview-item">
+                <div class="fg-preview-canvas" id="prev-512"></div>
+                <div class="fg-preview-label">
+                  <span class="fg-size">512px</span>
+                  <span class="fg-badge">PWA</span>
+                  <button type="button" class="fg-dl-btn" data-size="512">
+                    <Icon name="arrow" size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fg-code-group glass-card">
+          <h2 class="h3 fg-group-title">HTML &amp; manifest</h2>
+          <div class="fg-tabs" role="tablist">
+            <button type="button" class="fg-tab is-active" data-tab="links" role="tab" aria-selected="true">Link tags</button>
+            <button type="button" class="fg-tab" data-tab="manifest" role="tab" aria-selected="false">Manifest snippet</button>
+          </div>
+
+          <pre class="out-block" id="fg-links-block"><code id="fg-links-code"></code></pre>
+          <pre class="out-block" id="fg-manifest-block" hidden><code id="fg-manifest-code"></code></pre>
+
+          <button type="button" class="btn btn-primary btn-sm" id="fg-copy-btn">Copy code</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fg-notes-sec">
+    <div class="container">
+      <div class="grid-3">
+        <div class="glass-card note">
+          <span class="icon-tile"><Icon name="pin" /></span>
+          <div>
+            <h2 class="h3">Why 16px matters</h2>
+            <p>
+              At 16×16 pixels, fine detail disappears instantly. A logo with thin lines, gradients, or small text becomes a smudge. Good favicons are solid blocks of colour with simple contrast — what works at any size. If your icon looks good at 16px, it will read at 512px.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card note">
+          <span class="icon-tile"><Icon name="globe" /></span>
+          <div>
+            <h2 class="h3">What each size is for</h2>
+            <p>
+              <b>16, 32, 48px:</b> Browser tabs and favourites bar. <b>180px:</b> Apple home screen. <b>192, 512px:</b> Android, PWA install prompts, and application menus. You need all of them — there's no single "one size fits all" icon any more.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card note">
+          <span class="icon-tile"><Icon name="code" /></span>
+          <div>
+            <h2 class="h3">No ICO files</h2>
+            <p>
+              Canvas cannot write ICO format. Every modern browser accepts PNG favicons in the HTML link tag — it's faster, simpler, and handles transparency better than ICO ever did. Drop the ICO format entirely.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .fg-input { margin-top: 26px; max-width: 46rem; }
+
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .mode {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
+  }
+
+  .mode.is-active {
+    border-color: var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 12%, transparent);
+    color: var(--text);
+  }
+
+  /* Upload mode */
+  .upload-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    cursor: pointer;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    transition: border-color 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
+    background: var(--surface);
+  }
+
+  .upload-box:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elev);
+  }
+
+  .upload-box.is-over {
+    border-color: var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 8%, transparent);
+  }
+
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-soft);
+  }
+
+  .upload-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .upload-text b { display: block; color: var(--text); font-weight: 600; font-size: 0.95rem; }
+  .upload-text i { font-style: normal; font-size: 0.8rem; color: var(--text-muted); }
+
+  .fg-hint { margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Monogram mode */
+  .mono-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .mono-field { display: flex; flex-direction: column; gap: 8px; }
+  .io-label { font-size: 0.6rem !important; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .mono-field input[type="text"] {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    text-align: center;
+    font-weight: 600;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .mono-field input[type="text"]:focus { outline: none; border-color: var(--accent-blue); }
+
+  .mono-field select {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .mono-field select:focus { outline: none; border-color: var(--accent-blue); }
+
+  .color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .color-input-wrapper input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .color-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex: none;
+  }
+
+  .fg-error {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent-red) 10%, transparent);
+    border-left: 3px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 0.84rem;
+    display: none;
+  }
+
+  .fg-error.is-visible { display: block; }
+
+  /* Output */
+  .fg-sec { padding-block: clamp(20px, 3vw, 36px); }
+
+  .fg-previews { margin-bottom: 32px; }
+  .fg-preview-group { display: block; }
+  .fg-group-title { margin-bottom: 20px; }
+
+  .fg-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 100px), 1fr));
+    gap: 18px;
+  }
+
+  .fg-preview-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .fg-preview-canvas {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .fg-preview-canvas :global(canvas) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: crisp-edges;
+  }
+
+  .fg-preview-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+  }
+
+  .fg-size {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+
+  .fg-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--accent-blue);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .fg-dl-btn {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.25s var(--ease-out);
+    flex: none;
+  }
+
+  .fg-dl-btn:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-elev);
+    color: var(--accent-blue);
+    transform: translateY(-2px);
+  }
+
+  .fg-code-group { margin-top: 20px; }
+
+  .fg-tabs {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  .fg-tab {
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 0.84rem;
+    font-weight: 550;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
+    position: relative;
+    bottom: -12px;
+  }
+
+  .fg-tab.is-active {
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+  }
+
+  .out-block {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-xs);
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    max-height: 280px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  #fg-copy-btn { margin-top: 12px; }
+
+  /* Notes section */
+  .fg-notes-sec { background: var(--bg-elev); border-top: 1px solid var(--border); padding-block: clamp(32px, 5vw, 52px); }
+  .note { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .note h2 { margin: 0 0 8px; }
+  .note p { margin: 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+  .note b { color: var(--text-soft); font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .fg-preview-grid { grid-template-columns: repeat(3, 1fr); }
+    .fg-tabs { grid-template-columns: 1fr 1fr; }
+    .note { grid-template-columns: minmax(0, 1fr); }
+    .icon-tile { margin: 0; }
+  }
+</style>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  const SIZES = [16, 32, 48, 180, 192, 512];
+  let sourceImage: HTMLImageElement | null = null;
+  let currentMode = 'upload';
+
+  const errorEl = $('fg-error')!;
+
+  function showError(msg: string) {
+    errorEl.textContent = msg;
+    errorEl.classList.add('is-visible');
+  }
+
+  function hideError() {
+    errorEl.classList.remove('is-visible');
+  }
+
+  // High-quality canvas downscaling: step down in halves to avoid aliasing
+  function downscaleCanvas(canvas: HTMLCanvasElement, targetSize: number): HTMLCanvasElement {
+    if (canvas.width === targetSize) return canvas;
+
+    let current = canvas;
+    let size = canvas.width;
+
+    while (size > targetSize) {
+      const next = document.createElement('canvas');
+      next.width = Math.max(targetSize, size / 2);
+      next.height = next.width;
+
+      const ctx = next.getContext('2d')!;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(current, 0, 0, current.width, current.height, 0, 0, next.width, next.height);
+
+      current = next;
+      size = next.width;
+    }
+
+    const final = document.createElement('canvas');
+    final.width = targetSize;
+    final.height = targetSize;
+    const ctx = final.getContext('2d')!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(current, 0, 0, current.width, current.height, 0, 0, targetSize, targetSize);
+
+    return final;
+  }
+
+  function generateFromImage(img: HTMLImageElement) {
+    hideError();
+
+    // Create a large source canvas for downscaling
+    const source = document.createElement('canvas');
+    source.width = 512;
+    source.height = 512;
+    const ctx = source.getContext('2d')!;
+    ctx.drawImage(img, 0, 0, 512, 512);
+
+    // Render previews and build data
+    const canvases: { size: number; canvas: HTMLCanvasElement; png: string }[] = [];
+
+    for (const size of SIZES) {
+      const scaled = downscaleCanvas(source, size);
+      const previewEl = $(`prev-${size}`);
+      if (previewEl) {
+        previewEl.innerHTML = '';
+        previewEl.appendChild(scaled);
+      }
+      canvases.push({ size, canvas: scaled, png: scaled.toDataURL('image/png') });
+    }
+
+    showOutput(canvases);
+  }
+
+  function generateFromMonogram() {
+    hideError();
+
+    const text = ($('mono-text') as HTMLInputElement).value.toUpperCase() || 'A';
+    const bg = ($('mono-bg') as HTMLInputElement).value;
+    const textColor = ($('mono-text-color') as HTMLInputElement).value;
+    const radius = Number(($('mono-radius') as HTMLSelectElement).value);
+    const weight = Number(($('mono-weight') as HTMLSelectElement).value);
+
+    const source = document.createElement('canvas');
+    source.width = 512;
+    source.height = 512;
+    const ctx = source.getContext('2d')!;
+
+    // Draw background
+    const rp = (radius / 100) * 128;
+    roundRect(ctx, 0, 0, 512, 512, rp);
+    ctx.fillStyle = bg;
+    ctx.fill();
+
+    // Draw text
+    ctx.fillStyle = textColor;
+    ctx.font = `${weight} 320px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 256);
+
+    const canvases: { size: number; canvas: HTMLCanvasElement; png: string }[] = [];
+
+    for (const size of SIZES) {
+      const scaled = downscaleCanvas(source, size);
+      const previewEl = $(`prev-${size}`);
+      if (previewEl) {
+        previewEl.innerHTML = '';
+        previewEl.appendChild(scaled);
+      }
+      canvases.push({ size, canvas: scaled, png: scaled.toDataURL('image/png') });
+    }
+
+    showOutput(canvases);
+  }
+
+  function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function showOutput(canvases: { size: number; canvas: HTMLCanvasElement; png: string }[]) {
+    const outEl = $('fg-out')!;
+    outEl.hidden = false;
+
+    // HTML link tags
+    const links = SIZES.map((size) => {
+      if (size === 180) return `<link rel="apple-touch-icon" href="/favicon-${size}.png">`;
+      if (size >= 192) return `<link rel="icon" type="image/png" sizes="${size}x${size}" href="/favicon-${size}.png">`;
+      return `<link rel="icon" type="image/png" sizes="${size}x${size}" href="/favicon-${size}.png">`;
+    });
+
+    const linksCode = links.join('\n');
+    $('fg-links-code')!.textContent = linksCode;
+
+    // Web app manifest
+    const manifestIcons = [
+      `    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }`,
+      `    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }`,
+    ];
+
+    const manifestCode = `{
+  "name": "Your app name",
+  "icons": [
+${manifestIcons.join(',\n')}
+  ]
+}`;
+
+    $('fg-manifest-code')!.textContent = manifestCode;
+  }
+
+  // Mode switching
+  document.querySelectorAll('.mode').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      currentMode = (btn as HTMLElement).dataset.mode || 'upload';
+      document.querySelectorAll('.mode').forEach((b) => {
+        b.classList.toggle('is-active', b === btn);
+        b.setAttribute('aria-selected', String(b === btn));
+      });
+      $('opts-upload')!.hidden = currentMode !== 'upload';
+      $('opts-monogram')!.hidden = currentMode !== 'monogram';
+      $('fg-out')!.hidden = true;
+    });
+  });
+
+  // Upload handling
+  const fileInput = $('upload-file') as HTMLInputElement;
+  const uploadBox = document.querySelector('.upload-box') as HTMLElement;
+
+  uploadBox?.addEventListener('click', () => fileInput?.click());
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+    uploadBox?.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (eventName === 'dragover' || eventName === 'dragenter') {
+        uploadBox?.classList.add('is-over');
+      } else {
+        uploadBox?.classList.remove('is-over');
+      }
+      if (eventName === 'drop' && e instanceof DragEvent) {
+        const files = e.dataTransfer?.files;
+        if (files?.length) handleFileUpload(files[0]);
+      }
+    });
+  });
+
+  fileInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) handleFileUpload(file);
+  });
+
+  function handleFileUpload(file: File) {
+    if (!file.type.startsWith('image/')) {
+      showError('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => showError('Failed to read file.');
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => showError('Invalid image file.');
+      img.onload = () => {
+        sourceImage = img;
+        generateFromImage(img);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Monogram generation
+  $('mono-text')?.addEventListener('input', generateFromMonogram);
+  $('mono-bg')?.addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    $('mono-bg-label')!.textContent = val.toLowerCase();
+    generateFromMonogram();
+  });
+  $('mono-text-color')?.addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    $('mono-text-label')!.textContent = val.toLowerCase();
+    generateFromMonogram();
+  });
+  $('mono-radius')?.addEventListener('change', generateFromMonogram);
+  $('mono-weight')?.addEventListener('change', generateFromMonogram);
+
+  // Tab switching
+  document.querySelectorAll('.fg-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const tabName = (tab as HTMLElement).dataset.tab;
+      document.querySelectorAll('.fg-tab').forEach((t) => {
+        t.classList.toggle('is-active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      $('fg-links-block')!.hidden = tabName !== 'links';
+      $('fg-manifest-block')!.hidden = tabName !== 'manifest';
+    });
+  });
+
+  // Download buttons
+  document.querySelectorAll('.fg-dl-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const size = Number((btn as HTMLElement).dataset.size);
+      const canvas = $(`prev-${size}`)?.querySelector('canvas') as HTMLCanvasElement;
+
+      if (!canvas) return;
+
+      try {
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `favicon-${size}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 'image/png');
+      } catch (err) {
+        showError('Failed to download favicon.');
+      }
+    });
+  });
+
+  // Copy code button
+  $('fg-copy-btn')?.addEventListener('click', async () => {
+    const btn = $('fg-copy-btn')!;
+    const isLinks = !$('fg-links-block')!.hidden;
+    const code = isLinks ? $('fg-links-code')?.textContent : $('fg-manifest-code')?.textContent;
+
+    if (!code) return;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => (btn.textContent = orig), 1600);
+    } catch {
+      showError('Copy failed. Try selecting and copying manually.');
+    }
+  });
+
+  // Initial generation with monogram
+  generateFromMonogram();
+</script>
