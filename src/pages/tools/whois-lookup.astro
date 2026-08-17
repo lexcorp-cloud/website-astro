@@ -1,0 +1,896 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+<ToolLayout
+  slug="whois-lookup"
+  title="WHOIS / RDAP Lookup"
+  description="Look up a domain's registrar, expiry date, EPP status locks, nameservers and DNSSEC state over RDAP — the structured JSON protocol that replaced port-43 WHOIS."
+  heading="WHOIS lookup, over RDAP"
+  intro="Reads a domain's registration record straight from the registry's RDAP service and translates it into plain findings: who the registrar is, when it expires, and whether the transfer lock that stops hijacking is actually switched on."
+>
+  <div slot="input" class="wl-bar">
+    <form id="wl-form" class="wl-form" novalidate>
+      <label class="visually-hidden" for="wl-domain">Domain name to look up</label>
+      <input
+        id="wl-domain"
+        name="domain"
+        type="text"
+        class="wl-input mono"
+        placeholder="example.com"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="go"
+      />
+      <button type="submit" class="btn btn-primary" id="wl-go">Look up</button>
+    </form>
+
+    <div class="wl-examples">
+      <span class="wl-examples-label">Try</span>
+      <button type="button" class="btn btn-ghost btn-sm mono" data-wl-example="icann.org">icann.org</button>
+      <button type="button" class="btn btn-ghost btn-sm mono" data-wl-example="cloudflare.com">cloudflare.com</button>
+      <button type="button" class="btn btn-ghost btn-sm mono" data-wl-example="worldlink.com.np">worldlink.com.np</button>
+    </div>
+
+    <p class="wl-hint">
+      The query leaves your browser for <span class="mono">rdap.org</span>, which redirects it to the registry
+      that runs the TLD. Both of them see the domain you typed. This site stores nothing and has no server in
+      the path.
+    </p>
+  </div>
+
+  <section class="section wl-sec">
+    <div class="container">
+      <div id="wl-out" class="wl-out" aria-live="polite">
+        <div class="wl-card wl-idle">
+          <h3 class="wl-card-title">Nothing looked up yet</h3>
+          <p>
+            Enter a domain above. You will get the registrar of record and its abuse contact, the registry's
+            own dates, an expiry verdict, every EPP status code translated into what it actually does, the
+            nameservers the registry has on file, and whether DNSSEC is signed at the parent.
+          </p>
+          <p class="wl-muted">
+            Internationalised names must be entered in punycode — <span class="mono">xn--</span> form — because
+            the RDAP bootstrap expects an LDH label.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wl-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Background</p>
+        <h2 class="h2">Why registration data looks the way it does now</h2>
+        <p class="lead">
+          Three things changed in the last decade: the protocol, the default security posture, and what a
+          registry is legally allowed to publish. All three show up in the output above.
+        </p>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="code" size={20} /></div>
+          <h3 class="h3">RDAP replaced port-43 WHOIS</h3>
+          <p>
+            Classic WHOIS was a 1982 design: open a TCP socket to port 43, send a bare domain name, get back
+            free text. There was no schema, so every registry invented its own field names and date formats and
+            every parser was a pile of regular expressions that broke whenever a registry restyled its output.
+            There was no internationalisation, no authentication, and no way to ask for one specific object.
+          </p>
+          <p>
+            RDAP (RFC 7480–7484, plus RFC 9082/9083) is the ICANN-mandated replacement: HTTPS, JSON with a
+            defined vocabulary, UTF-8 throughout, and a bootstrap registry at IANA that maps every TLD to the
+            server that answers for it. Because it is HTTP it can be cached, rate-limited per client, and — the
+            part that matters most — <em>authenticated</em>, so a registry can show a verified law-enforcement
+            or trademark requester more than it shows an anonymous one. That tiered access is the whole reason
+            RDAP was pushed through, and it is why this page can exist at all: a browser cannot open a raw
+            port-43 socket, but it can make a CORS-permitted HTTPS request.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="shield" size={20} /></div>
+          <h3 class="h3">The transfer lock is the real defence</h3>
+          <p>
+            Domain hijacking almost never involves breaking DNS. It involves getting the registration moved to
+            a registrar the attacker controls — after that, they own the nameservers, the mail routing, and
+            every password reset that depends on the domain. The standard route is an unauthorised transfer
+            request: obtain the auth code or compromise the registrar account, submit the transfer, and wait.
+            Under ICANN's transfer policy an unanswered request is <strong>auto-approved after five
+            days</strong>, so silence works in the attacker's favour.
+          </p>
+          <p>
+            <span class="mono">clientTransferProhibited</span> stops that at the registry: the transfer is
+            refused outright until the lock is deliberately cleared from the owning account. It costs nothing,
+            most registrars set it by default, and its absence — reported as <span class="mono">ok</span> with
+            no locks — is one of the few genuinely actionable things public registration data still reveals.
+            Pair it with <span class="mono">clientDeleteProhibited</span> so a delete cannot be issued either,
+            and treat <span class="mono">clientUpdateProhibited</span> as a deliberate trade-off: it blocks
+            unauthorised edits and your own emergency DNS change equally.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="users" size={20} /></div>
+          <h3 class="h3">Why the registrant is blank</h3>
+          <p>
+            Until 2018 a WHOIS record typically carried the registrant's name, postal address, phone number
+            and email. GDPR made publishing that for a natural person unlawful without a basis, and ICANN's
+            Temporary Specification — later the Registration Data Policy — told contracted registries and
+            registrars to withhold most contact fields from anonymous queries. Registries outside the EU
+            followed, because the data is global and the liability is not worth the transparency.
+          </p>
+          <p>
+            So a redacted registrant is the expected output, not a failed lookup. RFC 9537 gives registries a
+            way to say so explicitly, listing which fields were removed and why, and this tool reports that
+            declaration when it is present. What survives is the registrar of record and its abuse contact,
+            which is the useful part anyway: the registrar is who you file a transfer dispute, an abuse report
+            or a data-disclosure request with. Named registrant details are still obtainable — through the
+            registrar's disclosure process or ICANN's RDRS — just not from an anonymous request like this one.
+          </p>
+        </article>
+      </div>
+
+      <div class="glass-card wl-limits">
+        <div class="icon-tile"><Icon name="pulse" size={20} /></div>
+        <h3 class="h3">What this tool cannot tell you</h3>
+        <ul>
+          <li>
+            <strong>It only speaks RDAP.</strong> A browser cannot open a port-43 socket, so any registry that
+            still publishes registration data only over legacy WHOIS returns nothing here. That is a gap in
+            reach, not evidence about the domain.
+          </li>
+          <li>
+            <strong>Some TLDs run no RDAP service at all.</strong> <span class="mono">.np</span>,
+            <span class="mono">.io</span> and <span class="mono">.bt</span> are examples. For those the page
+            falls back to DNS delegation and says plainly that registration data is unavailable — it never
+            infers "unregistered" from a missing service.
+          </li>
+          <li>
+            <strong>DNS delegation is corroboration, not proof.</strong> A registered domain with no
+            nameservers set looks identical, from outside, to one that was never registered.
+          </li>
+          <li>
+            <strong>It never tells you a name is available to buy.</strong> Absence of a registry record does
+            not account for reserved strings, premium tiers, registry policy or a pending application. Only a
+            registrar's own availability check is authoritative.
+          </li>
+          <li>
+            <strong>RDAP is rate-limited.</strong> A 429 or 503 is the service answering about itself, not
+            about your domain. Errors of that kind are reported as service failures and no verdict is given.
+          </li>
+          <li>
+            <strong>The data can lag.</strong> RDAP is served from the registry database, which trails
+            registrar-side changes by minutes to a day. Where the registry publishes a "last update of RDAP
+            database" timestamp it is shown, so you can see how stale the answer is.
+          </li>
+          <li>
+            <strong>This is not a legal record.</strong> For a UDRP filing, a court production or anything
+            evidentiary, obtain the registry's or registrar's own certified output.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  /* ---------------------------------- input --------------------------------- */
+  .wl-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .wl-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .wl-input {
+    flex: 1 1 18rem;
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+  }
+  .wl-input::placeholder { color: var(--text-muted); }
+  .wl-input:focus-visible {
+    outline: none;
+    border-color: var(--accent-blue);
+    background: var(--surface-strong);
+  }
+
+  .wl-examples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .wl-examples-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .wl-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 62ch;
+  }
+
+  /* --------------------------------- output ---------------------------------
+     Everything below `.wl-out` is written by JavaScript, so it never receives
+     Astro's scope attribute — each descendant selector has to be :global(). */
+  .wl-out {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wl-out :global(.wl-card) {
+    padding: 1.25rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .wl-out :global(.wl-card > *) { margin-block: 0 0.7rem; }
+  .wl-out :global(.wl-card > *:last-child) { margin-bottom: 0; }
+  .wl-out :global(.wl-card p) {
+    font-size: 0.94rem;
+    line-height: 1.65;
+    color: var(--text-soft);
+    max-width: 78ch;
+  }
+  .wl-out :global(.wl-card-title) {
+    font-family: var(--font-sans);
+    font-size: 1.08rem;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .wl-out :global(.wl-sub) {
+    font-size: 0.78rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .wl-out :global(.wl-muted) { color: var(--text-muted) !important; font-size: 0.87rem !important; }
+
+  /* headline card for the resolved domain */
+  .wl-out :global(.wl-head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .wl-out :global(.wl-head-name) {
+    font-family: var(--font-mono);
+    font-size: clamp(1.1rem, 3.4vw, 1.5rem);
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .wl-out :global(.wl-head-tld) {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* key/value list */
+  .wl-out :global(.wl-kv) {
+    display: grid;
+    grid-template-columns: minmax(9rem, max-content) 1fr;
+    gap: 0.15rem 1.1rem;
+    margin: 0;
+  }
+  .wl-out :global(.wl-kv > div) { display: contents; }
+  .wl-out :global(.wl-kv dt) {
+    padding: 0.42rem 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+  .wl-out :global(.wl-kv dd) {
+    margin: 0;
+    padding: 0.42rem 0;
+    font-size: 0.92rem;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+    overflow-wrap: anywhere;
+  }
+  .wl-out :global(.wl-kv > div:first-child dt),
+  .wl-out :global(.wl-kv > div:first-child dd) { border-top: 0; }
+  .wl-out :global(.wl-kv a) { color: var(--accent-blue); }
+  .wl-out :global(.wl-age) { color: var(--text-muted); font-size: 0.85em; }
+
+  @media (max-width: 34rem) {
+    .wl-out :global(.wl-kv) { grid-template-columns: 1fr; gap: 0; }
+    .wl-out :global(.wl-kv dt) { padding-bottom: 0; border-top: 1px solid var(--border); }
+    .wl-out :global(.wl-kv dd) { padding-top: 0.1rem; border-top: 0; }
+    .wl-out :global(.wl-kv > div:first-child dd) { border-top: 0; }
+  }
+
+  /* findings */
+  .wl-out :global(.wl-finds) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .wl-out :global(.wl-find) {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+  }
+  .wl-out :global(.wl-find-body) { min-width: 0; }
+  .wl-out :global(.wl-find h4) {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-sans);
+    font-size: 0.98rem;
+    font-weight: 620;
+    color: var(--text);
+  }
+  .wl-out :global(.wl-find p) {
+    margin: 0 0 0.45rem;
+    font-size: 0.9rem;
+    line-height: 1.62;
+    color: var(--text-soft);
+    max-width: 76ch;
+  }
+  .wl-out :global(.wl-find p:last-child) { margin-bottom: 0; }
+  .wl-out :global(.wl-fix) { color: var(--text) !important; }
+  .wl-out :global(.wl-fix strong) { color: var(--accent-cyan); }
+  .wl-out :global(.wl-epp) {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem !important;
+    color: var(--text-muted) !important;
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+  }
+
+  .wl-out :global(.wl-flag) {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    min-width: 4.6rem;
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    border-radius: var(--radius-pill);
+    border: 1px solid currentColor;
+  }
+
+  .wl-out :global(.wl-find--pass) {
+    border-left-color: var(--accent-cyan);
+    background: color-mix(in srgb, var(--accent-cyan) 7%, var(--bg-elev));
+  }
+  .wl-out :global(.wl-find--pass .wl-flag) { color: var(--accent-cyan); }
+
+  .wl-out :global(.wl-find--warn) {
+    border-left-color: var(--accent-violet);
+    background: color-mix(in srgb, var(--accent-violet) 8%, var(--bg-elev));
+  }
+  .wl-out :global(.wl-find--warn .wl-flag) { color: var(--accent-violet); }
+
+  .wl-out :global(.wl-find--fail) {
+    border-left-color: var(--accent-red);
+    background: color-mix(in srgb, var(--accent-red) 9%, var(--bg-elev));
+  }
+  .wl-out :global(.wl-find--fail .wl-flag) { color: var(--accent-red); }
+
+  .wl-out :global(.wl-find--unknown) {
+    border-left-color: var(--border-strong);
+    background: var(--bg-elev);
+  }
+  .wl-out :global(.wl-find--unknown .wl-flag) { color: var(--text-muted); }
+
+  /* nameservers */
+  .wl-out :global(.wl-ns) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wl-out :global(.wl-ns li) {
+    padding: 0.3rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    color: var(--text);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    overflow-wrap: anywhere;
+  }
+
+  /* provenance pane — fixed dark terminal palette, legible in both themes */
+  .wl-out :global(.wl-term) {
+    overflow: hidden;
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-md);
+  }
+  .wl-out :global(.wl-term-bar) {
+    padding: 0.45rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--term-accent);
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+  }
+  .wl-out :global(.wl-term pre) {
+    margin: 0;
+    padding: 0.85rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--term-text);
+  }
+  .wl-out :global(.wl-term .t-cmd) { color: var(--term-cmd); }
+  .wl-out :global(.wl-term .t-ok) { color: var(--term-ok); }
+
+  /* status states */
+  .wl-out :global(.wl-busy) {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.94rem;
+    color: var(--text-soft);
+  }
+  .wl-out :global(.wl-dots) {
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: wl-spin 0.8s linear infinite;
+  }
+  @keyframes wl-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .wl-out :global(.wl-dots) { animation-duration: 2.4s; }
+  }
+
+  .wl-out :global(.wl-err) {
+    border-color: color-mix(in srgb, var(--accent-red) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent-red) 8%, var(--surface));
+  }
+  .wl-out :global(.wl-err .wl-card-title) { color: var(--accent-red); }
+
+  .wl-out :global(.wl-xlink) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 550;
+    color: var(--accent-blue);
+  }
+
+  /* -------------------------------- explainer ------------------------------- */
+  .wl-notes-sec .glass-card p {
+    font-size: 0.92rem;
+    line-height: 1.68;
+    color: var(--text-soft);
+  }
+  .wl-notes-sec .glass-card .mono { font-size: 0.9em; color: var(--text); }
+
+  .wl-limits { margin-top: 1.25rem; }
+  .wl-limits ul {
+    margin: 0.4rem 0 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .wl-limits li {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--text-soft);
+    max-width: 88ch;
+  }
+  .wl-limits li strong { color: var(--text); }
+</style>
+
+<script>
+  import { lookupDomain } from '../../scripts/rdap-lookup.js';
+  import { esc } from '../../scripts/tool-ui.js';
+
+  const form = document.getElementById('wl-form');
+  const input = document.getElementById('wl-domain');
+  const btn = document.getElementById('wl-go');
+  const out = document.getElementById('wl-out');
+
+  if (form && input && btn && out) {
+    const FLAG = { pass: 'Pass', warn: 'Check', fail: 'Act now', unknown: 'Unclear' };
+
+    const sev = (s) => (Object.prototype.hasOwnProperty.call(FLAG, s) ? s : 'unknown');
+    const iso = (d) => (d instanceof Date && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : '');
+
+    /* EPP vocabulary is published as either "client transfer prohibited" or
+       "clientTransferProhibited" depending on the registry, so compare on letters. */
+    const key = (s) => String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+
+    function yearsSince(d) {
+      if (!(d instanceof Date)) return '';
+      const y = (Date.now() - d.getTime()) / 31557600000;
+      if (y < 1) return '';
+      const n = Math.floor(y);
+      return ` <span class="wl-age">(${n} year${n === 1 ? '' : 's'} ago)</span>`;
+    }
+
+    function card(title, bodyHtml, cls) {
+      return `<div class="wl-card${cls ? ' ' + cls : ''}">
+        ${title ? `<h3 class="wl-card-title">${esc(title)}</h3>` : ''}${bodyHtml}
+      </div>`;
+    }
+
+    function finding(f) {
+      const s = sev(f.status);
+      return `<div class="wl-find wl-find--${s}">
+        <span class="wl-flag">${FLAG[s]}</span>
+        <div class="wl-find-body">
+          <h4>${esc(f.title)}</h4>
+          ${f.epp ? `<p class="wl-epp">${esc(f.epp)}</p>` : ''}
+          <p>${esc(f.detail)}</p>
+          ${f.fix ? `<p class="wl-fix"><strong>Do this:</strong> ${esc(f.fix)}</p>` : ''}
+        </div>
+      </div>`;
+    }
+
+    const finds = (list) => `<div class="wl-finds">${list.map(finding).join('')}</div>`;
+
+    function row(k, valueHtml) {
+      if (!valueHtml) return '';
+      return `<div><dt>${esc(k)}</dt><dd>${valueHtml}</dd></div>`;
+    }
+
+    function provenance(domain, servedBy, status) {
+      const code = status || 200;
+      return `<div class="wl-term">
+        <div class="wl-term-bar">rdap request</div>
+        <pre><code><span class="t-cmd">GET</span> https://rdap.org/domain/${esc(domain)}
+<span class="${code === 200 ? 't-ok' : 't-cmd'}">${code}</span> answered by ${esc(servedBy)}</code></pre>
+      </div>`;
+    }
+
+    /* ------------------------------- kind: ok ------------------------------- */
+    function renderOk(r) {
+      const parts = [provenance(r.domain, r.servedBy)];
+
+      parts.push(
+        card(
+          '',
+          `<div class="wl-head">
+            <span class="wl-head-name">${esc(r.domain)}</span>
+            <span class="wl-head-tld">.${esc(r.tld)} &middot; registry data via ${esc(r.servedBy)}</span>
+          </div>
+          ${r.unicodeName ? `<p class="wl-muted">Unicode form: <span class="mono">${esc(r.unicodeName)}</span></p>` : ''}`
+        )
+      );
+
+      /* --- registrar + dates --- */
+      const reg = r.registrar;
+      const rows = [
+        row('Registrar', reg ? esc(reg.name) : '<span class="wl-age">Not published by this registry</span>'),
+        reg && reg.ianaId ? row('IANA ID', `<span class="mono">${esc(reg.ianaId)}</span>`) : '',
+        reg && reg.abuseEmail
+          ? row('Abuse contact', `<a href="mailto:${esc(reg.abuseEmail)}" class="mono">${esc(reg.abuseEmail)}</a>`)
+          : '',
+        reg && reg.abuseTel ? row('Abuse phone', `<span class="mono">${esc(reg.abuseTel)}</span>`) : '',
+        r.handle ? row('Registry handle', `<span class="mono">${esc(r.handle)}</span>`) : '',
+        row(
+          'Registered',
+          iso(r.dates.registered)
+            ? `<span class="mono">${iso(r.dates.registered)}</span>${yearsSince(r.dates.registered)}`
+            : ''
+        ),
+        row('Registry expiry', iso(r.dates.expiry) ? `<span class="mono">${iso(r.dates.expiry)}</span>` : ''),
+        row('Last changed', iso(r.dates.changed) ? `<span class="mono">${iso(r.dates.changed)}</span>` : ''),
+        row('Last transferred', iso(r.dates.transferred) ? `<span class="mono">${iso(r.dates.transferred)}</span>` : ''),
+        row('RDAP database updated', iso(r.dates.refreshed) ? `<span class="mono">${iso(r.dates.refreshed)}</span>` : ''),
+      ]
+        .filter(Boolean)
+        .join('');
+
+      parts.push(
+        card(
+          'Registration summary',
+          `<dl class="wl-kv">${rows}</dl>
+           <p class="wl-muted">Dates are the registry's own, in UTC. Blank fields are ones this registry does not publish over RDAP — not zeros.</p>`
+        )
+      );
+
+      /* --- expiry --- */
+      parts.push(card('Expiry', finds([r.expiryFinding])));
+
+      /* --- hijacking locks, derived: absence of a lock is the finding --- */
+      const codes = new Set((r.statuses || []).map((s) => key(s.code)));
+      const has = (...k) => k.some((x) => codes.has(x));
+      const locks = [];
+
+      if (has('clienttransferprohibited', 'servertransferprohibited', 'transferprohibited')) {
+        locks.push({
+          status: 'pass',
+          title: 'Transfer lock is set',
+          detail:
+            'A transfer to another registrar will be refused by the registry until the lock is deliberately removed. This is the single most effective protection against domain hijacking, because a hijack is almost always an unauthorised transfer rather than a DNS break.',
+        });
+      } else {
+        locks.push({
+          status: 'warn',
+          title: 'No transfer lock on this domain',
+          detail:
+            'The registry published no transfer-prohibited status, so nothing at the registry is standing between this name and a transfer request. ICANN policy auto-approves an unanswered transfer after five days, so an attacker who obtains the auth code only needs the owner not to be paying attention.',
+          fix: 'Turn on the registrar lock (clientTransferProhibited) in the registrar control panel — it is free, takes one click, and only needs clearing for the few minutes of a genuine transfer.',
+        });
+      }
+
+      if (has('clientdeleteprohibited', 'serverdeleteprohibited', 'deleteprohibited')) {
+        locks.push({
+          status: 'pass',
+          title: 'Deletion lock is set',
+          detail:
+            'A delete request for this domain will be rejected, so neither an accidental cancellation nor a malicious one takes effect while the lock stands.',
+        });
+      } else {
+        locks.push({
+          status: 'warn',
+          title: 'No deletion lock on this domain',
+          detail:
+            'No delete-prohibited status is published. Deletion is the one domain mistake with a hard deadline attached: after the delete, restoration is a 30-day redemption window at several times the renewal fee, then the name drops to general availability.',
+          fix: 'Enable clientDeleteProhibited alongside the transfer lock. Both are registrar-side switches on the same page.',
+        });
+      }
+
+      parts.push(
+        card(
+          'Hijacking protections',
+          `${finds(locks)}
+           <p class="wl-muted">These two are derived from the status codes below: a lock that is absent publishes nothing, so its absence has to be read rather than reported.</p>`
+        )
+      );
+
+      /* --- every published status --- */
+      if (r.statuses && r.statuses.length) {
+        parts.push(
+          card(
+            `Registry status codes (${r.statuses.length})`,
+            `${finds(r.statuses)}
+             <p class="wl-muted">EPP status codes are the registry's authoritative account of what can and cannot happen to this domain right now. Codes prefixed <span class="mono">client</span> were set by the registrar and can be cleared from your account; <span class="mono">server</span> codes are set at the registry and your registrar cannot lift them.</p>`
+          )
+        );
+      } else {
+        parts.push(
+          card(
+            'Registry status codes',
+            `<p>This registry published no status codes at all in its RDAP response. That is a gap in the response rather than a clean bill of health — with no codes present, whether a transfer lock exists cannot be determined from here. Check the domain in your registrar control panel.</p>`
+          )
+        );
+      }
+
+      /* --- delegation + DNSSEC --- */
+      const nsHtml = r.nameservers && r.nameservers.length
+        ? `<ul class="wl-ns">${r.nameservers.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+           <p class="wl-muted">These are the nameservers recorded <em>at the registry</em>, which is what the delegation in the parent zone is built from. If they disagree with what your DNS provider shows, the registry wins.</p>`
+        : `<p>The registry has no nameservers on file for this domain, so nothing about it resolves — no website, no mail. That is normal for a name held in reserve and a live outage for one that is meant to be in service.</p>`;
+
+      parts.push(card('Nameservers at the registry', nsHtml));
+      parts.push(card('DNSSEC', finds([r.dnssec])));
+
+      /* --- registrant disclosure --- */
+      let disclosure;
+      if (r.contacts && r.contacts.length) {
+        const rows2 = r.contacts
+          .map((c) => {
+            const bits = [c.org, c.name, c.email, c.tel, c.address].filter(Boolean).map(esc).join(' &middot; ');
+            return row(c.role.charAt(0).toUpperCase() + c.role.slice(1), bits);
+          })
+          .join('');
+        disclosure = `<dl class="wl-kv">${rows2}</dl>
+          <p class="wl-muted">This registry still discloses some contact fields to anonymous queries. Many do not.</p>`;
+      } else if (r.declaresRedaction) {
+        disclosure = `<p>The registry <strong>explicitly declared this response redacted</strong> (RFC 9537), meaning registrant, admin and technical contact details were deliberately withheld from an anonymous query — the standard consequence of GDPR and ICANN's Registration Data Policy. This is expected output, not a failed lookup or a misconfigured domain.</p>
+          <p>The registrar of record and its abuse contact above are the parts that remain, and they are the parts you actually need: transfer disputes, abuse reports and formal disclosure requests all go through the registrar. Named registrant details are still obtainable through the registrar's disclosure process or ICANN's RDRS, with a stated lawful basis.</p>`;
+      } else {
+        disclosure = `<p>No registrant, admin or technical contact details were published in this response, and the registry did not attach an explicit redaction declaration. In practice that is the same outcome as a declared redaction — almost every registry now withholds contact data from anonymous RDAP queries — it simply was not labelled as such. Do not read it as the domain having no registrant on file.</p>`;
+      }
+      parts.push(card('Registrant contact disclosure', disclosure));
+
+      out.innerHTML = parts.join('');
+    }
+
+    /* ---------------------- DNS fallback narration (shared) ------------------ */
+    function dnsBlock(dns, domain) {
+      const state = dns && dns.state;
+
+      if (state === 'delegated') {
+        return `<p><strong>DNS says this name is in use.</strong> The parent zone delegates
+          <span class="mono">${esc(domain)}</span> to the nameservers below, which only happens when a
+          registration exists.</p>
+          <ul class="wl-ns">${dns.nameservers.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>`;
+      }
+      if (state === 'nxdomain') {
+        return `<p><strong>DNS returns NXDOMAIN.</strong> No delegation for
+          <span class="mono">${esc(domain)}</span> exists anywhere in the chain from the root. That is
+          consistent with the name being unregistered, but it is not proof: a registered domain whose owner
+          never set nameservers produces exactly the same answer.</p>`;
+      }
+      if (state === 'noanswer') {
+        return `<p><strong>DNS resolved the name but returned no NS records.</strong> The name is known to the
+          chain without a delegation of its own — typical of a registration held without nameservers, or of a
+          label served from the parent zone. Inconclusive either way.</p>`;
+      }
+      return `<p><strong>The DNS cross-check failed as well.</strong> The DNS-over-HTTPS query could not be
+        completed, usually because a network filter, extension or captive portal is blocking it. No conclusion
+        can be drawn about this domain from here.</p>`;
+    }
+
+    const npLink = (tld) =>
+      tld === 'np'
+        ? `<p><a class="wl-xlink" href="/tools/np-domain-check">Use the .np domain check instead &rarr;</a>
+           It works the way .np actually has to be checked — Mercantile's register is the only source of truth
+           for that TLD, and no RDAP or WHOIS endpoint fronts it.</p>`
+        : '';
+
+    /* ---------------------------- kind: no-rdap ----------------------------- */
+    function renderNoRdap(r) {
+      out.innerHTML = card(
+        `No RDAP service exists for .${r.tld}`,
+        `<p>The bootstrap redirector at <span class="mono">rdap.org</span> answered directly rather than
+          forwarding the query, which means the registry for <span class="mono">.${esc(r.tld)}</span> publishes
+          no RDAP endpoint in IANA's bootstrap file. Nothing was asked of the registry, so
+          <strong>nothing is known here about whether ${esc(r.domain)} is registered</strong>. This is a gap in
+          the TLD's infrastructure, not a verdict on the domain.</p>
+        <p class="wl-muted">Several ccTLDs are in this position — <span class="mono">.np</span>,
+          <span class="mono">.io</span> and <span class="mono">.bt</span> among them. Some of them still run a
+          port-43 WHOIS server or a web form, neither of which a browser can reach: port 43 is a raw socket, and
+          web forms are same-origin only. Registration data for these TLDs has to come from the registry's own
+          site.</p>
+        ${npLink(r.tld)}
+        <h3 class="wl-card-title">DNS delegation, as a fallback</h3>
+        ${dnsBlock(r.dns, r.domain)}`,
+        'wl-fallback'
+      );
+    }
+
+    /* --------------------------- kind: not-found ---------------------------- */
+    function renderNotFound(r) {
+      const delegated = r.dns && r.dns.state === 'delegated';
+
+      out.innerHTML =
+        provenance(r.domain, r.servedBy, 404) +
+        card(
+          delegated
+            ? `The registry has no record — but DNS disagrees`
+            : `No registration record for ${r.domain}`,
+          `<p>The query was redirected to <span class="mono">${esc(r.servedBy)}</span>, the registry's own RDAP
+            service for <span class="mono">.${esc(r.tld)}</span>, and that service returned 404 for
+            <span class="mono">${esc(r.domain)}</span>. Unlike a missing RDAP endpoint, this is a real answer
+            from the authoritative source: it holds no registration object under that name.</p>
+          ${
+            delegated
+              ? `<p><strong>Treat this as inconclusive, not as availability.</strong> A live delegation with no
+                 registry record usually means one of three things: the RDAP service is lagging a very recent
+                 registration, the name is a second-level label under a public suffix that the registry does not
+                 expose as an object, or the RDAP object is filtered from anonymous queries. Verify with a
+                 registrar before assuming anything.</p>`
+              : `<p><strong>This is not the same as "available to buy."</strong> Reserved and blocked strings,
+                 premium tiers, registry policy and pending applications all produce a missing record too. A
+                 registrar's availability check is the only authoritative answer on whether you can register
+                 it.</p>`
+          }
+          ${npLink(r.tld)}
+          <h3 class="wl-card-title">DNS cross-check</h3>
+          ${dnsBlock(r.dns, r.domain)}`,
+          'wl-fallback'
+        );
+    }
+
+    /* -------------------------------- runner -------------------------------- */
+    function busy(domain) {
+      out.innerHTML = card(
+        '',
+        `<div class="wl-busy"><span class="wl-dots" aria-hidden="true"></span>
+          <span>Querying RDAP for <span class="mono">${esc(domain)}</span>&hellip;</span></div>`
+      );
+    }
+
+    function fail(message) {
+      out.innerHTML = card(
+        'Lookup did not complete',
+        `<p>${esc(message)}</p>
+         <p class="wl-muted">Nothing above should be read as information about the domain — a failed request
+          says nothing about a registration either way.</p>`,
+        'wl-err'
+      );
+    }
+
+    let running = false;
+
+    async function run(raw) {
+      const typed = String(raw || '').trim();
+
+      if (!typed) {
+        fail('Enter a domain name first, for example example.com.');
+        input.focus();
+        return;
+      }
+      if (running) return;
+
+      running = true;
+      btn.disabled = true;
+      busy(typed);
+
+      try {
+        const r = await lookupDomain(typed);
+
+        if (r && r.kind === 'ok') renderOk(r);
+        else if (r && r.kind === 'no-rdap') renderNoRdap(r);
+        else if (r && r.kind === 'not-found') renderNotFound(r);
+        else fail('The lookup returned a result shape this page does not recognise. Nothing can be concluded from it.');
+
+        if (r && r.domain) {
+          try {
+            const u = new URL(window.location.href);
+            u.searchParams.set('domain', r.domain);
+            window.history.replaceState(null, '', u);
+          } catch {
+            /* a blocked history API must not lose the rendered result */
+          }
+        }
+      } catch (err) {
+        fail(
+          (err && err.message) ||
+            'The lookup failed for an unknown reason. Check the network connection and try again.'
+        );
+      } finally {
+        running = false;
+        btn.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      run(input.value);
+    });
+
+    for (const el of document.querySelectorAll('[data-wl-example]')) {
+      el.addEventListener('click', () => {
+        input.value = el.getAttribute('data-wl-example') || '';
+        run(input.value);
+      });
+    }
+
+    try {
+      const q = new URL(window.location.href).searchParams.get('domain');
+      if (q) {
+        input.value = q;
+        run(q);
+      }
+    } catch {
+      /* deliberately silent: a malformed URL just means no prefill */
+    }
+  }
+</script>

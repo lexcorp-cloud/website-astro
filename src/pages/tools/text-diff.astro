@@ -1,0 +1,1093 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+<ToolLayout
+  slug="text-diff"
+  title="Text & Config Diff"
+  description="Compare two blocks of text, config or logs line by line in your browser. Side-by-side or unified view, word-level highlights, copyable unified patch."
+  heading="Text and config diff"
+  intro="Paste two versions of a file, config block or log excerpt and see exactly which lines changed. The comparison runs in this tab — nothing you paste is uploaded anywhere."
+>
+  <div slot="input" class="td-bar">
+    <div class="td-panes">
+      <label class="td-pane">
+        <span class="td-pane-head">
+          <span>Original</span>
+          <span class="td-count mono" id="td-count-a">0 lines</span>
+        </span>
+        <textarea
+          id="td-a"
+          class="td-ta mono"
+          rows="12"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="Paste the original version here…"
+        ></textarea>
+      </label>
+
+      <label class="td-pane">
+        <span class="td-pane-head">
+          <span>Changed</span>
+          <span class="td-count mono" id="td-count-b">0 lines</span>
+        </span>
+        <textarea
+          id="td-b"
+          class="td-ta mono"
+          rows="12"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="Paste the changed version here…"
+        ></textarea>
+      </label>
+    </div>
+
+    <div class="td-opts">
+      <button type="button" class="btn btn-primary" id="td-run">
+        <Icon name="transform" size={16} /> Compare
+      </button>
+
+      <label class="td-opt">
+        <input type="checkbox" id="td-ws" /> Ignore leading &amp; trailing whitespace
+      </label>
+      <label class="td-opt">
+        <input type="checkbox" id="td-case" /> Ignore case
+      </label>
+
+      <span class="td-spacer"></span>
+
+      <button type="button" class="btn btn-ghost btn-sm" id="td-swap">Swap sides</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="td-sample">Load example</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="td-clear">Clear</button>
+    </div>
+
+    <p class="td-status mono" id="td-status" role="status" aria-live="polite">
+      Up to 4,000 lines per side. Cmd/Ctrl + Enter compares.
+    </p>
+  </div>
+
+  <section class="section td-sec">
+    <div class="container">
+      <div class="td-toolbar">
+        <div class="td-views" role="group" aria-label="Diff view">
+          <button type="button" class="btn btn-ghost btn-sm td-view" data-view="split" aria-pressed="true">Side by side</button>
+          <button type="button" class="btn btn-ghost btn-sm td-view" data-view="uni" aria-pressed="false">Unified</button>
+          <button type="button" class="btn btn-ghost btn-sm td-view" data-view="patch" aria-pressed="false">Patch text</button>
+        </div>
+        <div class="td-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="td-all" aria-pressed="false">Show unchanged lines</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="td-copy">
+            <Icon name="code" size={16} /> Copy unified patch
+          </button>
+        </div>
+      </div>
+
+      <p class="td-note" id="td-note" role="status" aria-live="polite">Nothing compared yet.</p>
+
+      <div class="td-panel">
+        <div class="td-panel-head">
+          <span class="td-badge mono">diff</span>
+          <div class="td-stats">
+            <span class="td-stat is-add"><span class="td-stat-k">added</span> <span class="td-stat-v mono" id="td-s-add">—</span></span>
+            <span class="td-stat is-del"><span class="td-stat-k">removed</span> <span class="td-stat-v mono" id="td-s-del">—</span></span>
+            <span class="td-stat"><span class="td-stat-k">unchanged</span> <span class="td-stat-v mono" id="td-s-same">—</span></span>
+            <span class="td-stat is-sim"><span class="td-stat-k">similarity</span> <span class="td-stat-v mono" id="td-s-sim">—</span></span>
+          </div>
+        </div>
+        <div class="td-out" id="td-out">
+          <p class="td-empty">Paste two versions above and press <strong>Compare</strong>. Removed lines are marked <span class="td-key is-del">−</span>, added lines <span class="td-key is-add">+</span>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section td-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2 class="h2">A diff is a longest-common-subsequence problem</h2>
+        <p class="lead">
+          Understanding what the algorithm actually optimises for explains most of the moments where
+          a diff looks wrong — and tells you how to structure changes so review stays cheap.
+        </p>
+      </div>
+
+      <div class="td-prose">
+        <p>
+          Both inputs are cut into lines and every distinct line is mapped to an integer, so the
+          inner comparison loop compares numbers instead of strings. The algorithm then fills a
+          table of <span class="mono">(n+1) × (m+1)</span> cells to find the <strong>longest common
+          subsequence</strong>: the longest ordered set of lines that appears in both sides, not
+          necessarily contiguously. Lines on that path are unchanged; every line of the original
+          that is off the path is a deletion, and every line of the changed side that is off the
+          path is an insertion. That is the whole model — there is no notion of "edited line", only
+          a removal next to an addition, which is why a one-character fix prints as
+          <span class="mono">−</span> then <span class="mono">+</span>.
+        </p>
+        <p>
+          The cost is <span class="mono">O(n × m)</span> in both time and memory, which is why this
+          page trims identical leading and trailing lines before building the table (an optimal LCS
+          always keeps a matching first or last pair, so trimming cannot change the result) and
+          refuses anything past a fixed cell budget rather than allocating it. It is also why real
+          diff tools cap themselves: two 20,000-line files that share nothing would be a
+          400-million-cell table.
+        </p>
+        <p>
+          The second consequence is subtler and matters more day to day: the LCS is not unique.
+          When several subsequences tie for longest, the tie is broken by a rule, not by meaning —
+          which is how a diff ends up anchored to a stray closing brace or blank line and produces
+          a hunk that is technically minimal and humanly unreadable. Nothing in the algorithm
+          knows what a function is. Every "smart" behaviour you have seen — move detection,
+          patience or histogram diff, indentation heuristics — is a layer bolted on top precisely
+          because plain LCS output is often the wrong story about what happened.
+        </p>
+      </div>
+
+      <div class="grid grid-3 td-cards">
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="transform" size={20} /></div>
+          <h3 class="h3">A moved block reads as two edits</h3>
+          <p>
+            Move a 40-line function from the bottom of a file to the top and the diff shows 40
+            deletions and 40 additions with no signal that they are the same code. LCS preserves
+            order, so relocated text cannot be matched. This is the single biggest reason reviewing
+            a refactor is painful — the reviewer has to diff the two halves in their head. The
+            practical fix is procedural, not technical: move code in one commit that changes
+            nothing else, then change behaviour in the next, so each diff tells one story.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="code" size={20} /></div>
+          <h3 class="h3">Line-based is a convention, not a limit</h3>
+          <p>
+            Character-level diffs are more precise, but the entire ecosystem — <span class="mono">patch</span>,
+            <span class="mono">git apply</span>, code review, merge conflict markers — speaks in
+            whole lines, and a character-level patch cannot be applied by any of it. The usual
+            compromise, used here, is line-based structure with a word-level highlight inside a
+            replaced pair. That refinement is deliberately suppressed when the two lines share less
+            than about 40% of their characters: an intra-line diff of two unrelated lines invents a
+            relationship that does not exist and misleads more than plain <span class="mono">−/+</span> would.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="shield" size={20} /></div>
+          <h3 class="h3">Nothing leaves this machine</h3>
+          <p>
+            The comparison is plain computation, so it runs in the page itself: there is no upload,
+            no API call and no server-side log of what you pasted. That matters because the things
+            people most often want to diff are exactly the things that should not be pasted into a
+            random web form — nginx and Terraform config, Kubernetes manifests, environment files,
+            production log excerpts, customer records. Load the page once and it will keep working
+            with the network off.
+          </p>
+        </article>
+      </div>
+
+      <div class="td-limits">
+        <h3 class="h3"><Icon name="scale" size={18} /> Limits and honest caveats</h3>
+        <ul>
+          <li>
+            <strong>Size caps.</strong> 4,000 lines per side, 2,000,000 characters across both
+            inputs, and 4,000,000 comparison cells after identical top and bottom lines are
+            trimmed. Past any of those the diff is refused with a message naming the cap, because
+            attempting it would hang the tab rather than finish. For anything larger use
+            <span class="mono">git diff</span> or <span class="mono">diff -u</span> locally.
+          </li>
+          <li>
+            <strong>Line endings are normalised.</strong> CRLF and CR become LF before comparing,
+            so two files that differ <em>only</em> in line endings are reported as identical. Use
+            <span class="mono">file</span> or <span class="mono">cat -A</span> if that is the thing
+            you are chasing.
+          </li>
+          <li>
+            <strong>A trailing newline is not a line.</strong> Like every diff tool, a final
+            newline terminates the last line instead of starting an empty one — so inputs differing
+            only by a trailing newline compare as identical. Git reports that case explicitly with
+            <span class="mono">\ No newline at end of file</span>; this page cannot.
+          </li>
+          <li>
+            <strong>Ignore options hide real differences.</strong> With <em>ignore case</em> or
+            <em>ignore whitespace</em> on, lines that match only after normalising are shown as
+            unchanged, displaying the <em>original</em> side's text. Useful for reviewing a
+            re-indentation; misleading if whitespace is significant, as in YAML, Makefiles,
+            Python or Dockerfile heredocs.
+          </li>
+          <li>
+            <strong>No Unicode normalisation.</strong> Visually identical text in NFC and NFD form
+            (common when a string has travelled through macOS filenames) compares as different, and
+            invisible characters such as a zero-width space or a non-breaking space show as a
+            changed line with no visible cause.
+          </li>
+          <li>
+            <strong>Out of scope.</strong> No rename or move detection, no three-way merge, no
+            conflict resolution, no binary or image diff, and no syntax awareness — a JSON key
+            reordering is a change here even though the documents are equivalent.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  /* ---------- input bar ---------- */
+  .td-bar {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .td-panes {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .td-pane {
+    display: grid;
+    gap: 0.45rem;
+    min-width: 0;
+  }
+
+  .td-pane-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .td-count {
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--text-muted);
+  }
+
+  .td-count.is-over {
+    color: var(--accent-red);
+  }
+
+  /* Textareas use the fixed terminal palette so pasted config keeps the same
+     contrast as the diff output in light mode. */
+  .td-ta {
+    width: 100%;
+    min-height: 12rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-sm);
+    background: var(--term-bg);
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    tab-size: 4;
+    resize: vertical;
+    white-space: pre;
+    overflow: auto;
+  }
+
+  .td-ta::placeholder {
+    color: color-mix(in oklab, var(--term-text) 45%, transparent);
+  }
+
+  .td-ta:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 1px;
+  }
+
+  .td-opts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1.1rem;
+  }
+
+  .td-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    cursor: pointer;
+  }
+
+  .td-opt input {
+    accent-color: var(--accent-blue);
+  }
+
+  .td-spacer {
+    flex: 1 1 1rem;
+  }
+
+  .td-status {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .td-status.is-err {
+    color: var(--accent-red);
+  }
+
+  /* ---------- results ---------- */
+  .td-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .td-views,
+  .td-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .td-view[aria-pressed='true'],
+  #td-all[aria-pressed='true'] {
+    border-color: var(--accent-cyan);
+    color: var(--text);
+    background: color-mix(in oklab, var(--accent-cyan) 14%, transparent);
+  }
+
+  .td-note {
+    margin: 0 0 0.9rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .td-note.is-err {
+    border-left-color: var(--accent-red);
+    color: var(--text);
+  }
+
+  .td-note.is-ok {
+    border-left-color: var(--accent-cyan);
+    color: var(--text);
+  }
+
+  .td-panel {
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-md);
+    background: var(--term-bg);
+    overflow: hidden;
+  }
+
+  .td-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+  }
+
+  .td-badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--term-cmd);
+  }
+
+  .td-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-left: auto;
+    font-size: 0.75rem;
+  }
+
+  .td-stat {
+    color: color-mix(in oklab, var(--term-text) 65%, transparent);
+  }
+
+  .td-stat-v {
+    color: var(--term-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .td-stat.is-add .td-stat-v {
+    color: var(--term-ok);
+  }
+
+  .td-stat.is-del .td-stat-v {
+    color: color-mix(in oklab, var(--accent-red) 62%, var(--term-text));
+  }
+
+  .td-stat.is-sim .td-stat-v {
+    color: var(--term-accent);
+  }
+
+  .td-out {
+    max-height: 72vh;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    tab-size: 4;
+    color: var(--term-text);
+  }
+
+  /* Static empty state + its JS-injected twin, hence :global on the child. */
+  .td-out :global(.td-empty) {
+    margin: 0;
+    padding: 1.1rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: color-mix(in oklab, var(--term-text) 72%, transparent);
+  }
+
+  .td-key {
+    display: inline-block;
+    padding: 0 0.35em;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-mono);
+  }
+
+  .td-key.is-add {
+    color: var(--term-ok);
+    background: color-mix(in oklab, var(--term-ok) 18%, transparent);
+  }
+
+  .td-key.is-del {
+    color: color-mix(in oklab, var(--accent-red) 70%, var(--term-text));
+    background: color-mix(in oklab, var(--accent-red) 18%, transparent);
+  }
+
+  /* ---------- injected diff grid (all :global) ---------- */
+  .td-out :global(.td-grid) {
+    display: grid;
+  }
+
+  /* Two text columns cannot compress below readability, so the panel scrolls
+     horizontally on a narrow screen instead of wrapping into mush. */
+  .td-out :global(.td-grid.is-split) {
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    min-width: 42rem;
+  }
+
+  .td-out :global(.td-grid.is-uni) {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+
+  .td-out :global(.td-head) {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.35rem 0.75rem;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--term-text) 60%, transparent);
+  }
+
+  .td-out :global(.td-head-a) {
+    grid-column: 1 / 3;
+  }
+
+  .td-out :global(.td-head-b) {
+    grid-column: 3 / 5;
+    border-left: 1px solid var(--term-border);
+  }
+
+  .td-out :global(.td-head-u) {
+    grid-column: 1 / -1;
+  }
+
+  .td-out :global(.td-num) {
+    padding: 0 0.55rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in oklab, var(--term-text) 42%, transparent);
+    background: color-mix(in oklab, var(--term-bar) 55%, transparent);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .td-out :global(.td-txt) {
+    position: relative;
+    min-height: 1.6em;
+    padding: 0 0.75rem 0 1.7ch;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .td-out :global(.td-txt.td-right) {
+    border-left: 1px solid var(--term-border);
+    padding-left: 1.7ch;
+  }
+
+  .td-out :global(.td-txt.is-del)::before {
+    content: '-';
+    position: absolute;
+    left: 0.4ch;
+    color: color-mix(in oklab, var(--accent-red) 75%, var(--term-text));
+  }
+
+  .td-out :global(.td-txt.is-add)::before {
+    content: '+';
+    position: absolute;
+    left: 0.4ch;
+    color: var(--term-ok);
+  }
+
+  .td-out :global(.is-del) {
+    background: color-mix(in oklab, var(--accent-red) 15%, transparent);
+  }
+
+  .td-out :global(.td-num.is-del) {
+    background: color-mix(in oklab, var(--accent-red) 24%, transparent);
+  }
+
+  .td-out :global(.td-txt.is-del) {
+    color: color-mix(in oklab, var(--accent-red) 58%, var(--term-text));
+  }
+
+  .td-out :global(.is-add) {
+    background: color-mix(in oklab, var(--term-ok) 13%, transparent);
+  }
+
+  .td-out :global(.td-num.is-add) {
+    background: color-mix(in oklab, var(--term-ok) 22%, transparent);
+  }
+
+  .td-out :global(.td-txt.is-add) {
+    color: color-mix(in oklab, var(--term-ok) 70%, var(--term-text));
+  }
+
+  .td-out :global(.is-void) {
+    background: color-mix(in oklab, var(--term-bar) 45%, transparent);
+  }
+
+  .td-out :global(.td-w) {
+    border-radius: var(--radius-xs);
+    color: inherit;
+    background: color-mix(in oklab, var(--term-text) 22%, transparent);
+  }
+
+  .td-out :global(.td-txt.is-del) :global(.td-w) {
+    background: color-mix(in oklab, var(--accent-red) 34%, transparent);
+  }
+
+  .td-out :global(.td-txt.is-add) :global(.td-w) {
+    background: color-mix(in oklab, var(--term-ok) 28%, transparent);
+  }
+
+  .td-out :global(.td-fold) {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding: 0.3rem 0.75rem 0.3rem 1.7ch;
+    border: 0;
+    border-top: 1px solid var(--term-border);
+    border-bottom: 1px solid var(--term-border);
+    background: color-mix(in oklab, var(--term-accent) 12%, transparent);
+    color: color-mix(in oklab, var(--term-accent) 65%, var(--term-text));
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .td-out :global(.td-fold:hover) {
+    background: color-mix(in oklab, var(--term-accent) 22%, transparent);
+  }
+
+  .td-out :global(.td-patch) {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    white-space: pre;
+    color: var(--term-text);
+  }
+
+  /* ---------- explainer ---------- */
+  .td-prose {
+    display: grid;
+    gap: 1rem;
+    max-width: 62rem;
+    color: var(--text-soft);
+  }
+
+  .td-prose p {
+    margin: 0;
+  }
+
+  .td-prose strong {
+    color: var(--text);
+  }
+
+  .td-cards {
+    margin-top: 2rem;
+  }
+
+  .td-cards p {
+    margin: 0.5rem 0 0;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+
+  .td-limits {
+    margin-top: 2rem;
+    padding: 1.25rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .td-limits .h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .td-limits ul {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+
+  .td-limits strong {
+    color: var(--text);
+  }
+
+  @media (max-width: 780px) {
+    .td-panes {
+      grid-template-columns: 1fr;
+    }
+
+    .td-toolbar {
+      justify-content: flex-start;
+    }
+  }
+</style>
+
+<script>
+  import { LIMITS, diffText, toGroups, unifiedPatch } from '../../scripts/text-diff.js';
+  import { esc } from '../../scripts/tool-ui.js';
+
+  const byId = (id) => document.getElementById(id);
+  const taA = byId('td-a');
+  const taB = byId('td-b');
+
+  if (taA && taB) {
+    const out = byId('td-out');
+    const note = byId('td-note');
+    const status = byId('td-status');
+    const runBtn = byId('td-run');
+    const allBtn = byId('td-all');
+    const copyBtn = byId('td-copy');
+    const optWs = byId('td-ws');
+    const optCase = byId('td-case');
+    const stat = {
+      add: byId('td-s-add'),
+      del: byId('td-s-del'),
+      same: byId('td-s-same'),
+      sim: byId('td-s-sim'),
+    };
+    const viewBtns = Array.from(document.querySelectorAll('.td-view'));
+
+    const CONTEXT = 3;
+    const fmt = (n) => n.toLocaleString('en-US');
+    const state = { result: null, patch: '', view: 'split', showAll: false };
+
+    const setStatus = (text, kind) => {
+      status.textContent = text;
+      status.classList.toggle('is-err', kind === 'err');
+    };
+
+    const setNote = (text, kind) => {
+      note.textContent = text;
+      note.classList.toggle('is-err', kind === 'err');
+      note.classList.toggle('is-ok', kind === 'ok');
+    };
+
+    const resetStats = () => {
+      stat.add.textContent = '—';
+      stat.del.textContent = '—';
+      stat.same.textContent = '—';
+      stat.sim.textContent = '—';
+    };
+
+    const lineCount = (value) => {
+      if (value === '') return 0;
+      const s = value.replace(/\r\n?/g, '\n');
+      return (s.endsWith('\n') ? s.slice(0, -1) : s).split('\n').length;
+    };
+
+    /* ---------- markup builders (every class here needs :global in CSS) ---------- */
+
+    const inline = (op) => {
+      if (!op) return '';
+      if (op.parts && op.parts.length) {
+        return op.parts
+          .map((p) => (p.changed ? `<mark class="td-w">${esc(p.text)}</mark>` : esc(p.text)))
+          .join('');
+      }
+      return esc(op.text);
+    };
+
+    const numCell = (n, cls) => `<div class="td-num ${cls}">${n == null ? '' : n}</div>`;
+    const txtCell = (op, cls) => `<div class="td-txt ${cls}">${inline(op)}</div>`;
+    const foldCell = (count) =>
+      `<button type="button" class="td-fold" data-fold="1">&#8943; ${fmt(count)} unchanged ${
+        count === 1 ? 'line' : 'lines'
+      } &mdash; show all</button>`;
+
+    /**
+     * Flatten groups into display rows for both views in one pass, folding long
+     * unchanged runs down to CONTEXT lines at each end that borders a change.
+     */
+    function buildRows(groups) {
+      const split = [];
+      const uni = [];
+      const last = groups.length - 1;
+
+      groups.forEach((g, gi) => {
+        if (g.type === 'change') {
+          const pairs = Math.max(g.dels.length, g.adds.length);
+          for (let k = 0; k < pairs; k++) {
+            split.push({ kind: 'pair', left: g.dels[k] || null, right: g.adds[k] || null });
+          }
+          for (const op of g.dels) uni.push({ kind: 'del', op });
+          for (const op of g.adds) uni.push({ kind: 'add', op });
+          return;
+        }
+
+        const keep = (op) => {
+          split.push({ kind: 'same', op });
+          uni.push({ kind: 'same', op });
+        };
+        const ops = g.ops;
+        const head = gi === 0 ? 0 : CONTEXT;
+        const tail = gi === last ? 0 : CONTEXT;
+
+        if (state.showAll || ops.length <= head + tail + 1) {
+          ops.forEach(keep);
+          return;
+        }
+        for (let k = 0; k < head; k++) keep(ops[k]);
+        const fold = { kind: 'fold', count: ops.length - head - tail };
+        split.push(fold);
+        uni.push(fold);
+        for (let k = ops.length - tail; k < ops.length; k++) keep(ops[k]);
+      });
+
+      return { split, uni };
+    }
+
+    function splitHtml(rows) {
+      const h = [
+        '<div class="td-grid is-split">',
+        '<div class="td-head td-head-a">original</div>',
+        '<div class="td-head td-head-b">changed</div>',
+      ];
+      for (const r of rows) {
+        if (r.kind === 'fold') {
+          h.push(foldCell(r.count));
+        } else if (r.kind === 'same') {
+          h.push(
+            numCell(r.op.aLine, 'is-same'),
+            txtCell(r.op, 'is-same'),
+            numCell(r.op.bLine, 'is-same'),
+            txtCell(r.op, 'is-same td-right'),
+          );
+        } else {
+          h.push(
+            r.left ? numCell(r.left.aLine, 'is-del') : numCell(null, 'is-void'),
+            r.left ? txtCell(r.left, 'is-del') : txtCell(null, 'is-void'),
+            r.right ? numCell(r.right.bLine, 'is-add') : numCell(null, 'is-void'),
+            r.right ? txtCell(r.right, 'is-add td-right') : txtCell(null, 'is-void td-right'),
+          );
+        }
+      }
+      h.push('</div>');
+      return h.join('');
+    }
+
+    function uniHtml(rows) {
+      const h = [
+        '<div class="td-grid is-uni">',
+        '<div class="td-head td-head-u">unified &mdash; original / changed line</div>',
+      ];
+      for (const r of rows) {
+        if (r.kind === 'fold') {
+          h.push(foldCell(r.count));
+        } else if (r.kind === 'same') {
+          h.push(numCell(r.op.aLine, 'is-same'), numCell(r.op.bLine, 'is-same'), txtCell(r.op, 'is-same'));
+        } else if (r.kind === 'del') {
+          h.push(numCell(r.op.aLine, 'is-del'), numCell(null, 'is-del'), txtCell(r.op, 'is-del'));
+        } else {
+          h.push(numCell(null, 'is-add'), numCell(r.op.bLine, 'is-add'), txtCell(r.op, 'is-add'));
+        }
+      }
+      h.push('</div>');
+      return h.join('');
+    }
+
+    /* ---------- render ---------- */
+
+    function render() {
+      const res = state.result;
+      if (!res) return;
+
+      stat.add.textContent = fmt(res.added);
+      stat.del.textContent = fmt(res.removed);
+      stat.same.textContent = fmt(res.unchanged);
+      stat.sim.textContent = `${res.similarity}%`;
+
+      if (res.identical) {
+        const relaxed = [
+          optWs.checked ? 'leading/trailing whitespace' : null,
+          optCase.checked ? 'case' : null,
+        ].filter(Boolean);
+        setNote(
+          relaxed.length
+            ? `No differences once ${relaxed.join(' and ')} ${relaxed.length > 1 ? 'are' : 'is'} ignored — ${fmt(res.aLines)} lines each side. Uncheck those options to see the raw differences.`
+            : `The two inputs are identical — ${fmt(res.aLines)} matching ${res.aLines === 1 ? 'line' : 'lines'}. Note that line endings are normalised and a trailing newline is not counted, so a difference in either is invisible here.`,
+          'ok',
+        );
+        out.innerHTML = '<p class="td-empty">No differing lines.</p>';
+        return;
+      }
+
+      if (state.view === 'patch') {
+        out.innerHTML = `<pre class="td-patch">${esc(state.patch)}</pre>`;
+      } else {
+        const rows = buildRows(toGroups(res.ops));
+        out.innerHTML = state.view === 'split' ? splitHtml(rows.split) : uniHtml(rows.uni);
+      }
+
+      setNote(
+        `${fmt(res.removed)} removed, ${fmt(res.added)} added, ${fmt(res.unchanged)} unchanged · original ${fmt(res.aLines)} lines, changed ${fmt(res.bLines)} lines · ${res.similarity}% similar. A block that only moved is reported as a deletion plus an addition.`,
+      );
+    }
+
+    /* ---------- compare ---------- */
+
+    function compare() {
+      const a = taA.value;
+      const b = taB.value;
+
+      if (a.trim() === '' && b.trim() === '') {
+        state.result = null;
+        state.patch = '';
+        resetStats();
+        setStatus('Paste text into both boxes first.', 'err');
+        setNote('Nothing to compare — both boxes are empty.', 'err');
+        out.innerHTML = '<p class="td-empty">Nothing to compare yet.</p>';
+        return;
+      }
+
+      setStatus('Comparing…');
+      runBtn.disabled = true;
+
+      // Yield once so the status paints before a large table is built.
+      setTimeout(() => {
+        let res;
+        try {
+          res = diffText(a, b, {
+            ignoreWhitespace: optWs.checked,
+            ignoreCase: optCase.checked,
+          });
+        } catch (err) {
+          runBtn.disabled = false;
+          state.result = null;
+          state.patch = '';
+          resetStats();
+          setStatus('The comparison failed.', 'err');
+          setNote(
+            `This browser could not complete the comparison (${err && err.message ? err.message : 'unknown error'}). It usually means the inputs are too large for the memory this tab has available — compare a smaller section, or run "diff -u" locally.`,
+            'err',
+          );
+          out.innerHTML = '<p class="td-empty">No result.</p>';
+          return;
+        }
+        runBtn.disabled = false;
+
+        if (res.tooLarge) {
+          state.result = null;
+          state.patch = '';
+          resetStats();
+          setStatus('Too large to compare here.', 'err');
+          setNote(res.message, 'err');
+          out.innerHTML = '<p class="td-empty">Comparison not attempted — see the message above.</p>';
+          return;
+        }
+
+        state.result = res;
+        state.patch = unifiedPatch(res.ops, CONTEXT);
+        state.showAll = false;
+        allBtn.setAttribute('aria-pressed', 'false');
+        setStatus(
+          res.identical
+            ? 'No differences found.'
+            : `Done — ${fmt(res.added)} added, ${fmt(res.removed)} removed.`,
+        );
+        render();
+      }, 0);
+    }
+
+    /* ---------- wiring ---------- */
+
+    runBtn.addEventListener('click', compare);
+
+    for (const el of [taA, taB]) {
+      el.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          e.preventDefault();
+          compare();
+        }
+      });
+    }
+
+    let countTimer = 0;
+    const updateCounts = () => {
+      const pairs = [
+        [taA, byId('td-count-a')],
+        [taB, byId('td-count-b')],
+      ];
+      for (const [ta, el] of pairs) {
+        const n = lineCount(ta.value);
+        el.textContent = `${fmt(n)} / ${fmt(LIMITS.lines)} lines`;
+        el.classList.toggle('is-over', n > LIMITS.lines);
+      }
+    };
+    for (const el of [taA, taB]) {
+      el.addEventListener('input', () => {
+        window.clearTimeout(countTimer);
+        countTimer = window.setTimeout(updateCounts, 150);
+      });
+    }
+    updateCounts();
+
+    for (const btn of viewBtns) {
+      btn.addEventListener('click', () => {
+        state.view = btn.dataset.view;
+        for (const b of viewBtns) b.setAttribute('aria-pressed', String(b === btn));
+        render();
+      });
+    }
+
+    allBtn.addEventListener('click', () => {
+      state.showAll = !state.showAll;
+      allBtn.setAttribute('aria-pressed', String(state.showAll));
+      render();
+    });
+
+    out.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target.closest('.td-fold') : null;
+      if (!target) return;
+      state.showAll = true;
+      allBtn.setAttribute('aria-pressed', 'true');
+      render();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!state.result) {
+        setStatus('Compare something first — there is no patch yet.', 'err');
+        return;
+      }
+      if (!state.patch) {
+        setStatus('Nothing to copy: the two inputs have no differing lines.', 'err');
+        return;
+      }
+      try {
+        if (!navigator.clipboard) throw new Error('clipboard unavailable');
+        await navigator.clipboard.writeText(state.patch);
+        setStatus(`Unified patch copied — ${fmt(state.patch.split('\n').length - 1)} lines.`);
+      } catch {
+        // Blocked clipboard (insecure context or permission): show the text so it
+        // can still be selected by hand rather than failing silently.
+        state.view = 'patch';
+        for (const b of viewBtns) b.setAttribute('aria-pressed', String(b.dataset.view === 'patch'));
+        render();
+        setStatus('The browser blocked clipboard access — the patch text is shown below, select and copy it.', 'err');
+      }
+    });
+
+    byId('td-swap').addEventListener('click', () => {
+      const tmp = taA.value;
+      taA.value = taB.value;
+      taB.value = tmp;
+      updateCounts();
+      if (state.result) compare();
+      else setStatus('Sides swapped.');
+    });
+
+    byId('td-clear').addEventListener('click', () => {
+      taA.value = '';
+      taB.value = '';
+      state.result = null;
+      state.patch = '';
+      resetStats();
+      updateCounts();
+      setStatus(`Cleared. Up to ${fmt(LIMITS.lines)} lines per side.`);
+      setNote('Nothing compared yet.');
+      out.innerHTML = '<p class="td-empty">Paste two versions above and press Compare.</p>';
+    });
+
+    // The example deliberately moves a location block as well as editing one
+    // directive, so the moved-block limitation is visible on first use.
+    const SAMPLE_A = [
+      'server {',
+      '  listen 443 ssl;',
+      '  server_name app.lexcorp.cloud;',
+      '',
+      '  location = /healthz {',
+      '    access_log off;',
+      '    return 200 "ok";',
+      '  }',
+      '',
+      '  location /api/ {',
+      '    proxy_pass http://api_upstream;',
+      '    proxy_set_header Host $host;',
+      '    proxy_read_timeout 30s;',
+      '  }',
+      '}',
+    ].join('\n');
+
+    const SAMPLE_B = [
+      'server {',
+      '  listen 443 ssl;',
+      '  server_name app.lexcorp.cloud;',
+      '  gzip on;',
+      '',
+      '  location /api/ {',
+      '    proxy_pass http://api_upstream;',
+      '    proxy_set_header Host $host;',
+      '    proxy_read_timeout 60s;',
+      '  }',
+      '',
+      '  location = /healthz {',
+      '    access_log off;',
+      '    return 200 "ok";',
+      '  }',
+      '}',
+    ].join('\n');
+
+    byId('td-sample').addEventListener('click', () => {
+      taA.value = SAMPLE_A;
+      taB.value = SAMPLE_B;
+      updateCounts();
+      compare();
+    });
+  }
+</script>

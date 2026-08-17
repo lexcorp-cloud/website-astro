@@ -1,0 +1,918 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+<ToolLayout
+  slug="np-domain-check"
+  title=".np Domain Check"
+  description="Check a .np domain name across com.np, org.np, net.np, edu.np, gov.np and bare .np using live DNS — and see exactly what DNS can and cannot prove about availability."
+  heading=".np domain availability check"
+  intro="Type a name once and it is checked against every common Nepali second-level zone at the same time. Nepal's registry publishes no WHOIS and no RDAP, so DNS can prove a name is taken but can never prove one is free — this tool labels which of the two you are looking at."
+>
+  <div slot="input" class="np-bar">
+    <form class="np-form" id="np-form" novalidate>
+      <label class="visually-hidden" for="np-input">Name to check under .np</label>
+      <input
+        id="np-input"
+        class="np-input mono"
+        type="text"
+        name="name"
+        placeholder="lexcorp"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        maxlength="80"
+      />
+      <button class="btn btn-primary" type="submit" id="np-go">
+        <Icon name="globe" size={16} /> Check .np zones
+      </button>
+    </form>
+    <p class="np-hint">
+      Enter the name only — <span class="mono">lexcorp</span>, not the full domain. A full domain is
+      accepted too; the <span class="mono">.np</span> suffix is stripped before checking. Examples:
+      <button type="button" class="np-eg mono" data-eg="mercantile">mercantile</button>
+      <button type="button" class="np-eg mono" data-eg="worldlink">worldlink</button>
+      <button type="button" class="np-eg mono" data-eg="probably-not-taken-9x">probably-not-taken-9x</button>
+    </p>
+  </div>
+
+  <section class="section np-sec">
+    <div class="container">
+      <p class="np-status mono" id="np-status" role="status" aria-live="polite">Waiting for a name.</p>
+
+      <div class="np-out" id="np-out">
+        <div class="np-idle glass-card">
+          <p class="np-idle-lead">
+            Six lookups run per name: <span class="mono">com.np</span>, <span class="mono">org.np</span>,
+            <span class="mono">net.np</span>, <span class="mono">edu.np</span>, <span class="mono">gov.np</span>
+            and the name directly under <span class="mono">.np</span>.
+          </p>
+          <p>
+            Each name is checked twice over: once against the domain itself (NS, A, AAAA, MX, SOA) and once
+            against the zone above it with a <span class="mono">DS</span> query, which the parent —
+            <span class="mono">com.np</span> — answers directly. That second question still gets an answer when
+            a domain's own nameservers are missing or broken, so a registered name cannot hide behind bad DNS.
+          </p>
+          <p>
+            Read the verdicts the way the evidence supports them. Records answering, or the parent zone
+            acknowledging the name, is proof of registration. An <span class="mono">NXDOMAIN</span> is not proof
+            of availability: <span class="mono">.np</span> applications are approved by hand, and a name can be
+            registered, or waiting in the approval queue, with nothing published in DNS at all.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section np-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Background</p>
+        <h2 class="h2">How .np registration actually works</h2>
+        <p class="lead">
+          Nepal's country-code domain is administered by Mercantile Communications on Nepal's behalf, and it
+          behaves unlike almost every other TLD a business will deal with: the name costs nothing and the
+          gatekeeping is human rather than commercial.
+        </p>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="glass-card np-note">
+          <div class="icon-tile"><Icon name="clock" size={20} /></div>
+          <h3 class="h3">Free, but manually verified</h3>
+          <p>
+            There is no registration fee and no renewal invoice for a <span class="mono">.np</span> domain. What
+            you pay instead is process. Applications go through <span class="mono">register.com.np</span> and are
+            reviewed by a person against supporting documents — an identity document for an individual applicant,
+            and for a company the registration certificate and PAN/VAT paperwork, with the requested name
+            expected to relate to the applicant or its trademark. Approval takes days, not seconds, and it can be
+            refused.
+          </p>
+          <p>
+            That review queue is the single biggest reason a DNS check cannot answer the availability question.
+            Between the moment someone submits an application and the moment anything appears in the zone, the
+            name is effectively spoken for and completely invisible from outside.
+          </p>
+        </article>
+
+        <article class="glass-card np-note">
+          <div class="icon-tile"><Icon name="shield" size={20} /></div>
+          <h3 class="h3">com.np is the commercial zone</h3>
+          <p>
+            <span class="mono">com.np</span> is the general-purpose zone and the one virtually every Nepali
+            business should be looking at. <span class="mono">org.np</span> is intended for non-profits, NGOs and
+            associations, which are expected to evidence their registration; <span class="mono">net.np</span> is
+            for network operators and ISPs rather than as a spare commercial suffix.
+          </p>
+          <p>
+            <span class="mono">edu.np</span> and <span class="mono">gov.np</span> are genuinely restricted:
+            recognised educational institutions and Government of Nepal bodies only, with the request coming from
+            the institution itself. A free-looking result in those zones is not an opportunity — eligibility, not
+            availability, is what stops you. Names registered directly at the second level under
+            <span class="mono">.np</span> do exist, but they are exceptional; do not build a plan around getting one.
+          </p>
+        </article>
+
+        <article class="glass-card np-note">
+          <div class="icon-tile"><Icon name="server" size={20} /></div>
+          <h3 class="h3">No WHOIS, so one authoritative check</h3>
+          <p>
+            IANA's delegation record for <span class="mono">.np</span> lists no WHOIS server — the
+            <span class="mono">refer:</span> field is empty — and the registry operates no RDAP service either.
+            There is therefore no programmatic way, from a browser or from a server, to read the .np register.
+            Any tool that claims a confident "available" for a .np name is inferring it from DNS exactly as this
+            page does, whether or not it admits that.
+          </p>
+          <p>
+            DNS evidence only runs one way. Delegation proves registration; silence proves nothing. The strongest
+            probe available is the <span class="mono">DS</span> query used above: DS records live in the parent
+            zone, so <span class="mono">com.np</span> answers for them itself, and it will acknowledge a name it
+            holds even when that domain has no nameservers or lame ones. It is also worth knowing that a .np
+            domain can be live with no delegation of its own when its records sit in the parent zone, which is why
+            A, AAAA and MX are checked too rather than NS alone.
+          </p>
+          <p>
+            The registry's own search at
+            <a href="https://register.com.np/" target="_blank" rel="noopener noreferrer">register.com.np</a>
+            is the only authoritative check, and submitting the application there is the only way to discover
+            whether a pending application, a reserved string or an eligibility rule is in the way. Treat this tool
+            as the fast filter before that step, never as a substitute for it.
+          </p>
+        </article>
+      </div>
+
+      <div class="glass-card np-limits">
+        <h3 class="h3">What this tool cannot tell you</h3>
+        <ul class="np-limit-list">
+          <li>
+            <strong>Registration status.</strong> There is no .np WHOIS or RDAP endpoint to query, so registration
+            is never read directly — only inferred from DNS.
+          </li>
+          <li>
+            <strong>Whether a free-looking name is really free.</strong> An <span class="mono">NXDOMAIN</span>
+            is consistent with an unregistered name, a registered name with no DNS configured, and an application
+            sitting in manual review. Those three are indistinguishable from outside.
+          </li>
+          <li>
+            <strong>Registry-reserved and blocked strings.</strong> Reserved names, trademark conflicts and
+            policy blocks resolve to nothing, so they read as available here and are refused at application.
+          </li>
+          <li>
+            <strong>Eligibility.</strong> Nothing in DNS knows whether you qualify for
+            <span class="mono">edu.np</span>, <span class="mono">gov.np</span>, <span class="mono">org.np</span>
+            or <span class="mono">net.np</span>.
+          </li>
+          <li>
+            <strong>Fresh changes.</strong> Answers come from Cloudflare's public resolver over DNS-over-HTTPS
+            and are subject to caching, including negative caching — a change made minutes ago may not show yet.
+          </li>
+          <li>
+            <strong>Devanagari names.</strong> Internationalised names must be entered in punycode
+            (<span class="mono">xn--…</span>); no conversion happens here.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  /* ---------------------------------- input bar --------------------------------- */
+  .np-bar { display: grid; gap: 0.75rem; }
+
+  .np-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+
+  .np-input {
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 0.72rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.18s var(--ease-out);
+  }
+  .np-input::placeholder { color: var(--text-muted); }
+  .np-input:focus-visible {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  .np-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+
+  .np-eg {
+    padding: 0.14rem 0.42rem;
+    font-size: 0.8rem;
+    color: var(--accent-cyan);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+  }
+  .np-eg:hover { border-color: var(--accent-cyan); }
+
+  /* ---------------------------------- results ---------------------------------- */
+  .np-status {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .np-out { display: grid; gap: 1rem; }
+
+  .np-idle { display: grid; gap: 0.7rem; padding: 1.25rem; }
+  .np-idle p { margin: 0; line-height: 1.7; color: var(--text-soft); }
+  .np-idle p.np-idle-lead { color: var(--text); }
+
+  /* Everything below is injected by the page script, so it never receives the
+     scoped-style attribute — :global() is mandatory, not stylistic. */
+  .np-out :global(.np-card) {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1.2rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .np-out :global(.np-head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.9rem;
+  }
+
+  .np-out :global(.np-name) {
+    min-width: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(1.15rem, 3.4vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .np-out :global(.np-pill) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.62rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    color: var(--text-soft);
+    background: var(--surface-strong);
+  }
+  .np-out :global(.np-pill[data-v='registered']) {
+    color: var(--accent-red);
+    border-color: color-mix(in srgb, var(--accent-red) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+  }
+  .np-out :global(.np-pill[data-v='available']) {
+    color: var(--accent-cyan);
+    border-color: color-mix(in srgb, var(--accent-cyan) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent-cyan) 12%, transparent);
+  }
+  .np-out :global(.np-pill[data-v='error']) {
+    color: var(--accent-red);
+    border-color: color-mix(in srgb, var(--accent-red) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+  }
+
+  .np-out :global(.np-verdict-line) {
+    margin: 0;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+
+  /* The availability caveat sits inside the verdict block on purpose: it is not
+     a footnote, it is part of the claim. */
+  .np-out :global(.np-caveat) {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent-cyan) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-cyan) 30%, var(--border));
+    border-radius: var(--radius-sm);
+  }
+  .np-out :global(.np-caveat strong) { color: var(--accent-cyan); }
+  .np-out :global(.np-caveat a) { color: var(--accent-cyan); }
+
+  .np-out :global(.np-zones) { display: grid; gap: 0.75rem; }
+
+  .np-out :global(.np-zone) {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+  }
+  .np-out :global(.np-zone[data-v='registered']) { border-left-color: var(--accent-red); }
+  .np-out :global(.np-zone[data-v='available']) { border-left-color: var(--accent-cyan); }
+  .np-out :global(.np-zone > *) { min-width: 0; }
+
+  .np-out :global(.np-zone-role) {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  .np-out :global(.np-zone-reason) {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+
+  .np-out :global(.np-chips) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .np-out :global(.np-chip) {
+    padding: 0.24rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+  }
+
+  /* --term-* is a fixed dark palette so DNS output stays readable in light mode. */
+  .np-out :global(.np-term) {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--term-text);
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-sm);
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .np-out :global(.np-term .np-t-cmd) { color: var(--term-cmd); }
+  .np-out :global(.np-term .np-t-ok) { color: var(--term-ok); }
+  .np-out :global(.np-term .np-t-key) { color: var(--term-accent); }
+
+  .np-out :global(.np-summary) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .np-out :global(.np-next) {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-soft);
+  }
+  .np-out :global(.np-next a) { color: var(--accent-cyan); }
+
+  /* ---------------------------------- explainer -------------------------------- */
+  .np-note { display: grid; gap: 0.7rem; align-content: start; }
+  .np-note p { margin: 0; line-height: 1.7; color: var(--text-soft); }
+  .np-note a { color: var(--accent-cyan); }
+
+  .np-limits { margin-top: 1.25rem; display: grid; gap: 0.85rem; }
+  .np-limit-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.6rem; }
+  .np-limit-list li { line-height: 1.7; color: var(--text-soft); }
+  .np-limit-list strong { color: var(--text); }
+
+  @media (max-width: 640px) {
+    .np-form { flex-direction: column; }
+  }
+</style>
+
+<script>
+  import { dnsQuery, normaliseDomain, isValidDomain } from '../../scripts/email-scan.js';
+  import { esc } from '../../scripts/tool-ui.js';
+
+  const ZONES = [
+    {
+      suffix: 'com.np',
+      primary: true,
+      role: 'General commercial zone — the normal choice for a Nepali business, open to companies and individuals.',
+    },
+    {
+      suffix: 'org.np',
+      role: 'Non-profits, NGOs and associations; expect to evidence your registration.',
+    },
+    {
+      suffix: 'net.np',
+      role: 'Network operators and ISPs, not a spare commercial suffix.',
+    },
+    {
+      suffix: 'edu.np',
+      role: 'Restricted: recognised educational institutions only, applying as the institution.',
+    },
+    {
+      suffix: 'gov.np',
+      role: 'Restricted: Government of Nepal bodies only.',
+    },
+    {
+      suffix: 'np',
+      role: 'Directly at the second level under .np — exceptional, handled case by case.',
+    },
+  ];
+
+  /* Longest suffix first, so "x.com.np" strips to "x" rather than "x.com". */
+  const SUFFIXES = ZONES.map((z) => z.suffix).sort((a, b) => b.length - a.length);
+
+  const DNS_STATUS = { 0: 'NOERROR', 1: 'FORMERR', 2: 'SERVFAIL', 3: 'NXDOMAIN', 4: 'NOTIMP', 5: 'REFUSED' };
+
+  const REGISTRY_URL = 'https://register.com.np/';
+
+  const CAVEAT_TITLE = 'Likely available is not the same as available.';
+  const CAVEAT_BODY =
+    '.np has no WHOIS and no RDAP service, so nothing on this page can read the register. A name can already be registered with no DNS published, or be sitting in the manual approval queue, and still look exactly like this. Confirm on the registry search before you plan, print or buy anything around it.';
+
+  const form = document.getElementById('np-form');
+  const input = document.getElementById('np-input');
+  const button = document.getElementById('np-go');
+  const statusEl = document.getElementById('np-status');
+  const out = document.getElementById('np-out');
+
+  if (form && input && button && statusEl && out) {
+    /* ------------------------------ input parsing ----------------------------- */
+
+    function baseLabel(raw) {
+      let s = String(raw || '').trim().toLowerCase();
+      if (!s) return '';
+      // normaliseDomain handles scheme/path/www/trailing-dot; keep a fallback in
+      // case a bare label is not something it considers a domain at all.
+      s = normaliseDomain(s) || s.replace(/^[a-z][a-z0-9+.-]*:\/\//, '').replace(/[/?#].*$/, '').replace(/\.+$/, '');
+      for (const suffix of SUFFIXES) {
+        if (s.endsWith('.' + suffix)) {
+          s = s.slice(0, -(suffix.length + 1));
+          break;
+        }
+      }
+      return s.replace(/^www\./, '');
+    }
+
+    const LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+
+    function labelProblem(label, raw) {
+      if (!label) return 'Enter a name to check, for example lexcorp.';
+      if (/[^\x00-\x7f]/.test(label)) {
+        return 'Non-ASCII characters were entered. Devanagari and other internationalised names must be given in punycode (xn--…); this tool does not convert them.';
+      }
+      if (label.includes('.')) {
+        return `Only one name can be checked at a time, and “${raw}” still has a dot in it after the .np suffix was removed. Enter the registrable name on its own, for example lexcorp.`;
+      }
+      if (!LABEL_RE.test(label)) {
+        return 'Names may use letters a–z, digits and hyphens only, must not start or end with a hyphen, and must be 63 characters or fewer.';
+      }
+      return '';
+    }
+
+    /* --------------------------------- DNS bits -------------------------------- */
+
+    const cleanHost = (v) => String(v || '').replace(/\.$/, '').toLowerCase();
+    // "np" on its own reads as a typo in prose; the leading dot fixes it.
+    const zoneLabel = (s) => (s === 'np' ? '.np' : s);
+    const rows = (json, type) =>
+      (json && Array.isArray(json.Answer) ? json.Answer : []).filter((r) => r.type === type);
+    const authoritySoa = (json) =>
+      (json && Array.isArray(json.Authority) ? json.Authority : []).find((r) => r.type === 6) || null;
+
+    /* MX data arrives as "10 mail.example.com." — sorting the raw string puts 10
+       before 5, so preference is compared as a number. */
+    const mxOrder = (a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0) || a.localeCompare(b);
+
+    function parseSoa(data) {
+      const p = String(data || '').trim().split(/\s+/);
+      if (p.length < 7) return null;
+      return { mname: cleanHost(p[0]), rname: cleanHost(p[1]), serial: p[2], minimum: p[6] };
+    }
+
+    async function wildcardZones() {
+      /* A zone with a wildcard answers for names that cannot exist, which would
+         turn every positive below into a false "registered" — and wildcard
+         synthesis also makes the parent-side DS probe return NOERROR, so both
+         signals have to be validated against a name nobody could have taken. */
+      const probe = 'x' + Math.random().toString(36).slice(2, 10) + 'q9';
+      const jobs = [];
+      ZONES.forEach((z) => {
+        jobs.push(dnsQuery(`${probe}.${z.suffix}`, 'A'));
+        jobs.push(dnsQuery(`${probe}.${z.suffix}`, 'DS'));
+      });
+      const settled = await Promise.allSettled(jobs);
+      const flagged = new Set();
+      ZONES.forEach((z, i) => {
+        const a = settled[i * 2];
+        const ds = settled[i * 2 + 1];
+        const aHit =
+          a.status === 'fulfilled' && a.value && a.value.Status === 0 && rows(a.value, 1).concat(rows(a.value, 5)).length > 0;
+        const dsHit = ds.status === 'fulfilled' && ds.value && ds.value.Status === 0;
+        if (aHit || dsHit) flagged.add(z.suffix);
+      });
+      return { flagged, queries: jobs.length };
+    }
+
+    async function checkZone(label, zone) {
+      const res = {
+        zone,
+        name: `${label}.${zone.suffix}`,
+        verdict: 'uncertain',
+        reason: '',
+        ns: [],
+        ips: [],
+        mx: [],
+        cname: '',
+        soa: null,
+        soaName: '',
+        soaIsParent: false,
+        denial: '',
+        dnsStatus: [],
+        parent: 'unknown',
+        parentZone: zone.suffix,
+        dsStatus: '',
+        dsCount: 0,
+        lame: false,
+        queries: 0,
+      };
+
+      if (!isValidDomain(res.name)) {
+        res.reason = 'That name is not a valid host name once the zone suffix is added, so it was not queried.';
+        return res;
+      }
+
+      /* DS is the load-bearing query here: a DS record set lives in the PARENT
+         zone, so com.np itself answers it. That reveals whether com.np contains
+         the name at all, even when the domain's own nameservers are missing,
+         broken or lame — which the NS/A/MX queries cannot survive. */
+      const types = ['DS', 'NS', 'A', 'MX'];
+      const settled = await Promise.allSettled(types.map((t) => dnsQuery(res.name, t)));
+      res.queries += types.length;
+
+      const got = {};
+      settled.forEach((s, i) => {
+        const v = s.status === 'fulfilled' ? s.value : null;
+        if (v && typeof v.Status === 'number') got[types[i]] = v;
+      });
+
+      if (!Object.keys(got).length) {
+        res.reason =
+          'Every DNS query for this name failed before returning. That is a transport problem, not an answer: the lookups run from your browser over DNS-over-HTTPS, so being offline, on a captive network, or behind a blocker stops them.';
+        return res;
+      }
+
+      const child = ['NS', 'A', 'MX'];
+      res.dnsStatus = child.filter((t) => got[t]).map((t) => `${t}=${DNS_STATUS[got[t].Status] || got[t].Status}`);
+
+      res.ns = rows(got.NS, 2).map((r) => cleanHost(r.data)).sort();
+      res.ips = rows(got.A, 1).map((r) => String(r.data));
+      res.cname = rows(got.A, 5).map((r) => cleanHost(r.data))[0] || '';
+      res.mx = rows(got.MX, 15)
+        .map((r) => String(r.data).trim())
+        .sort(mxOrder);
+
+      const dsJson = got.DS || null;
+      res.dsCount = dsJson ? rows(dsJson, 43).length : 0;
+      res.parent = !dsJson ? 'unknown' : dsJson.Status === 0 ? 'exists' : dsJson.Status === 3 ? 'missing' : 'unknown';
+      const parentSoa = dsJson ? authoritySoa(dsJson) : null;
+      res.parentZone = parentSoa ? cleanHost(parentSoa.name) : zone.suffix;
+      res.dsStatus = dsJson ? DNS_STATUS[dsJson.Status] || String(dsJson.Status) : '';
+
+      const statuses = child.filter((t) => got[t]).map((t) => got[t].Status);
+      const allNx = statuses.length > 0 && statuses.every((s) => s === 3);
+      const anyOk = statuses.some((s) => s === 0);
+      const bad = statuses.filter((s) => s !== 0 && s !== 3);
+      res.lame = bad.length > 0 && bad.every((s) => s === 2);
+
+      const hasRecords = res.ns.length > 0 || res.ips.length > 0 || res.mx.length > 0 || !!res.cname;
+      let registered = hasRecords || res.parent === 'exists';
+
+      if (hasRecords) {
+        // An SOA at the name itself is the strongest single proof that the name is
+        // a delegated zone; it is evidence only, so a failure must not flip the verdict.
+        try {
+          const soaJson = await dnsQuery(res.name, 'SOA');
+          res.queries += 1;
+          const own = rows(soaJson, 6)[0];
+          const parent = own ? null : authoritySoa(soaJson);
+          if (own) {
+            res.soa = parseSoa(own.data);
+            res.soaName = cleanHost(own.name);
+          } else if (parent) {
+            res.soa = parseSoa(parent.data);
+            res.soaName = cleanHost(parent.name);
+            res.soaIsParent = true;
+          }
+        } catch {
+          /* no SOA evidence; the records already answered above stand on their own */
+        }
+      } else if (anyOk) {
+        const extra = await Promise.allSettled([dnsQuery(res.name, 'AAAA'), dnsQuery(res.name, 'SOA')]);
+        res.queries += 2;
+        const aaaa = extra[0].status === 'fulfilled' ? rows(extra[0].value, 28).map((r) => String(r.data)) : [];
+        const soaRec = extra[1].status === 'fulfilled' ? rows(extra[1].value, 6)[0] : null;
+        if (aaaa.length) {
+          res.ips = res.ips.concat(aaaa);
+          registered = true;
+        }
+        if (soaRec) {
+          res.soa = parseSoa(soaRec.data);
+          res.soaName = cleanHost(soaRec.name);
+          registered = true;
+        }
+      }
+
+      if (registered) {
+        res.verdict = 'registered';
+      } else if (res.parent === 'missing' || allNx) {
+        res.verdict = 'available';
+        const d = authoritySoa(got.DS) || authoritySoa(got.NS) || authoritySoa(got.A) || authoritySoa(got.MX);
+        res.denial = d ? cleanHost(d.name) : res.parentZone;
+      } else if (bad.length) {
+        res.verdict = 'uncertain';
+        res.reason = `The resolver returned DNS status ${DNS_STATUS[bad[0]] || bad[0]} for this name, and the parent-side query to ${zoneLabel(zone.suffix)} was inconclusive too, so there is no usable evidence in either direction.`;
+      } else {
+        res.verdict = 'uncertain';
+        res.reason =
+          'The nameservers answered NOERROR with no records (a NODATA answer) and the parent-side query was inconclusive. That is not evidence of availability — treat it as unknown.';
+      }
+
+      return res;
+    }
+
+    /* -------------------------------- rendering ------------------------------- */
+
+    const LABELS = { registered: 'Registered', available: 'Likely available', uncertain: 'Uncertain' };
+
+    function termBlock(r) {
+      const lines = [];
+      const head = (t) => `<span class="np-t-cmd">;; ${esc(r.name)} ${t}</span>`;
+
+      // The parent-side answer is the decisive one, so it leads the transcript.
+      lines.push(head('DS (answered by the parent zone)'));
+      if (r.parent === 'exists') {
+        lines.push(
+          `<span class="np-t-key">status</span> <span class="np-t-ok">NOERROR</span> — ${esc(
+            zoneLabel(r.parentZone)
+          )} holds this name${r.dsCount ? `, with ${r.dsCount} DS record${r.dsCount === 1 ? '' : 's'} (DNSSEC signed)` : ''}`
+        );
+      } else if (r.parent === 'missing') {
+        lines.push(`<span class="np-t-key">status</span> NXDOMAIN — ${esc(zoneLabel(r.parentZone))} has no such name`);
+      } else {
+        lines.push(`<span class="np-t-key">status</span> ${esc(r.dsStatus || 'no answer')} — inconclusive`);
+      }
+      if (r.dnsStatus.length) {
+        lines.push(head('NS / A / MX'));
+        lines.push(`<span class="np-t-key">status</span> ${esc(r.dnsStatus.join('  '))}`);
+      }
+
+      if (r.ns.length) {
+        lines.push(head('NS'));
+        r.ns.forEach((h) => lines.push(`<span class="np-t-ok">${esc(h)}</span>`));
+      }
+      if (r.ips.length) {
+        lines.push(head('A / AAAA'));
+        r.ips.forEach((ip) => lines.push(`<span class="np-t-ok">${esc(ip)}</span>`));
+      }
+      if (r.cname) {
+        lines.push(head('CNAME'));
+        lines.push(`<span class="np-t-ok">${esc(r.cname)}</span>`);
+      }
+      if (r.mx.length) {
+        lines.push(head('MX'));
+        r.mx.forEach((m) => lines.push(`<span class="np-t-ok">${esc(m)}</span>`));
+      }
+      if (r.soa) {
+        lines.push(head('SOA'));
+        if (r.soaIsParent) {
+          lines.push(
+            `no SOA of its own; nearest zone is <span class="np-t-key">${esc(r.soaName)}</span> (records are held in the parent zone)`
+          );
+        }
+        lines.push(
+          `<span class="np-t-key">zone</span> ${esc(r.soaName || r.name)}  <span class="np-t-key">primary</span> ${esc(r.soa.mname)}`
+        );
+        lines.push(
+          `<span class="np-t-key">contact</span> ${esc(r.soa.rname)}  <span class="np-t-key">serial</span> ${esc(r.soa.serial)}`
+        );
+      }
+      return lines.length ? `<pre class="np-term">${lines.join('\n')}</pre>` : '';
+    }
+
+    function chipList(r) {
+      const chips = [];
+      if (r.parent === 'exists') chips.push(`in ${zoneLabel(r.zone.suffix)} zone`);
+      if (r.parent === 'missing') chips.push('NXDOMAIN at parent');
+      if (r.dsCount) chips.push('DNSSEC');
+      if (r.ns.length) chips.push(`NS ×${r.ns.length}`);
+      if (r.ips.length) chips.push(`A/AAAA ×${r.ips.length}`);
+      if (r.cname) chips.push('CNAME');
+      if (r.mx.length) chips.push(`MX ×${r.mx.length}`);
+      if (r.soa && !r.soaIsParent) chips.push('SOA');
+      if (r.lame) chips.push('lame delegation');
+      if (!chips.length) chips.push('no usable answer');
+      return `<ul class="np-chips">${chips.map((c) => `<li class="np-chip">${esc(c)}</li>`).join('')}</ul>`;
+    }
+
+    function evidenceLine(r) {
+      if (r.verdict === 'registered') {
+        const proofs = [];
+        if (r.ns.length) proofs.push(`${r.ns.length} nameserver${r.ns.length === 1 ? '' : 's'}`);
+        if (r.soa && !r.soaIsParent) proofs.push('an SOA of its own');
+        if (r.ips.length) proofs.push(`${r.ips.length} address record${r.ips.length === 1 ? '' : 's'}`);
+        if (r.cname) proofs.push('a CNAME');
+        if (r.mx.length) proofs.push(`${r.mx.length} mail exchanger${r.mx.length === 1 ? '' : 's'}`);
+
+        if (!proofs.length) {
+          return `Taken. The ${zoneLabel(r.zone.suffix)} zone itself answers for this name — the parent-side DS query came back NOERROR, which only happens when the registry has put the name into the zone — but nothing is published under it. ${
+            r.lame
+              ? 'Its nameservers then failed to answer (a lame delegation), so the domain is registered and currently broken.'
+              : 'A registered name held in reserve, or one whose DNS has not been set up yet, looks exactly like this.'
+          }`;
+        }
+
+        const inUse = r.ips.length || r.mx.length || r.cname;
+        return `Registered and delegated — DNS returned ${proofs.join(', ')}. ${
+          inUse
+            ? 'The name is in active use, so it is not going to be released.'
+            : 'Nothing is published beyond the delegation itself, but the registration is certain.'
+        }`;
+      }
+      if (r.verdict === 'available') {
+        // Only claim the parent-side denial when the parent actually answered it.
+        const parentPart =
+          r.parent === 'missing'
+            ? ' That denial covers the parent-side DS query too, which would still have answered for a registered name with broken or missing nameservers.'
+            : ' The parent-side DS query was inconclusive here, so this rests on the record queries alone.';
+        return `No trace of this name in DNS: ${zoneLabel(
+          r.denial || r.zone.suffix
+        )} answered NXDOMAIN authoritatively.${parentPart} That is as strong as outside evidence of availability gets — which is not the same as strong.`;
+      }
+      return r.reason || 'The lookup did not produce a usable answer.';
+    }
+
+    const registryLink = `<a href="${REGISTRY_URL}" target="_blank" rel="noopener noreferrer">register.com.np</a>`;
+
+    function caveatBlock(compact) {
+      const body = compact
+        ? 'No .np WHOIS or RDAP exists, and a registered-but-undelegated name or a pending manual application looks identical to a free one in DNS. Verify at'
+        : `${CAVEAT_BODY} Search and apply at`;
+      return `<div class="np-caveat"><span><strong>${esc(CAVEAT_TITLE)}</strong></span><span>${esc(
+        body
+      )} ${registryLink}</span></div>`;
+    }
+
+    function renderZone(r) {
+      const parts = [
+        `<div class="np-head"><span class="np-name">${esc(r.name)}</span><span class="np-pill" data-v="${r.verdict}">${esc(
+          LABELS[r.verdict]
+        )}</span></div>`,
+        `<p class="np-zone-role">${esc(r.zone.role)}</p>`,
+        chipList(r),
+        `<p class="np-zone-reason">${esc(evidenceLine(r))}</p>`,
+      ];
+      if (r.wildcard) {
+        parts.push(
+          `<p class="np-zone-reason">${esc(
+            `A wildcard was detected in ${r.zone.suffix}: a random, impossible name also gets an answer there, so any positive result in this zone cannot be trusted as evidence of registration.`
+          )}</p>`
+        );
+      }
+      const term = termBlock(r);
+      if (term) parts.push(term);
+      if (r.verdict === 'available') parts.push(caveatBlock(true));
+      return `<div class="np-zone" data-v="${r.verdict}">${parts.join('')}</div>`;
+    }
+
+    function renderAll(results) {
+      const primary = results.find((r) => r.zone.primary) || results[0];
+      const taken = results.filter((r) => r.verdict === 'registered').length;
+      const free = results.filter((r) => r.verdict === 'available').length;
+      const unclear = results.filter((r) => r.verdict === 'uncertain').length;
+
+      const headline = [
+        `<div class="np-head"><span class="np-name">${esc(primary.name)}</span><span class="np-pill" data-v="${
+          primary.verdict
+        }">${esc(LABELS[primary.verdict])}</span></div>`,
+        `<p class="np-verdict-line">${esc(evidenceLine(primary))}</p>`,
+      ];
+      if (primary.verdict === 'available') headline.push(caveatBlock(false));
+      headline.push(
+        `<ul class="np-summary"><li>${taken} taken</li><li>${free} likely available</li><li>${unclear} uncertain</li><li>${results.length} zones checked</li></ul>`
+      );
+      headline.push(
+        `<p class="np-next">Whatever the verdicts below say, the register itself is the only authority: search and apply at <a href="${REGISTRY_URL}" target="_blank" rel="noopener noreferrer">register.com.np</a>, where the application is reviewed by hand and free of charge.</p>`
+      );
+
+      out.innerHTML =
+        `<div class="np-card">${headline.join('')}</div>` +
+        `<div class="np-zones">${results.map(renderZone).join('')}</div>`;
+    }
+
+    function renderError(message) {
+      out.innerHTML =
+        `<div class="np-card">` +
+        `<div class="np-head"><span class="np-name">Nothing checked</span><span class="np-pill" data-v="error">Input</span></div>` +
+        `<p class="np-verdict-line">${esc(message)}</p>` +
+        `</div>`;
+    }
+
+    /* ---------------------------------- runner -------------------------------- */
+
+    let running = false;
+
+    async function run(raw) {
+      if (running) return;
+
+      const label = baseLabel(raw);
+      const problem = labelProblem(label, String(raw || '').trim());
+      if (problem) {
+        statusEl.textContent = 'Not checked — see below.';
+        renderError(problem);
+        return;
+      }
+
+      running = true;
+      button.disabled = true;
+      out.setAttribute('aria-busy', 'true');
+      statusEl.textContent = `Querying ${ZONES.length} .np zones for “${label}” over DNS-over-HTTPS…`;
+
+      try {
+        const [probe, results] = await Promise.all([
+          wildcardZones().catch(() => ({ flagged: new Set(), queries: 0 })),
+          Promise.all(ZONES.map((z) => checkZone(label, z))),
+        ]);
+
+        results.forEach((r) => {
+          if (probe.flagged.has(r.zone.suffix)) {
+            r.wildcard = true;
+            if (r.verdict === 'registered') {
+              r.verdict = 'uncertain';
+              r.reason = `Records came back, but the ${r.zone.suffix} zone answers for names that cannot exist, so those records are not evidence that this name is registered.`;
+            }
+          }
+        });
+
+        renderAll(results);
+        const queries = results.reduce((n, r) => n + r.queries, 0) + probe.queries;
+        statusEl.textContent = `Done — ${ZONES.length} zones, ${queries} DNS queries via Cloudflare DNS-over-HTTPS. Registration status itself is not readable for .np.`;
+      } catch (err) {
+        const detail = err && err.message ? String(err.message) : 'the DNS request failed';
+        statusEl.textContent = 'Lookup failed.';
+        renderError(
+          `The DNS lookups could not be completed (${detail}). Everything here runs in your browser against Cloudflare's DNS-over-HTTPS endpoint, so a dropped connection, a corporate proxy, or an extension blocking the request will stop it. Nothing about this name has been determined — retrying is safe.`
+        );
+      } finally {
+        running = false;
+        button.disabled = false;
+        out.removeAttribute('aria-busy');
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      run(input.value);
+    });
+
+    document.querySelectorAll('.np-eg').forEach((el) => {
+      el.addEventListener('click', () => {
+        const value = el.getAttribute('data-eg') || '';
+        input.value = value;
+        run(value);
+      });
+    });
+  }
+</script>

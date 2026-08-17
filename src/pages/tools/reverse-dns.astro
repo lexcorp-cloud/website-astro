@@ -1,0 +1,875 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+<ToolLayout
+  slug="reverse-dns"
+  title="Reverse DNS Lookup"
+  description="Look up the PTR record for any IPv4 or IPv6 address and check forward-confirmed reverse DNS — the match mail servers require before accepting mail."
+  heading="Reverse DNS (PTR) lookup"
+  intro="Enter an IPv4 or IPv6 address to see its PTR record, then have that hostname checked back against the address. This round trip — forward-confirmed reverse DNS — is what receiving mail servers actually test before they accept a message."
+>
+  <div slot="input" class="rdns-bar">
+    <form class="rdns-form" id="rdns-form" novalidate>
+      <label class="visually-hidden" for="rdns-input">IP address or hostname</label>
+      <input
+        id="rdns-input"
+        class="rdns-input mono"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="8.8.4.4  ·  2001:4860:4860::8888  ·  mail.example.com"
+      />
+      <button type="submit" class="btn btn-primary" id="rdns-go">
+        Look up <Icon name="arrow" size={16} />
+      </button>
+      <button type="button" class="btn btn-ghost" id="rdns-mine">Use my IP</button>
+    </form>
+
+    <p class="rdns-examples">
+      <span>Try</span>
+      <button type="button" class="rdns-chip mono" data-ip="8.8.4.4">8.8.4.4</button>
+      <button type="button" class="rdns-chip mono" data-ip="2001:4860:4860::8888">2001:4860:4860::8888</button>
+      <button type="button" class="rdns-chip mono" data-ip="185.199.108.153">185.199.108.153</button>
+      <button type="button" class="rdns-chip mono" data-ip="mail.protonmail.ch">mail.protonmail.ch</button>
+    </p>
+  </div>
+
+  <section class="section rdns-sec">
+    <div class="container">
+      <div class="rdns-out" id="rdns-out" aria-live="polite">
+        <p class="rdns-idle">
+          Results appear here. Both the reverse name and the forward-confirmation check run in your
+          browser against Cloudflare's public DNS-over-HTTPS resolver — nothing is sent to us.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section rdns-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Reverse DNS in practice</p>
+        <h2 class="h2">Three things that trip people up</h2>
+        <p class="lead">
+          Reverse DNS is the one record most people cannot publish themselves, and the one mail
+          servers judge them on hardest. Here is the part that matters.
+        </p>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="route" size={20} /></div>
+          <h3 class="h3">The PTR record is not in your zone</h3>
+          <p>
+            Forward DNS follows names, reverse DNS follows address allocation. The record for
+            <span class="mono">8.8.4.4</span> is called
+            <span class="mono">4.4.8.8.in-addr.arpa</span>, and authority for that name is delegated
+            down the same path the IP block was: IANA to a regional registry, registry to your ISP or
+            hosting provider, and only then — sometimes — to you.
+          </p>
+          <p>
+            So you set reverse DNS in your VPS provider's control panel, on the Elastic IP or
+            instance that holds the address, or by asking your ISP. Adding a PTR-shaped record to
+            <span class="mono">yourdomain.com</span>'s zone file does nothing at all: nobody ever
+            queries that name. The lookup above shows which zone actually answers and which
+            nameserver is primary for it, which is usually enough to tell you who to ask.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="mail" size={20} /></div>
+          <h3 class="h3">Why home connections cannot send mail</h3>
+          <p>
+            Residential ISPs assign generic reverse names across whole address pools —
+            <span class="mono">host86-128-1-1.range86-128.example-isp.net</span> — and those names
+            are formulaic on purpose. Receiving servers read the embedded octets and the
+            <span class="mono">dsl</span>, <span class="mono">dyn</span>,
+            <span class="mono">cable</span> or <span class="mono">pool</span> tokens as evidence that
+            the address is a dynamically assigned end-user line, not a mail server.
+          </p>
+          <p>
+            That reverse name is often technically valid and will even pass the confirmation check
+            above, yet the mail is still refused: the same ranges are listed on Spamhaus's Policy
+            Block List, and most ISPs block outbound port 25 outright. Passing FCrDNS with a generic
+            name is necessary, not sufficient — you need an address whose reverse name you control.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <div class="icon-tile"><Icon name="shield" size={20} /></div>
+          <h3 class="h3">What confirmation proves</h3>
+          <p>
+            A forward-confirmed pair proves that whoever controls the reverse zone for the IP and
+            whoever controls the forward zone for the hostname agree with each other. Since those are
+            usually two different parties, agreement is hard to fake from a hijacked address or a
+            botnet host, which is exactly why receivers like the signal.
+          </p>
+          <p>
+            It proves nothing about the message. It does not authenticate the envelope sender or the
+            <span class="mono">From:</span> header — that is SPF, DKIM and DMARC — it does not prove
+            the sending domain is related to the PTR hostname, and a patient spammer with their own
+            IP block can set it up correctly. Treat it as a floor to clear, not a reputation.
+          </p>
+        </article>
+      </div>
+
+      <div class="rdns-prose">
+        <h3 class="h3">Why a missing PTR gets your mail deferred</h3>
+        <p>
+          When a server connects to deliver mail, the receiver looks up the reverse name of the
+          connecting IP before the conversation gets very far. In Postfix terms,
+          <span class="mono">reject_unknown_reverse_client_hostname</span> rejects a client with no
+          PTR at all, and <span class="mono">reject_unknown_client_hostname</span> goes further and
+          requires the forward lookup to confirm — the check this page runs. Both default to a
+          <span class="mono">450</span> temporary failure rather than a hard
+          <span class="mono">550</span>, which is why the symptom is rarely a clean bounce. Your mail
+          queue fills with deferrals, retries stretch out over hours, and some of it eventually
+          expires. A well-behaved sender is supposed to retry, so you often discover the problem days
+          later from a recipient who never got the message.
+        </p>
+        <p>
+          The convention worth following is that three things agree: the PTR name for your IP, the
+          name your server announces in <span class="mono">HELO</span>/<span class="mono">EHLO</span>,
+          and a forward A or AAAA record for that name pointing back at the same IP. Mismatches
+          between the HELO name and the reverse name are a common scoring signal in SpamAssassin and
+          in commercial filters, even when each half is individually valid. If you run mail on IPv6,
+          set the AAAA reverse record too: several large providers are markedly stricter over IPv6
+          than IPv4 and will refuse mail from an IPv6 address with no reverse name even when the IPv4
+          path works fine.
+        </p>
+        <p>
+          One practical note on timing. Reverse zones are frequently served with long TTLs — a day is
+          common — and negative answers get cached as well. After your provider sets a PTR, this tool
+          may keep reporting the old value, or none, until Cloudflare's cache expires. That is a
+          caching artefact, not a failed change.
+        </p>
+      </div>
+
+      <div class="rdns-limits">
+        <div class="rdns-limits-head">
+          <div class="icon-tile"><Icon name="pulse" size={20} /></div>
+          <h3 class="h3">What this tool cannot tell you</h3>
+        </div>
+        <ul>
+          <li>
+            <strong>It sees one resolver's view.</strong> Every DNS query goes to Cloudflare's
+            public DoH resolver from your browser. A receiving mail server asks its own resolver, and
+            can get a different or fresher answer.
+          </li>
+          <li>
+            <strong>"Use my IP" asks a third party.</strong> A browser cannot see its own external
+            address, so that button fetches it from <span class="mono">ipify.org</span> — the one
+            request on this page that does not go to Cloudflare. Type the address in by hand if you
+            would rather not involve them. Either way, nothing is sent to us.
+          </li>
+          <li>
+            <strong>Cached answers can be stale.</strong> Reverse zones often use TTLs of hours to a
+            day, and NXDOMAIN is cached too, so a change you just made may not be visible here yet.
+          </li>
+          <li>
+            <strong>It cannot check reputation.</strong> Blocklist membership (Spamhaus PBL/SBL,
+            Barracuda, Proofpoint), ASN, and IP history all need server-side APIs. A pass here says
+            nothing about whether your IP is listed.
+          </li>
+          <li>
+            <strong>It cannot see receiver policy.</strong> Whether a given provider requires
+            confirmation, merely scores it, or ignores it is a per-operator decision that is not
+            published. Nothing here predicts a specific inbox's verdict.
+          </li>
+          <li>
+            <strong>It does not test SMTP.</strong> No connection is made to port 25, so the
+            <span class="mono">HELO</span> name your server announces — the third part of the
+            convention above — cannot be read from a browser and is not checked.
+          </li>
+          <li>
+            <strong>No PTR is not always a fault.</strong> Web servers, workstations and anything
+            that never sends mail are fine without one. Private, loopback and documentation ranges
+            have no public reverse delegation at all, and the tool says so when it sees one.
+          </li>
+          <li>
+            <strong>Multiple PTR records are allowed</strong> and are reported individually. The
+            check passes if any one of them confirms, which matches how most receivers behave, but a
+            receiver that tests only the first answer may still disagree.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  /* ---------------------------------- input --------------------------------- */
+  .rdns-bar { display: grid; gap: 0.85rem; }
+
+  .rdns-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .rdns-input {
+    flex: 1 1 22rem;
+    min-width: 0;
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+  }
+  .rdns-input::placeholder { color: var(--text-muted); }
+  .rdns-input:focus-visible {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background: var(--surface-strong);
+  }
+
+  .rdns-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .rdns-chip {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+  }
+  .rdns-chip:hover { color: var(--text); border-color: var(--border-strong); }
+
+  /* --------------------------------- results -------------------------------- */
+  /* Everything below the .rdns-out wrapper is injected by the script on this
+     page, so it never receives Astro's scope attribute — each selector has to
+     reach through :global() or it silently matches nothing. */
+  .rdns-out { display: grid; gap: 1rem; }
+
+  .rdns-out :global(.rdns-idle),
+  .rdns-out :global(.rdns-working) {
+    max-width: 60ch;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .rdns-out :global(.rdns-working strong) { color: var(--text-soft); font-weight: 600; }
+
+  .rdns-out :global(.rdns-result) { display: grid; gap: 1rem; }
+
+  .rdns-out :global(.rdns-verdict) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.1rem;
+    align-items: flex-start;
+    padding: 1.1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius-md);
+  }
+  .rdns-out :global(.rdns-verdict.is-pass) { border-left-color: var(--accent-cyan); }
+  .rdns-out :global(.rdns-verdict.is-fail) { border-left-color: var(--accent-red); }
+  .rdns-out :global(.rdns-verdict.is-none) { border-left-color: var(--accent-violet); }
+  .rdns-out :global(.rdns-verdict.is-error) { border-left-color: var(--accent-red); }
+
+  .rdns-out :global(.rdns-badge) {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-pill);
+    border: 1px solid currentColor;
+  }
+  .rdns-out :global(.is-pass .rdns-badge) { color: var(--accent-cyan); }
+  .rdns-out :global(.is-fail .rdns-badge),
+  .rdns-out :global(.is-error .rdns-badge) { color: var(--accent-red); }
+  .rdns-out :global(.is-none .rdns-badge) { color: var(--accent-violet); }
+
+  .rdns-out :global(.rdns-vbody) { flex: 1 1 20rem; min-width: 0; }
+  .rdns-out :global(.rdns-vtitle) {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .rdns-out :global(.rdns-vtext) {
+    margin: 0;
+    max-width: 68ch;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+  .rdns-out :global(.rdns-vtext + .rdns-vtext) { margin-top: 0.5rem; }
+  .rdns-out :global(.rdns-vtext code) {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  /* Terminal pane: the --term-* palette is fixed dark in both themes. */
+  .rdns-out :global(.rdns-term) {
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .rdns-out :global(.rdns-term-bar) {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.55rem 0.85rem;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+  }
+  .rdns-out :global(.rdns-term-bar i) {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--term-border);
+  }
+  .rdns-out :global(.rdns-term-bar span) {
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--term-text);
+    opacity: 0.65;
+  }
+  .rdns-out :global(.rdns-term-body) {
+    margin: 0;
+    padding: 1rem 1.05rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.85;
+    color: var(--term-text);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .rdns-out :global(.t-cmd) { color: var(--term-cmd); }
+  .rdns-out :global(.t-ok) { color: var(--term-ok); }
+  .rdns-out :global(.t-accent) { color: var(--term-accent); }
+  .rdns-out :global(.t-dim) { color: var(--term-text); opacity: 0.55; }
+  /* The fixed terminal palette has no failure colour, and theme tokens are
+     tuned for the page background rather than this permanently dark pane. */
+  .rdns-out :global(.t-bad) { color: #ff8080; }
+
+  .rdns-out :global(.rdns-facts) {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    margin: 0;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .rdns-out :global(.rdns-fact) {
+    padding: 0.85rem 1rem;
+    background: var(--bg-elev);
+  }
+  .rdns-out :global(.rdns-fact dt) {
+    margin-bottom: 0.3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .rdns-out :global(.rdns-fact dd) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .rdns-out :global(.rdns-fact dd em) {
+    display: block;
+    margin-top: 0.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.76rem;
+    font-style: normal;
+    color: var(--text-muted);
+    word-break: normal;
+  }
+
+  .rdns-out :global(.rdns-copy) {
+    display: inline-flex;
+    margin-top: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+  }
+  .rdns-out :global(.rdns-copy:hover) { color: var(--text); border-color: var(--border-strong); }
+
+  .rdns-out :global(.rdns-flags) { display: grid; gap: 0.5rem; }
+  .rdns-out :global(.rdns-flag) {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+  }
+  .rdns-out :global(.rdns-flag code) {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  /* -------------------------------- explainer ------------------------------- */
+  .rdns-notes-sec .glass-card p {
+    margin: 0.7rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+  .rdns-notes-sec .mono { color: var(--text); font-size: 0.86em; word-break: break-word; }
+
+  .rdns-prose {
+    max-width: 68ch;
+    margin: 2.5rem 0 0;
+  }
+  .rdns-prose p {
+    margin: 0.8rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-soft);
+  }
+
+  .rdns-limits {
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .rdns-limits-head {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .rdns-limits-head .h3 { margin: 0; }
+  .rdns-limits ul {
+    display: grid;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rdns-limits li {
+    padding-left: 1.1rem;
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+  .rdns-limits li::before {
+    content: '';
+    position: absolute;
+    top: 0.62em;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-violet);
+  }
+  .rdns-limits strong { color: var(--text); font-weight: 600; }
+  .rdns-limits .mono { color: var(--text); font-size: 0.86em; }
+
+  @media (max-width: 640px) {
+    .rdns-form .btn { flex: 1 1 auto; justify-content: center; }
+  }
+</style>
+
+<script>
+  import { runReverseLookup, toPtrName, ipKey, fetchPublicIp } from '../../scripts/reverse-dns.js';
+  import { esc } from '../../scripts/tool-ui.js';
+
+  const form = document.getElementById('rdns-form');
+  const input = document.getElementById('rdns-input');
+  const goBtn = document.getElementById('rdns-go');
+  const mineBtn = document.getElementById('rdns-mine');
+  const out = document.getElementById('rdns-out');
+
+  // lookup() drives both buttons unconditionally, so they belong in the guard.
+  if (form && input && out && goBtn && mineBtn) {
+    let busy = false;
+
+    const FAMILY = { 4: 'IPv4', 6: 'IPv6' };
+
+    const ttlText = (s) => {
+      if (s == null) return null;
+      if (s >= 86400) return `${s} s (${(s / 86400).toFixed(1)} days)`;
+      if (s >= 3600) return `${s} s (${Math.round(s / 3600)} hours)`;
+      if (s >= 60) return `${s} s (${Math.round(s / 60)} min)`;
+      return `${s} s`;
+    };
+
+    const line = (cls, text) => `<span class="${cls}">${esc(text)}</span>\n`;
+
+    function transcript(r) {
+      const t = r.target;
+      let s = '';
+
+      if (r.resolvedFrom) {
+        s += line('t-cmd', `$ dig +short ${r.resolvedFrom.host} A AAAA`);
+        s += line('t-accent', r.resolvedFrom.addr);
+        if (r.resolvedFrom.others.length) {
+          s += line('t-dim', `;; also: ${r.resolvedFrom.others.join(' ')} (not checked)`);
+        }
+      }
+
+      s += line('t-cmd', `$ dig -x ${t.ip}`);
+      s += line('t-dim', `;; reverse name: ${t.arpa}`);
+
+      if (!r.hostnames.length) {
+        if (r.status === 'resolver') {
+          s += line('t-bad', `;; status: ${r.rcodeText} — the resolver could not answer this query`);
+          s += line('t-bad', ';; forward-confirmed reverse DNS: could not be determined');
+          return s;
+        }
+        s += line('t-bad', r.nxdomain
+          ? ';; status: NXDOMAIN — no PTR record exists for this address'
+          : ';; status: NOERROR, but no PTR record was returned');
+        s += line('t-bad', ';; forward-confirmed reverse DNS: not possible');
+        return s;
+      }
+
+      r.hostnames.forEach((h) => {
+        s += line('t-accent', `${t.arpa}.  ${r.ttl == null ? '' : r.ttl + '  '}IN  PTR  ${h}.`);
+      });
+
+      r.checks.forEach((c) => {
+        // Both families are queried: a v6 PTR whose host has only an A record
+        // is a real and confusing failure mode, so show what actually exists.
+        s += line('t-cmd', `$ dig +short ${c.host} A AAAA`);
+        if (c.error) {
+          s += line('t-bad', `;; forward lookup failed: ${c.error}`);
+        } else if (!c.addrs.length) {
+          s += line('t-bad', c.nxdomain
+            ? ';; NXDOMAIN — the PTR hostname does not resolve at all'
+            : ';; no A or AAAA records for the PTR hostname');
+        } else {
+          c.addrs.forEach((a) => {
+            const hit = ipKey(a) === t.key;
+            s += line(hit ? 't-ok' : 't-dim', hit ? `${a}    <-- matches the address queried` : a);
+          });
+        }
+      });
+
+      s += line(r.status === 'pass' ? 't-ok' : 't-bad',
+        r.status === 'pass'
+          ? ';; forward-confirmed reverse DNS: PASS'
+          : r.status === 'unknown'
+            ? ';; forward-confirmed reverse DNS: could not be determined'
+            : ';; forward-confirmed reverse DNS: FAIL');
+      return s;
+    }
+
+    function verdict(r) {
+      if (r.status === 'pass') {
+        const host = r.checks.find((c) => c.match).host;
+        return {
+          cls: 'is-pass',
+          badge: 'Confirmed',
+          title: `${r.target.ip} confirms as ${host}`,
+          body: [
+            `The PTR record points at <code>${esc(host)}</code>, and that hostname resolves back to the same address. This is the match receiving mail servers look for, so the reverse-DNS check will not be the reason mail from this address is refused.`,
+            'Worth confirming separately that your mail server announces this same name in its HELO/EHLO greeting — that part cannot be tested from a browser.',
+          ],
+        };
+      }
+
+      // A PTR was returned but nothing could be checked against it. Scoring
+      // that as a failure would be a confident verdict on no evidence.
+      if (r.status === 'unknown') {
+        return {
+          cls: 'is-error',
+          badge: 'Inconclusive',
+          title: 'The PTR record was returned, but it could not be confirmed',
+          body: [
+            `The reverse lookup gave <code>${esc(r.hostnames.join(', '))}</code>, but the forward query for ${r.hostnames.length > 1 ? 'those names' : 'that name'} did not complete, so there is nothing to compare against ${esc(r.target.ip)}.`,
+            'This is a problem with the query, not with your DNS — retry, and check whether a VPN, extension or network policy is interfering with DNS-over-HTTPS requests.',
+          ],
+        };
+      }
+
+      if (r.status === 'fail') {
+        // Explain using a check that actually completed; an errored one has
+        // nothing to say about why confirmation failed.
+        const c = r.checks.find((x) => !x.error) || r.checks[0];
+        const why = c.error
+          ? `the forward lookup for <code>${esc(c.host)}</code> did not complete`
+          : c.nxdomain
+            ? `the hostname <code>${esc(c.host)}</code> does not resolve at all`
+            : c.addrs.length
+              ? `<code>${esc(c.host)}</code> resolves to ${esc(c.addrs.join(', '))} instead`
+              : `<code>${esc(c.host)}</code> has no A or AAAA record`;
+        return {
+          cls: 'is-fail',
+          badge: 'Not confirmed',
+          title: 'A PTR record exists, but it does not confirm',
+          body: [
+            `The reverse lookup returned ${r.hostnames.length > 1 ? 'names' : 'a name'}, but the forward lookup does not come back to ${esc(r.target.ip)} — ${why}.`,
+            'Receivers treat this as an unconfirmed client. Postfix’s <code>reject_unknown_client_hostname</code> answers with a <code>450</code> temporary failure, so mail is deferred and retried rather than bounced, which makes the problem easy to miss. Fix it by publishing a forward A or AAAA record for the PTR hostname that points back at this address, or by asking the address holder to change the PTR to a name you do control.',
+          ],
+        };
+      }
+
+      // An empty answer only means "no PTR" for NOERROR and NXDOMAIN. On any
+      // other rcode the record may well exist; telling the user to go and ask
+      // their ISP for one would be advice built on a resolver error.
+      if (r.status === 'resolver') {
+        return {
+          cls: 'is-error',
+          badge: 'No answer',
+          title: `The resolver returned ${r.rcodeText} for this address`,
+          body: [
+            `Cloudflare answered <code>${esc(r.rcodeText)}</code> for <code>${esc(r.target.arpa)}</code> instead of returning records. That is a failure to answer, not a missing PTR — this result is no evidence either way.`,
+            'Retry in a moment. A SERVFAIL that persists usually means the nameservers for the reverse zone are broken or unreachable, which receiving mail servers will read the same way they read a missing record, so it is still worth raising with whoever runs that zone.',
+          ],
+        };
+      }
+
+      const extra = r.special
+        ? `This address is in ${esc(r.special)}, which has no public reverse delegation, so the empty result is expected rather than a misconfiguration.`
+        : 'If this address sends mail, this is the single most likely reason its messages are being deferred or rejected. Ask whoever allocated the address — your hosting provider or ISP — to set the PTR record; you cannot publish it from your own domain’s zone.';
+      return {
+        cls: 'is-none',
+        badge: 'No PTR',
+        title: `No reverse record for ${r.target.ip}`,
+        body: [
+          `Nothing answers for <code>${esc(r.target.arpa)}</code>.`,
+          extra,
+        ],
+      };
+    }
+
+    function facts(r) {
+      const t = r.target;
+      const rows = [];
+
+      rows.push([FAMILY[t.family] + ' address', esc(t.ip),
+        t.family === 6 && t.expanded !== t.ip ? `expanded: ${esc(t.expanded)}` : null]);
+
+      rows.push(['Reverse name', esc(t.arpa),
+        t.family === 6
+          ? '32 nibbles of the expanded address, reversed, one per label'
+          : 'four octets reversed']);
+
+      rows.push(['PTR record', r.hostnames.length ? esc(r.hostnames.join(', ')) : '—',
+        r.hostnames.length > 1 ? `${r.hostnames.length} PTR records returned` : null]);
+
+      rows.push(['TTL', ttlText(r.ttl) ? esc(ttlText(r.ttl)) : '—',
+        r.ttl != null && r.ttl >= 3600 ? 'changes can take this long to appear here' : null]);
+
+      rows.push(['Reverse zone', r.zone ? esc(r.zone.zone) : '—',
+        r.zone && r.zone.primary
+          ? `primary nameserver: ${esc(r.zone.primary)} — whoever runs this controls the PTR`
+          : 'no SOA returned for this reverse name']);
+
+      return `<dl class="rdns-facts">${rows
+        .map(([k, v, note]) => `<div class="rdns-fact"><dt>${esc(k)}</dt><dd>${v}${
+          note ? `<em>${note}</em>` : ''
+        }</dd></div>`)
+        .join('')}</dl>`;
+    }
+
+    function flags(r) {
+      const items = [];
+      if (r.resolvedFrom) {
+        items.push(
+          `You entered a hostname, so it was resolved first: <code>${esc(r.resolvedFrom.host)}</code> &rarr; <code>${esc(r.resolvedFrom.addr)}</code>. Everything below is the reverse lookup for that address.` +
+            (r.resolvedFrom.others.length
+              ? ` It also has ${r.resolvedFrom.others.length} other address${r.resolvedFrom.others.length > 1 ? 'es' : ''}, each with its own PTR record — check them separately.`
+              : '')
+        );
+      }
+      if (r.special && r.status !== 'none') {
+        items.push(`Note: this address is in ${esc(r.special)}.`);
+      }
+      if (r.hostnames.length > 1) {
+        items.push(
+          `${r.hostnames.length} PTR records were returned. That is legal but unusual; the check above passes if any one of them confirms, and a receiver that only tests the first answer may reach a different conclusion.`
+        );
+      }
+      if (!items.length) return '';
+      return `<div class="rdns-flags">${items.map((i) => `<p class="rdns-flag">${i}</p>`).join('')}</div>`;
+    }
+
+    function render(r) {
+      const v = verdict(r);
+      out.innerHTML = `
+        <div class="rdns-result">
+          <div class="rdns-verdict ${v.cls}">
+            <span class="rdns-badge">${esc(v.badge)}</span>
+            <div class="rdns-vbody">
+              <h3 class="rdns-vtitle">${esc(v.title)}</h3>
+              ${v.body.map((p) => `<p class="rdns-vtext">${p}</p>`).join('')}
+            </div>
+          </div>
+          ${flags(r)}
+          <div class="rdns-term">
+            <div class="rdns-term-bar"><i></i><i></i><i></i><span>reverse-dns ${esc(r.target.ip)}</span></div>
+            <pre class="rdns-term-body"><code>${transcript(r)}</code></pre>
+          </div>
+          ${facts(r)}
+          <div><button type="button" class="rdns-copy" data-copy="${esc(r.target.arpa)}">Copy reverse name</button></div>
+        </div>`;
+    }
+
+    function renderError(title, hint) {
+      out.innerHTML = `
+        <div class="rdns-verdict is-error">
+          <span class="rdns-badge">Cannot check</span>
+          <div class="rdns-vbody">
+            <h3 class="rdns-vtitle">${esc(title)}</h3>
+            <p class="rdns-vtext">${esc(hint)}</p>
+          </div>
+        </div>`;
+    }
+
+    function renderWorking(raw) {
+      const t = toPtrName(raw);
+      out.innerHTML = t
+        ? `<p class="rdns-working">Querying <strong>${esc(t.arpa)}</strong> for a PTR record&hellip;</p>`
+        : `<p class="rdns-working">Resolving <strong>${esc(raw)}</strong> to an address first&hellip;</p>`;
+    }
+
+    async function lookup(raw) {
+      if (busy) return;
+      busy = true;
+      out.setAttribute('aria-busy', 'true');
+      goBtn.disabled = true;
+      mineBtn.disabled = true;
+      const label = goBtn.innerHTML;
+      goBtn.textContent = 'Checking…';
+      renderWorking(raw);
+
+      try {
+        render(await runReverseLookup(raw));
+      } catch (err) {
+        // A blocked DoH request and a typo need different advice, and a thrown
+        // TypeError from fetch is the only signal that separates them.
+        const net =
+          err instanceof TypeError ||
+          /failed to fetch|networkerror|load failed|dns query failed/i.test(err.message || '');
+        if (net) {
+          renderError(
+            'Could not reach the DNS resolver',
+            'The query to cloudflare-dns.com did not complete. Check your connection, and whether a browser extension, VPN or network policy is blocking DNS-over-HTTPS requests.'
+          );
+        } else {
+          renderError(
+            err.message || 'Something went wrong with that lookup.',
+            'Enter a bare IPv4 or IPv6 address, or a hostname that resolves to one.'
+          );
+        }
+      } finally {
+        busy = false;
+        out.removeAttribute('aria-busy');
+        goBtn.disabled = false;
+        mineBtn.disabled = false;
+        goBtn.innerHTML = label;
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const raw = input.value.trim();
+      if (!raw) {
+        renderError(
+          'Nothing to look up',
+          'Enter a bare IPv4 or IPv6 address, or a hostname that resolves to one.'
+        );
+        input.focus();
+        return;
+      }
+      lookup(raw);
+    });
+
+    document.querySelectorAll('.rdns-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        input.value = chip.dataset.ip || '';
+        lookup(input.value);
+      });
+    });
+
+    mineBtn.addEventListener('click', async () => {
+      if (busy) return;
+      // Hold the busy flag across the fetch too, so a submit during it cannot
+      // start a lookup that this handler then silently drops — which left the
+      // field showing one address and the results describing another.
+      busy = true;
+      const label = mineBtn.textContent;
+      mineBtn.disabled = true;
+      goBtn.disabled = true;
+      mineBtn.textContent = 'Finding…';
+      let ip = null;
+      try {
+        ip = await fetchPublicIp();
+      } catch {
+        ip = null;
+      } finally {
+        busy = false;
+        mineBtn.disabled = false;
+        goBtn.disabled = false;
+        mineBtn.textContent = label;
+      }
+      if (!ip) {
+        renderError(
+          'Could not find your public IP address',
+          'The request to ipify.org did not complete — a VPN, extension or network policy may be blocking it. Type the address in instead.'
+        );
+        input.focus();
+        return;
+      }
+      input.value = ip;
+      lookup(ip);
+    });
+
+    // Delegated because the button is injected with the results.
+    out.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.rdns-copy');
+      if (!btn) return;
+      const text = btn.dataset.copy || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied';
+      } catch {
+        btn.textContent = 'Select and copy manually';
+      }
+      setTimeout(() => { btn.textContent = 'Copy reverse name'; }, 2000);
+    });
+
+    // Deep link: /tools/reverse-dns?ip=8.8.4.4
+    const preset = new URLSearchParams(location.search).get('ip');
+    if (preset) {
+      input.value = preset;
+      lookup(preset);
+    }
+  }
+</script>

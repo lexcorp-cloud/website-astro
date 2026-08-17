@@ -1,0 +1,746 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+<ToolLayout
+  slug="dns-propagation"
+  title="DNS Propagation Check"
+  description="Compare a DNS record across two independent resolvers — Cloudflare and Google — to see whether your change has taken effect or a stale cache is still serving the old answer."
+  heading="DNS propagation check"
+  intro="Query the same record at two independent public resolvers and compare the answers. If they agree, your change is live where it matters most; if they differ, one of them is usually still serving a cached copy — and the remaining TTL tells you how long that lasts."
+>
+  <div slot="input" class="dp-bar">
+    <div class="dp-fields">
+      <div class="dp-field dp-field-name">
+        <label for="dp-name">Name to query</label>
+        <input
+          id="dp-name"
+          type="text"
+          inputmode="url"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="www.example.com"
+        />
+      </div>
+      <div class="dp-field dp-field-type">
+        <label for="dp-type">Record type</label>
+        <select id="dp-type">
+          <option value="A" selected>A</option>
+          <option value="AAAA">AAAA</option>
+          <option value="CNAME">CNAME</option>
+          <option value="MX">MX</option>
+          <option value="TXT">TXT</option>
+          <option value="NS">NS</option>
+          <option value="SOA">SOA</option>
+          <option value="CAA">CAA</option>
+        </select>
+      </div>
+      <button id="dp-run" type="button" class="btn btn-primary">
+        <Icon name="pulse" size={16} />
+        <span id="dp-run-label">Compare resolvers</span>
+      </button>
+    </div>
+
+    <p class="dp-scope">
+      <Icon name="shield" size={14} />
+      <span>
+        <strong>Two resolvers, not twenty.</strong> Only Cloudflare (1.1.1.1) and Google (8.8.8.8)
+        publish DoH endpoints a browser is allowed to read. Quad9 and AdGuard block cross-origin
+        requests, so no honest browser-only tool can include them — and none of this runs from
+        other countries. Everything here happens in your tab.
+      </span>
+    </p>
+
+    <p id="dp-msg" class="dp-msg mono" role="status" aria-live="polite"></p>
+  </div>
+
+  <section class="section dp-sec">
+    <div class="container">
+      <div id="dp-verdict" class="dp-verdict">
+        <p class="dp-idle">Enter a name and record type above to compare answers.</p>
+      </div>
+
+      <div id="dp-cards" class="dp-cards"></div>
+
+      <div class="glass-card dp-limits">
+        <div class="dp-limits-head">
+          <span class="icon-tile"><Icon name="shield" size={18} /></span>
+          <h2 class="h3">What this check can and cannot tell you</h2>
+        </div>
+        <ul>
+          <li>
+            <strong>It compares two caches, not the world.</strong> Server-backed checkers query
+            20+ resolvers from 20+ countries. This page is limited to the two endpoints that permit
+            browser requests. Two independent resolvers still catch the failure that matters most —
+            one of them holding a stale answer.
+          </li>
+          <li>
+            <strong>Both resolvers are anycast.</strong> Your query lands on the node nearest to
+            you, so a match proves those two networks agree <em>as seen from your location</em>. A
+            resolver in another region may still hold a different cached copy.
+          </li>
+          <li>
+            <strong>Some records differ on purpose, permanently.</strong> Google's resolver forwards
+            your approximate network location to the authoritative server (EDNS Client Subnet);
+            Cloudflare's deliberately does not. Anything behind a CDN, or using latency-based or
+            geographic routing, therefore hands the two resolvers different answers by design — and
+            no amount of waiting makes them converge. A mismatch that outlives the longer TTL shown
+            below is routing, not propagation.
+          </li>
+          <li>
+            <strong>Neither answer is authoritative.</strong> DoH gives you a recursive resolver's
+            cached view, and neither endpoint exposes a cache-bypass flag. To confirm what your
+            nameservers actually publish you need <code class="mono">dig @ns1.yourprovider.net</code>
+            — a browser cannot open a raw DNS socket to an arbitrary server.
+          </li>
+          <li>
+            <strong>Response times are not a latency benchmark.</strong> The millisecond figure
+            includes TLS setup and HTTP overhead, and a cache miss costs far more than a hit. Read
+            it as a rough health signal, not a measurement.
+          </li>
+          <li>
+            <strong>Your own machine is a third cache.</strong> Your OS, your browser and your
+            router may all still hold the old record even when both resolvers here agree.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dp-notes-sec">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Field notes</p>
+        <h2 class="h2">Nothing propagates. Caches expire.</h2>
+        <p class="lead">
+          The word "propagation" invents a process that does not exist, and it is the reason people
+          wait passively for something that was already finished hours ago.
+        </p>
+      </div>
+
+      <div class="grid grid-3 dp-notes">
+        <article class="glass-card">
+          <span class="icon-tile"><Icon name="route" size={20} /></span>
+          <h3 class="h3">There is no wave to wait for</h3>
+          <p>
+            When you edit a zone, the change is live at your authoritative nameservers the moment
+            they reload — usually seconds. Nothing is pushed anywhere. What you are actually waiting
+            on is every recursive resolver that already asked, each holding your old answer until
+            the TTL it was handed runs out. Those countdowns started at different moments, which is
+            precisely why two resolvers can disagree for a while and both be behaving correctly.
+          </p>
+          <p>
+            So a mismatch here is not a fault to chase. The only question worth asking is
+            <em>which TTL is still running</em>, and the answer is on the card that shows the old
+            value.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <span class="icon-tile"><Icon name="clock" size={20} /></span>
+          <h3 class="h3">Lower the TTL a day before you move</h3>
+          <p>
+            The professional technique is planned, not reactive. Roughly 24–48 hours before a
+            migration, drop the TTL on the records you intend to change to
+            <code class="mono">300</code>. Wait out the <em>old</em> TTL — if it was 86400, resolvers
+            need a full day to pick up the new short one. Only then cut over: your worst-case
+            exposure is now five minutes instead of a day.
+          </p>
+          <p>
+            Once the change is verified and stable, raise it back to 3600 or higher. Permanently low
+            TTLs mean more lookups, more latency on cold hits, and a hard dependency on your DNS
+            provider staying reachable. Low TTL is a manoeuvre, not a default.
+          </p>
+        </article>
+
+        <article class="glass-card">
+          <span class="icon-tile"><Icon name="shield" size={20} /></span>
+          <h3 class="h3">Negative caching is the one that surprises you</h3>
+          <p>
+            Query a record before it exists and the resolver caches the <em>absence</em>. How long
+            depends on the zone's SOA — the minimum field, capped by the SOA record's own TTL — and
+            SOA minimums of 3600 are common while the record's TTL might be 300. Create the record,
+            re-check, and it can stay missing for an hour even though publication was instant.
+          </p>
+          <p>
+            This is why "it works for my colleague but not for me" happens right after a launch: one
+            of you tested early and poisoned your resolver's negative cache. The fix is patience or a
+            different resolver — and the prevention is not querying a name until you have created it.
+            Where this page returns NXDOMAIN it shows the negative TTL so you know the real wait.
+          </p>
+        </article>
+      </div>
+
+      <div class="glass-card dp-reading">
+        <h3 class="h3">Reading a disagreement</h3>
+        <p>
+          Answer order carries no meaning in DNS. A resolver that returns three A records will
+          rotate them between queries on purpose, to spread load — this tool sorts both answer sets
+          before comparing them, so rotation is never reported as a mismatch. Only the
+          <em>contents</em> of the sets are compared, and long TXT strings split across quoted
+          segments are joined first, because consumers concatenate them anyway.
+        </p>
+        <p>
+          Two kinds of disagreement are <em>not</em> cache problems, and both are permanent. NS and
+          SOA records that differ between resolvers usually mean the zone is hosted at two DNS
+          providers at once, so each resolver reports whichever authoritative side answered it.
+          Differing SOA serial numbers between providers are normal. Check whether the nameserver
+          hostnames belong to two vendors before you start waiting for something to settle.
+        </p>
+        <p>
+          The other is the common one, and it catches people out: A and AAAA records that differ
+          because the <em>resolver</em> differs. Google's 8.8.8.8 passes your approximate network
+          location to the authoritative server as EDNS Client Subnet; Cloudflare's 1.1.1.1 refuses
+          to, on privacy grounds. Any CDN or latency-routed record will answer those two queries
+          differently and keep doing so forever, so a stable mismatch on a CDN-fronted name means
+          your traffic is being steered, not that a cache is stale. The test is simple: note the
+          longer TTL, wait it out, re-check. A cache converges; routing does not.
+        </p>
+        <p>
+          The genuinely interesting outcome is one resolver answering NXDOMAIN while the other
+          resolves. That is mid-propagation in its clearest form: one cache learned "no such name"
+          before you published, the other learned the record afterwards. If instead <em>both</em>
+          resolvers return SERVFAIL, stop thinking about caches — that points at a broken delegation
+          or a DNSSEC validation failure, and no amount of waiting will fix it.
+        </p>
+      </div>
+    </div>
+  </section>
+</ToolLayout>
+
+<style>
+  .dp-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .dp-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+
+  .dp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .dp-field-name { flex: 1 1 20rem; min-width: 0; }
+  .dp-field-type { flex: 0 0 9.5rem; }
+
+  .dp-field label {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .dp-field input,
+  .dp-field select {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    transition: border-color 0.18s var(--ease-out);
+  }
+
+  .dp-field input:focus,
+  .dp-field select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  #dp-run { flex: 0 0 auto; }
+  #dp-run[disabled] { cursor: progress; opacity: 0.7; }
+
+  .dp-scope {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-violet);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .dp-scope :global(svg) { flex: 0 0 auto; margin-top: 0.25rem; color: var(--accent-violet); }
+  .dp-scope strong { color: var(--text); }
+
+  .dp-msg {
+    min-height: 1.2em;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .dp-msg[data-tone='bad'] { color: var(--accent-red); }
+
+  /* Verdict and cards are injected by script, so descendants need :global(). */
+  .dp-verdict { margin-bottom: 1.25rem; }
+
+  .dp-idle {
+    margin: 0;
+    padding: 1.1rem 1.25rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+  }
+
+  .dp-verdict :global(.dp-v) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.15rem 1.35rem;
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--accent-blue);
+    border-radius: var(--radius-md);
+    background: var(--bg-elev);
+  }
+
+  .dp-verdict :global(.dp-v-good) { border-left-color: var(--accent-cyan); }
+  .dp-verdict :global(.dp-v-warn) { border-left-color: var(--accent-violet); }
+  .dp-verdict :global(.dp-v-bad) { border-left-color: var(--accent-red); }
+
+  .dp-verdict :global(.dp-v-title) {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 1.15rem;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  .dp-verdict :global(.dp-v-detail) {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .dp-verdict :global(.dp-v-diff) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+  }
+
+  .dp-verdict :global(.dp-v-diff > div) {
+    flex: 1 1 16rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+
+  .dp-verdict :global(.dp-v-diff h4) {
+    margin: 0 0 0.4rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .dp-verdict :global(.dp-v-diff code) {
+    display: block;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre;
+  }
+
+  .dp-cards {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  }
+
+  .dp-cards :global(.dp-card) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-strong);
+  }
+
+  .dp-cards :global(.dp-card-head) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .dp-cards :global(.dp-card-head h3) {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+
+  .dp-cards :global(.dp-addr) {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  .dp-cards :global(.dp-ms) {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .dp-cards :global(.dp-dot) {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .dp-cards :global(.dp-dot-good) { background: var(--accent-cyan); }
+  .dp-cards :global(.dp-dot-warn) { background: var(--accent-violet); }
+  .dp-cards :global(.dp-dot-bad) { background: var(--accent-red); }
+
+  .dp-cards :global(.dp-status) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  /* Fixed dark terminal palette: record values stay legible in light theme too. */
+  .dp-cards :global(.dp-recs) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--term-border);
+    border-radius: var(--radius-sm);
+    background: var(--term-bg);
+    overflow-x: auto;
+  }
+
+  .dp-cards :global(.dp-rec) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .dp-cards :global(.dp-rtype) {
+    flex: 0 0 3.75rem;
+    color: var(--term-cmd);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  .dp-cards :global(.dp-rdata) { color: var(--term-ok); }
+  .dp-cards :global(.dp-rec-chain .dp-rdata) { color: var(--term-text); }
+
+  .dp-cards :global(.dp-rttl) {
+    margin-left: auto;
+    padding-left: 0.9rem;
+    color: var(--term-accent);
+    font-size: 0.78rem;
+  }
+
+  .dp-cards :global(.dp-empty) {
+    color: var(--term-text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+
+  .dp-cards :global(.dp-ttl-note) {
+    margin: 0;
+    padding-top: 0.15rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .dp-cards :global(.dp-ttl-note strong) { color: var(--text); }
+
+  .dp-limits {
+    margin-top: 1.5rem;
+  }
+
+  .dp-limits-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .dp-limits-head h2 { margin: 0; }
+
+  .dp-limits ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    color: var(--text-soft);
+    line-height: 1.65;
+  }
+
+  .dp-limits strong { color: var(--text); }
+  .dp-limits code,
+  .dp-notes code,
+  .dp-reading code {
+    padding: 0.05rem 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    font-size: 0.88em;
+    color: var(--text);
+  }
+
+  .dp-notes article p {
+    color: var(--text-soft);
+    line-height: 1.7;
+  }
+
+  .dp-notes article p:last-child { margin-bottom: 0; }
+
+  .dp-reading {
+    margin-top: 1.25rem;
+  }
+
+  .dp-reading p {
+    max-width: 78ch;
+    color: var(--text-soft);
+    line-height: 1.7;
+  }
+
+  .dp-reading p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 620px) {
+    .dp-fields { flex-direction: column; align-items: stretch; }
+    .dp-field-type { flex: 1 1 auto; }
+    #dp-run { width: 100%; justify-content: center; }
+  }
+</style>
+
+<script>
+  import { esc } from '../../scripts/tool-ui.js';
+  import { isValidDomain } from '../../scripts/email-scan.js';
+  import {
+    RESOLVERS,
+    checkPropagation,
+    compareResults,
+    fmtSeconds,
+    isQueryableName,
+    normaliseName,
+    rcodeName,
+    typeCode,
+    typeName,
+  } from '../../scripts/dns-propagate.js';
+
+  const nameEl = document.getElementById('dp-name');
+  const typeEl = document.getElementById('dp-type');
+  const runEl = document.getElementById('dp-run');
+  const runLabelEl = document.getElementById('dp-run-label');
+  const msgEl = document.getElementById('dp-msg');
+  const verdictEl = document.getElementById('dp-verdict');
+  const cardsEl = document.getElementById('dp-cards');
+
+  if (nameEl && typeEl && runEl && msgEl && verdictEl && cardsEl) {
+    const params = new URLSearchParams(window.location.search);
+    const preName = normaliseName(params.get('name') || params.get('domain') || '');
+    if (preName) nameEl.value = preName;
+    const preType = String(params.get('type') || '').toUpperCase();
+    if (typeCode(preType)) typeEl.value = preType;
+
+    let busy = false;
+
+    function setMsg(text, tone) {
+      msgEl.textContent = text;
+      if (tone) msgEl.dataset.tone = tone;
+      else delete msgEl.dataset.tone;
+    }
+
+    function toneFor(state) {
+      if (state === 'error' || state === 'rcode') return 'bad';
+      if (state === 'nxdomain' || state === 'nodata') return 'warn';
+      return 'good';
+    }
+
+    function statusLine(r, code) {
+      if (r.state === 'error') return esc(r.error || 'Request failed');
+      const n = r.matching.length;
+      const extra = r.records.length - n;
+      if (r.state === 'nxdomain') return 'NXDOMAIN — no such name';
+      if (r.state === 'nodata') return 'NOERROR — no records of this type';
+      if (r.state === 'rcode') return `${esc(rcodeName(r.status))} — resolver could not answer`;
+      const chain = extra > 0 ? ` (+${extra} in chain)` : '';
+      return `NOERROR — ${n} ${esc(typeName(code))} record${n === 1 ? '' : 's'}${chain}`;
+    }
+
+    function recsHtml(r, code) {
+      if (r.state === 'error') {
+        return `<div class="dp-recs"><span class="dp-empty">no data</span></div>`;
+      }
+      if (r.state === 'rcode') {
+        // Not an empty answer: the resolver failed, so there is nothing to cache.
+        return `<div class="dp-recs"><span class="dp-empty">no answer — ${esc(rcodeName(r.status))}</span></div>`;
+      }
+      if (!r.records.length) {
+        const neg = Number.isFinite(r.negTtl) ? r.negTtl : NaN;
+        const negTxt = Number.isFinite(neg)
+          ? `empty answer — negative cache ${fmtSeconds(neg)}`
+          : 'empty answer';
+        return `<div class="dp-recs"><span class="dp-empty">${esc(negTxt)}</span></div>`;
+      }
+      const rows = r.records.map((rec) => {
+        const chain = rec.type !== code ? ' dp-rec-chain' : '';
+        const ttl = Number.isFinite(rec.ttl) ? `${rec.ttl}s` : '—';
+        return `<div class="dp-rec${chain}">`
+          + `<span class="dp-rtype">${esc(typeName(rec.type))}</span>`
+          + `<span class="dp-rdata">${esc(rec.data)}</span>`
+          + `<span class="dp-rttl">TTL ${esc(ttl)}</span>`
+          + `</div>`;
+      }).join('');
+      return `<div class="dp-recs">${rows}</div>`;
+    }
+
+    function ttlNote(r) {
+      if (r.state === 'error') {
+        return 'No answer, so no cache state to report.';
+      }
+      if (r.state === 'nxdomain' || r.state === 'nodata') {
+        const parts = [];
+        if (Number.isFinite(r.negTtl)) {
+          parts.push(`this negative answer is cached for up to <strong>${esc(fmtSeconds(r.negTtl))}</strong>`);
+        }
+        if (Number.isFinite(r.soaMinimum)) {
+          parts.push(`zone SOA minimum is ${esc(fmtSeconds(r.soaMinimum))}`);
+        }
+        return parts.length
+          ? `Negative caching: ${parts.join(', ')}. A record created now can stay invisible here until then.`
+          : 'Negative caching applies: the absence of this record is itself cached.';
+      }
+      if (!Number.isFinite(r.ttl)) return 'No TTL reported for this answer.';
+      return `Remaining TTL <strong>${esc(fmtSeconds(r.ttl))}</strong> — this resolver will keep serving the answer above for up to that long before it asks again. That is your worst-case wait here.`;
+    }
+
+    function cardHtml(r, code) {
+      return `<article class="dp-card">`
+        + `<div class="dp-card-head">`
+        + `<span class="dp-dot dp-dot-${toneFor(r.state)}"></span>`
+        + `<h3>${esc(r.label)}</h3>`
+        + `<span class="dp-addr mono">${esc(r.addr)}</span>`
+        + `<span class="dp-ms mono">${esc(String(r.ms))} ms</span>`
+        + `</div>`
+        + `<p class="dp-status">${statusLine(r, code)}</p>`
+        + recsHtml(r, code)
+        + `<p class="dp-ttl-note">${ttlNote(r)}</p>`
+        + `</article>`;
+    }
+
+    function verdictHtml(v) {
+      let diff = '';
+      const blocks = [];
+      if (Array.isArray(v.diff)) {
+        v.diff.forEach((d) => {
+          if (d.items.length) {
+            blocks.push(`<div><h4>Only from ${esc(d.label)}</h4><code>${d.items.map(esc).join('\n')}</code></div>`);
+          }
+        });
+      } else if (Array.isArray(v.only) && v.only.length) {
+        blocks.push(`<div><h4>Only from ${esc(v.onlyLabel)}</h4><code>${v.only.map(esc).join('\n')}</code></div>`);
+      }
+      if (blocks.length) diff = `<div class="dp-v-diff">${blocks.join('')}</div>`;
+      return `<div class="dp-v dp-v-${esc(v.tone)}">`
+        + `<p class="dp-v-title">${esc(v.title)}</p>`
+        + `<p class="dp-v-detail">${esc(v.detail)}</p>`
+        + diff
+        + `</div>`;
+    }
+
+    function pending(name, typeLabel) {
+      verdictEl.innerHTML = `<div class="dp-v"><p class="dp-v-title">Querying ${esc(name)} ${esc(typeLabel)}…</p>`
+        + `<p class="dp-v-detail">Both resolvers are being asked in parallel.</p></div>`;
+      cardsEl.innerHTML = RESOLVERS.map((r) => `<article class="dp-card">`
+        + `<div class="dp-card-head"><span class="dp-dot"></span><h3>${esc(r.label)}</h3>`
+        + `<span class="dp-addr mono">${esc(r.addr)}</span></div>`
+        + `<p class="dp-status">waiting for answer…</p></article>`).join('');
+    }
+
+    async function run() {
+      if (busy) return;
+      const raw = nameEl.value;
+      const name = normaliseName(raw);
+      if (!name) {
+        setMsg('Enter a domain or hostname first.', 'bad');
+        nameEl.focus();
+        return;
+      }
+      if (!isQueryableName(name) && !isValidDomain(name)) {
+        setMsg(`"${name}" is not a queryable DNS name — expected something like www.example.com.`, 'bad');
+        return;
+      }
+      const typeLabel = typeEl.value;
+      const code = typeCode(typeLabel);
+      if (!code) {
+        setMsg('Pick a supported record type.', 'bad');
+        return;
+      }
+
+      busy = true;
+      runEl.disabled = true;
+      // Only the label span may be rewritten — runEl also holds the icon SVG.
+      const label = runLabelEl ? runLabelEl.textContent : '';
+      if (runLabelEl) runLabelEl.textContent = 'Checking…';
+      setMsg(`Querying ${name} ${typeLabel} at ${RESOLVERS.length} resolvers…`);
+      pending(name, typeLabel);
+
+      try {
+        const results = await checkPropagation(name, code);
+        cardsEl.innerHTML = results.map((r) => cardHtml(r, code)).join('');
+        verdictEl.innerHTML = verdictHtml(compareResults(results[0], results[1], code));
+        const slowest = Math.max(...results.map((r) => r.ms || 0));
+        setMsg(`${name} ${typeLabel} — checked at ${new Date().toLocaleTimeString()} (slowest resolver ${slowest} ms)`);
+      } catch (err) {
+        // checkPropagation is designed not to reject; this is the last-resort net.
+        cardsEl.innerHTML = '';
+        verdictEl.innerHTML = `<div class="dp-v dp-v-bad"><p class="dp-v-title">The check could not complete</p>`
+          + `<p class="dp-v-detail">${esc(err && err.message ? err.message : 'Unexpected error.')} Re-run it, or try another network — DoH is sometimes blocked by filtering proxies and privacy extensions.</p></div>`;
+        setMsg('Check failed. Nothing was compared.', 'bad');
+      } finally {
+        busy = false;
+        runEl.disabled = false;
+        if (runLabelEl) runLabelEl.textContent = label;
+      }
+    }
+
+    runEl.addEventListener('click', run);
+    nameEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        run();
+      }
+    });
+    typeEl.addEventListener('change', () => {
+      if (nameEl.value.trim()) run();
+    });
+  }
+</script>
