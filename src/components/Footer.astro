@@ -30,10 +30,10 @@ const columns = [
   },
   {
     title: 'Free Tools',
-    // Driven by the registry so a new tool appears here automatically.
+    // Show featured tools; full list is at /tools
     links: [
-      { href: '/tools', label: 'All Tools' },
-      ...tools.map((t) => ({ href: t.href, label: t.short })),
+      { href: '/tools', label: 'All Tools', class: 'ftr-all-tools' },
+      ...tools.slice(0, 5).map((t) => ({ href: t.href, label: t.short })),
     ],
   },
 ];
@@ -61,7 +61,7 @@ const columns = [
       <div class="ftr-col">
         <h3 class="mono">{col.title}</h3>
         <ul>
-          {col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          {col.links.map((l) => <li><a href={l.href} class={l.class}>{l.label}</a></li>)}
         </ul>
       </div>
     ))}
@@ -176,6 +176,11 @@ const columns = [
   }
 
   .ftr-col a:hover { color: var(--accent-blue); }
+
+  .ftr-all-tools {
+    font-weight: 600;
+    color: var(--text);
+  }
 
   /* icon + text share a baseline-aligned grid so nothing sits crooked */
   .ftr-contact li {
