@@ -27,7 +27,7 @@ const schema = {
   '@type': 'Organization',
   name: siteName,
   legalName: siteName,
-  alternateName: COMPANY.shortName,
+  alternateName: [COMPANY.shortName, ...COMPANY.alternateNames],
   url: Astro.site?.toString(),
   logo: new URL('/favicon-512.png', Astro.site).toString(),
   image: ogImageURL.toString(),

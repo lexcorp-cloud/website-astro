@@ -31,5 +31,6 @@ export const CONTACT = {
 export const COMPANY = {
   legalName: 'Lex Corp Pvt. Ltd.',
   shortName: 'Lex Corp',
+  alternateNames: ['LEXCORP', 'lexcorp'],
   founder: 'Laxman Chaudhary',
 };
