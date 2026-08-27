@@ -1,0 +1,329 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { clients } from '../data/clients.js';
+
+// Import all client logos dynamically
+const logoModules = import.meta.glob('../assets/clients/*.{png,jpg,jpeg,svg}', { eager: true });
+const logoMap = Object.fromEntries(
+  Object.entries(logoModules).map(([path, module]) => {
+    const filename = path.split('/').pop();
+    return [filename, module.default];
+  })
+);
+---
+
+<BaseLayout
+  title="Clients & Case Studies"
+  description="Companies that trust Lex Corp for cloud architecture, DevOps engineering, and infrastructure automation. See our case studies and customer achievements."
+>
+  <!-- ================= HERO ================= -->
+  <section class="hero hero-clients">
+    <div class="grid-bg"></div>
+    <div class="container hero-in">
+      <div class="hero-copy">
+        <h1 class="h1">Trusted by industry leaders</h1>
+        <p class="lead">
+          Companies across sectors rely on Lex Corp for cloud infrastructure that scales,
+          DevOps pipelines that ship faster, and security that holds.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {clients.length === 0 ? (
+    <section class="section clients-empty">
+      <div class="container">
+        <div class="glass-card">
+          <Icon name="code" size={48} />
+          <h2 class="h3">Client showcase coming soon</h2>
+          <p>We're documenting our client case studies and will share them here shortly.</p>
+        </div>
+      </div>
+    </section>
+  ) : (
+    <>
+      <!-- ================= CLIENTS GRID ================= -->
+      <section class="section clients-sec">
+        <div class="container">
+          <h2 class="section-head">Our clients</h2>
+          <div class="clients-grid">
+            {clients.map((client) => {
+              const logo = logoMap[client.logo];
+              return (
+                <div class="client-card glass-card" key={client.name}>
+                  {logo ? (
+                    <Image
+                      src={logo}
+                      alt={client.name}
+                      class="client-logo"
+                      widths={[150, 300]}
+                      sizes="150px"
+                    />
+                  ) : (
+                    <div class="client-logo-placeholder">{client.name}</div>
+                  )}
+                  <h3 class="h4">{client.name}</h3>
+                  <p class="client-desc">{client.description}</p>
+
+                  {client.achievements && client.achievements.length > 0 && (
+                    <div class="achievements">
+                      {client.achievements.map((achievement) => (
+                        <div class="achievement" key={achievement}>
+                          <Icon name="check" size={16} />
+                          <span>{achievement}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {client.testimonial && (
+                    <div class="testimonial">
+                      <p class="quote">"{client.testimonial}"</p>
+                      <p class="author">— {client.testimonialAuthor}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= STATS ================= -->
+      <section class="section clients-stats">
+        <div class="container">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number">{clients.length}+</div>
+              <div class="stat-label">Companies served</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">98%</div>
+              <div class="stat-label">Client satisfaction</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">5+ yrs</div>
+              <div class="stat-label">Average engagement</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  )}
+
+  <!-- ================= CTA ================= -->
+  <section class="section cta-sec">
+    <div class="container">
+      <div class="glass-card cta-card">
+        <h2 class="h3">Ready to transform your infrastructure?</h2>
+        <p class="lead">
+          Join companies that have cut deployment times, reduced costs, and scaled reliably
+          with Lex Corp's engineering partnership.
+        </p>
+        <a href="/contact" class="btn btn-primary">Start a project</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero-clients {
+    padding-block: clamp(60px, 8vw, 100px);
+  }
+
+  .hero-in {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.2;
+    max-width: 600px;
+  }
+
+  .clients-empty {
+    padding-block: clamp(80px, 10vw, 120px);
+  }
+
+  .clients-empty .glass-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: clamp(40px, 5vw, 60px);
+    gap: 20px;
+  }
+
+  .clients-empty svg {
+    color: var(--accent-blue);
+    opacity: 0.6;
+  }
+
+  .clients-sec {
+    padding-block: clamp(60px, 8vw, 100px);
+  }
+
+  .section-head {
+    margin-bottom: clamp(40px, 5vw, 60px);
+    font-size: clamp(1.6rem, 4vw, 2rem);
+    text-align: center;
+  }
+
+  .clients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(20px, 3vw, 32px);
+  }
+
+  .client-card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(24px, 4vw, 36px);
+    gap: 18px;
+  }
+
+  .client-logo {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 12px;
+  }
+
+  .client-logo-placeholder {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 12px;
+  }
+
+  .client-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .client-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .achievements {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .achievement {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .achievement svg {
+    flex-shrink: 0;
+    color: var(--term-ok);
+  }
+
+  .testimonial {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .quote {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  .author {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .clients-stats {
+    padding-block: clamp(60px, 8vw, 100px);
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: clamp(32px, 5vw, 48px);
+    text-align: center;
+  }
+
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-number {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--accent-blue);
+  }
+
+  .stat-label {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .cta-sec {
+    padding-block: clamp(60px, 8vw, 100px);
+  }
+
+  .cta-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: clamp(40px, 5vw, 60px);
+    gap: 24px;
+  }
+
+  .cta-card h2 {
+    margin: 0;
+    max-width: 500px;
+  }
+
+  .cta-card .lead {
+    max-width: 600px;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .clients-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
