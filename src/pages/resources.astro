@@ -148,6 +148,13 @@ const resources = [
     modal.hidden = true;
   });
 
+  // PDF download mapping
+  const pdfLinks = {
+    'Slashplus Case Study': '/case-studies/slashplus-case-study.pdf',
+    'GadgetByte Nepal Case Study': '/case-studies/gadgetbyte-case-study.pdf',
+    'Team Automation Case Study': '/case-studies/team-automation-case-study.pdf',
+  };
+
   // Handle form submission
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -155,9 +162,10 @@ const resources = [
     const email = document.getElementById('email').value;
     const company = document.getElementById('company').value;
     const resourceName = resourceNameInput.value;
+    const pdfUrl = pdfLinks[resourceName];
 
     try {
-      // Send to Web3Forms
+      // Send to Web3Forms (for lead capture)
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -166,14 +174,25 @@ const resources = [
           email: email,
           company: company,
           resource: resourceName,
-          subject: `Resource Download Request: ${resourceName}`,
+          subject: `Resource Download: ${resourceName}`,
           message: `Email: ${email}\nCompany: ${company}\nRequested Resource: ${resourceName}`,
         }),
       });
 
       if (response.ok) {
-        // Show success message
-        form.innerHTML = '<div class="success-message"><p>✓ Check your email for the download link!</p><p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 12px;">If you don\'t see it, check your spam folder.</p></div>';
+        // Show success message and trigger download
+        form.innerHTML = '<div class="success-message"><p>✓ Your PDF is downloading now!</p><p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 12px;">We\'ve also sent the link to your email.</p></div>';
+
+        // Trigger PDF download
+        if (pdfUrl) {
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = pdfUrl.split('/').pop();
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
         setTimeout(() => {
           modal.hidden = true;
           form.innerHTML = `
@@ -192,7 +211,7 @@ const resources = [
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error sending form. Please try again.');
+      alert('Error processing download. Please try again.');
     }
   });
 
