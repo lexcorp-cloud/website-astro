@@ -62,8 +62,9 @@ const resources = [
             <h3 class="resource-title">{resource.title}</h3>
             <p class="resource-desc">{resource.description}</p>
             <button
-              class="btn btn-primary resource-cta"
-              onclick={`openDownloadModal('${resource.pdf}', '${resource.title}')`}
+              class="btn btn-primary resource-cta download-btn"
+              data-pdf-url={resource.pdf}
+              data-pdf-title={resource.title}
               title={`Download ${resource.title}`}
             >
               {resource.cta}
@@ -76,10 +77,10 @@ const resources = [
   </section>
 
   <!-- ================= DOWNLOAD MODAL ================= -->
-  <div class="modal" id="download-modal">
-    <div class="modal-backdrop" onclick="closeDownloadModal()"></div>
+  <div class="modal" id="download-modal" hidden>
+    <div class="modal-backdrop"></div>
     <div class="modal-content">
-      <button class="modal-close" onclick="closeDownloadModal()" aria-label="Close modal">
+      <button class="modal-close" aria-label="Close modal">
         <Icon name="close" size={24} />
       </button>
       <h2 class="modal-title">Download Case Study</h2>
@@ -406,7 +407,6 @@ const resources = [
 
   function openDownloadModal(pdfUrl, pdfTitle) {
     const modal = document.getElementById('download-modal');
-    const form = document.getElementById('download-form');
     const pdfUrlInput = document.getElementById('pdf-url');
     const pdfTitleInput = document.getElementById('pdf-title');
 
@@ -415,35 +415,6 @@ const resources = [
 
     pdfUrlInput.value = pdfUrl;
     pdfTitleInput.value = pdfTitle;
-
-    form.innerHTML = `
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="company">Company (Optional)</label>
-        <input
-          type="text"
-          id="company"
-          name="company"
-          placeholder="Your company name"
-        />
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">
-        Download PDF
-      </button>
-    `;
-
-    form.onsubmit = (e) => handleDownloadSubmit(e);
 
     modal.removeAttribute('hidden');
   }
@@ -507,9 +478,31 @@ const resources = [
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Attach click handlers to download buttons
+    document.querySelectorAll('.download-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const pdfUrl = btn.dataset.pdfUrl;
+        const pdfTitle = btn.dataset.pdfTitle;
+        openDownloadModal(pdfUrl, pdfTitle);
+      });
+    });
+
+    // Attach form submission handler
     const form = document.getElementById('download-form');
     if (form) {
-      form.onsubmit = (e) => handleDownloadSubmit(e);
+      form.addEventListener('submit', handleDownloadSubmit);
+    }
+
+    // Close modal when clicking backdrop
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', closeDownloadModal);
+    }
+
+    // Close modal when clicking close button
+    const closeBtn = document.querySelector('.modal-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeDownloadModal);
     }
   });
 </script>
