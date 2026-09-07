@@ -12,12 +12,43 @@ const logoMap = Object.fromEntries(
     return [filename, module.default];
   })
 );
+
+// Breadcrumb schema
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: 'Clients' },
+  ],
+};
+
+// Organization schema for each client
+const clientSchemas = clients.map((client, idx) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: client.name,
+  description: client.description,
+  ...(client.testimonial && {
+    review: {
+      '@type': 'Review',
+      reviewRating: { '@type': 'Rating', ratingValue: 5 },
+      reviewBody: client.testimonial,
+      author: { '@type': 'Person', name: client.testimonialAuthor },
+    },
+  }),
+}));
 ---
 
 <BaseLayout
-  title="Clients & Case Studies"
-  description="Companies that trust Lex Corp for cloud architecture, DevOps engineering, and infrastructure automation. See our case studies and customer achievements."
+  title="Clients & Case Studies | Lex Corp"
+  description="Companies that trust Lex Corp for cloud architecture, DevOps engineering, and infrastructure automation. View our case studies and proven customer results."
 >
+  <!-- Structured data -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  {clientSchemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))}
   <!-- ================= HERO ================= -->
   <section class="hero hero-clients">
     <div class="grid-bg"></div>
@@ -145,6 +176,8 @@ const logoMap = Object.fromEntries(
     font-size: clamp(2rem, 5vw, 3.2rem);
     line-height: 1.2;
     max-width: 600px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
   }
 
   .clients-empty {
@@ -184,82 +217,95 @@ const logoMap = Object.fromEntries(
   .client-card {
     display: flex;
     flex-direction: column;
-    padding: clamp(24px, 4vw, 36px);
-    gap: 18px;
+    padding: clamp(32px, 5vw, 48px);
+    gap: 24px;
+    border: 1px solid var(--border);
+    transition: all 0.3s var(--ease-out);
+  }
+
+  .client-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
   }
 
   .client-logo {
     width: 100%;
-    height: 120px;
+    height: 140px;
     object-fit: contain;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .client-logo-placeholder {
     width: 100%;
-    height: 120px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--surface);
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-muted);
     text-align: center;
-    padding: 12px;
+    padding: 16px;
+    font-weight: 600;
   }
 
   .client-card h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
     color: var(--text);
+    letter-spacing: -0.3px;
   }
 
   .client-desc {
     margin: 0;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.5;
+    font-size: 0.95rem;
+    color: var(--text-soft);
+    line-height: 1.6;
   }
 
   .achievements {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding-top: 12px;
+    gap: 12px;
+    padding: 20px 0;
     border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
 
   .achievement {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.85rem;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.9rem;
     color: var(--text-soft);
+    line-height: 1.5;
   }
 
   .achievement svg {
     flex-shrink: 0;
+    margin-top: 2px;
     color: var(--term-ok);
   }
 
   .testimonial {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+    padding-top: 0;
+    border-top: none;
   }
 
   .quote {
-    margin: 0 0 8px;
-    font-size: 0.9rem;
+    margin: 0 0 12px;
+    font-size: 0.95rem;
     font-style: italic;
     color: var(--text-soft);
-    line-height: 1.6;
+    line-height: 1.7;
   }
 
   .author {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--text-muted);
   }
 
@@ -280,18 +326,23 @@ const logoMap = Object.fromEntries(
   .stat-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    padding: clamp(32px, 4vw, 40px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
   }
 
   .stat-number {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 800;
     color: var(--accent-blue);
+    letter-spacing: -1px;
   }
 
   .stat-label {
-    font-size: 0.95rem;
-    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-soft);
   }
 
   .cta-sec {
