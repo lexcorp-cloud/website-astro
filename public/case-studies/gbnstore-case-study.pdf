@@ -1,20 +1,129 @@
 %PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R>>endobj
-4 0 obj<</Length 32>>stream
-BT /F1 12 Tf 100 700 Td (GBN Store) Tj ET
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1450 >>
+stream
+BT
+/F2 24 Tf
+50 750 Td
+(GBN Store - Case Study) Tj
+ET
+BT
+/F1 11 Tf
+50 720 Td
+(Enterprise E-Commerce Infrastructure on Next.js) Tj
+ET
+BT
+/F2 14 Tf
+50 680 Td
+(Challenge) Tj
+ET
+BT
+/F1 11 Tf
+50 660 Td
+(Monolithic infrastructure unable to scale independently.) Tj
+0 -15 Td
+(Manual deployment processes causing downtime and deployment risk.) Tj
+0 -15 Td
+(Lack of automated monitoring for critical services.) Tj
+0 -15 Td
+(No disaster recovery strategy, risking data loss.) Tj
+0 -15 Td
+(Security concerns with no proper network isolation.) Tj
+ET
+BT
+/F2 14 Tf
+50 555 Td
+(Solution) Tj
+ET
+BT
+/F1 11 Tf
+50 535 Td
+(Microservices Architecture - Separated frontend, API, admin servers.) Tj
+0 -15 Td
+(Multi-Node Deployment - Automatic failover and load balancing.) Tj
+0 -15 Td
+(Automated CI/CD - Zero-downtime deployments with rollback.) Tj
+0 -15 Td
+(Enterprise Security - Private subnets, public LB, jump server.) Tj
+0 -15 Td
+(Comprehensive Monitoring - Real-time alerts for all services.) Tj
+0 -15 Td
+(Backup & Recovery - Automated daily backups, CDN integration.) Tj
+ET
+BT
+/F2 14 Tf
+50 390 Td
+(Results) Tj
+ET
+BT
+/F1 11 Tf
+50 370 Td
+(99.95% Uptime SLA - Auto-recovery from infrastructure failures.) Tj
+0 -15 Td
+(<5 Minute Deployments - Zero-downtime releases to production.) Tj
+0 -15 Td
+(<30 Minute DR Recovery - Complete disaster recovery enabled.) Tj
+0 -15 Td
+(Enterprise Reliability - Multi-node redundancy and auto-healing.) Tj
+ET
+BT
+/F2 14 Tf
+50 290 Td
+(Testimonial) Tj
+ET
+BT
+/F1 11 Tf
+50 270 Td
+(Lex Corp transformed our infrastructure into an enterprise-grade system) Tj
+0 -15 Td
+(that scales effortlessly. Their attention to security, automation, and) Tj
+0 -15 Td
+(reliability is exceptional. We can now confidently handle growth without) Tj
+0 -15 Td
+(infrastructure concerns. Automated deployments and monitoring give us) Tj
+0 -15 Td
+(complete peace of mind.) Tj
+ET
+BT
+/F1 10 Tf
+50 180 Td
+(- GBN Store Team) Tj
+ET
+BT
+/F1 9 Tf
+50 50 Td
+(© 2026 Lex Corp Pvt. Ltd. | Cloud Architecture & DevOps Engineering) Tj
+ET
 endstream
 endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
 xref
-0 5
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000180 00000 n
-trailer<</Size 5/Root 1 0 R>>
-startxref 262
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000260 00000 n 
+0000001770 00000 n 
+0000001857 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1952
 %%EOF
 
-cd /Users/alex/github/lexcorp-cloud/website && git add public/case-studies/gbnstore-case-study.pdf && git status
+echo "✓ Created gbnstore-case-study.pdf"

@@ -1,62 +1,119 @@
 %PDF-1.4
 1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
+<< /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/Resources <<
-/Font <<
-/F1 4 0 R
->>
->>
-/MediaBox [0 0 612 792]
-/Contents 5 0 R
->>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
 endobj
 4 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-5 0 obj
-<<
-/Length 44
->>
+<< /Length 1200 >>
 stream
 BT
-/F1 12 Tf
-100 700 Td
-(Slashplus Case Study) Tj
+/F2 24 Tf
+50 750 Td
+(Slashplus - Case Study) Tj
+ET
+BT
+/F1 11 Tf
+50 720 Td
+(Infrastructure Migration for Vehicle Tracking & Digital Signage) Tj
+ET
+BT
+/F2 14 Tf
+50 680 Td
+(Challenge) Tj
+ET
+BT
+/F1 11 Tf
+50 660 Td
+(Legacy monolithic infrastructure unable to scale independently.) Tj
+0 -15 Td
+(Manual deployment processes causing downtime and deployment risk.) Tj
+0 -15 Td
+(Lack of automated monitoring and alerting for critical services.) Tj
+0 -15 Td
+(No disaster recovery strategy, risking data loss and extended outages.) Tj
+ET
+BT
+/F2 14 Tf
+50 570 Td
+(Solution) Tj
+ET
+BT
+/F1 11 Tf
+50 550 Td
+(Migrated all applications to new infrastructure with near-zero downtime.) Tj
+0 -15 Td
+(Implemented 3-tier architecture for improved scalability and security.) Tj
+0 -15 Td
+(Set up automated backups with DR planning and email alerts.) Tj
+0 -15 Td
+(Reduced infrastructure costs through resource optimization.) Tj
+ET
+BT
+/F2 14 Tf
+50 455 Td
+(Results) Tj
+ET
+BT
+/F1 11 Tf
+50 435 Td
+(99.9% Uptime - Zero-downtime migration completed.) Tj
+0 -15 Td
+(40% Cost Reduction - Optimized resource allocation.) Tj
+0 -15 Td
+(Full Disaster Recovery - Automated backup strategy in place.) Tj
+0 -15 Td
+(Automated Alerts - Real-time monitoring for all critical services.) Tj
+ET
+BT
+/F2 14 Tf
+50 340 Td
+(Testimonial) Tj
+ET
+BT
+/F1 11 Tf
+50 320 Td
+(Lex Corp transformed our infrastructure from legacy systems to a modern,) Tj
+0 -15 Td
+(scalable setup. The zero-downtime migration and cost optimization) Tj
+0 -15 Td
+(delivered immediate business value. Highly professional and reliable.) Tj
+ET
+BT
+/F1 10 Tf
+50 260 Td
+(- Kshitiz Karki, Owner, Slashplus) Tj
+ET
+BT
+/F1 9 Tf
+50 50 Td
+(© 2026 Lex Corp Pvt. Ltd. | Cloud Architecture & DevOps Engineering) Tj
 ET
 endstream
 endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
 xref
-0 6
+0 7
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
-0000000250 00000 n 
-0000000333 00000 n 
+0000000260 00000 n 
+0000001520 00000 n 
+0000001607 00000 n 
 trailer
-<<
-/Size 6
-/Root 1 0 R
->>
+<< /Size 7 /Root 1 0 R >>
 startxref
-427
+1702
 %%EOF
+
+echo "✓ Created slashplus-case-study.pdf"
