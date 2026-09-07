@@ -127,26 +127,49 @@ const resources = [
   const form = document.getElementById('pdf-form');
   const resourceNameInput = document.getElementById('resource-name');
   const closeBtn = document.querySelector('.modal-close');
+  const backdrop = document.querySelector('.modal-backdrop');
+
+  // Function to close modal
+  const closeModal = () => {
+    if (modal) modal.hidden = true;
+  };
+
+  // Function to open modal
+  const openModal = (resourceName) => {
+    if (resourceNameInput) resourceNameInput.value = resourceName;
+    if (modal) {
+      modal.hidden = false;
+      const emailInput = modal.querySelector('#email');
+      if (emailInput) emailInput.focus();
+    }
+  };
 
   // Open modal when clicking resource CTA
   document.querySelectorAll('.resource-cta').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const resourceName = btn.getAttribute('data-resource');
-      resourceNameInput.value = resourceName;
-      modal.hidden = false;
-      modal.querySelector('#email').focus();
+      openModal(resourceName);
     });
   });
 
-  // Close modal
-  closeBtn?.addEventListener('click', () => {
-    modal.hidden = true;
-  });
+  // Close button click
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+  }
 
-  modal?.querySelector('.modal-backdrop')?.addEventListener('click', () => {
-    modal.hidden = true;
-  });
+  // Backdrop click to close
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+  }
 
   // PDF download mapping
   const pdfLinks = {
@@ -194,20 +217,25 @@ const resources = [
         }
 
         setTimeout(() => {
-          modal.hidden = true;
-          form.innerHTML = `
-            <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" required placeholder="your@company.com" />
-            </div>
-            <div class="form-group">
-              <label for="company">Company (Optional)</label>
-              <input type="text" id="company" name="company" placeholder="Your Company" />
-            </div>
-            <input type="hidden" id="resource-name" name="resource_name" />
-            <button type="submit" class="btn btn-primary btn-block">Download PDF</button>
-          `;
-        }, 2000);
+          closeModal();
+          // Reset form
+          if (form) {
+            form.innerHTML = `
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="your@company.com" />
+              </div>
+              <div class="form-group">
+                <label for="company">Company (Optional)</label>
+                <input type="text" id="company" name="company" placeholder="Your Company" />
+              </div>
+              <input type="hidden" id="resource-name" name="resource_name" />
+              <button type="submit" class="btn btn-primary btn-block">Download PDF</button>
+            `;
+          }
+        }, 2500);
+      } else {
+        alert('Error processing download. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -217,8 +245,9 @@ const resources = [
 
   // Close modal on Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.hidden) {
-      modal.hidden = true;
+    if (e.key === 'Escape' && modal && !modal.hidden) {
+      e.preventDefault();
+      closeModal();
     }
   });
 </script>
