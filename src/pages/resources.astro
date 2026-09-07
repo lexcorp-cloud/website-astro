@@ -2,8 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 
-const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY;
-
 const resources = [
   {
     title: 'Slashplus Case Study',
@@ -63,65 +61,21 @@ const resources = [
             </div>
             <h3 class="resource-title">{resource.title}</h3>
             <p class="resource-desc">{resource.description}</p>
-            <button
-              class="btn btn-primary resource-cta download-btn"
-              data-pdf-url={resource.pdf}
-              data-pdf-title={resource.title}
+            <a
+              href={resource.pdf}
+              download
+              class="btn btn-primary resource-cta"
               title={`Download ${resource.title}`}
             >
               {resource.cta}
               <span class="arrow"><Icon name="arrow" size={14} /></span>
-            </button>
+            </a>
           </div>
         ))}
       </div>
     </div>
   </section>
 
-  <!-- ================= DOWNLOAD MODAL ================= -->
-  <div class="modal" id="download-modal" hidden>
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Close modal">
-        <Icon name="close" size={24} />
-      </button>
-      <h2 class="modal-title">Download Case Study</h2>
-      <p class="modal-subtitle">Enter your email to download the case study PDF</p>
-
-      <form id="download-form" class="download-form">
-        <input type="hidden" name="access_key" value={web3formsKey} />
-        <input type="hidden" id="pdf-url" name="pdf_url" value="" />
-        <input type="hidden" id="pdf-title" name="pdf_title" value="" />
-
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="your@email.com"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="company">Company (Optional)</label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            placeholder="Your company name"
-          />
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block">
-          Download PDF
-        </button>
-      </form>
-
-      <p class="modal-note">We respect your privacy. Your email will only be used for resources updates.</p>
-    </div>
-  </div>
 
   <!-- ================= CTA ================= -->
   <section class="section cta-sec">
@@ -239,279 +193,10 @@ const resources = [
     margin: 0;
   }
 
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-  }
-
-  .modal[hidden] {
-    display: none !important;
-  }
-
-  .modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    cursor: pointer;
-  }
-
-  .modal-content {
-    position: relative;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: clamp(32px, 5vw, 48px);
-    max-width: 450px;
-    width: 100%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease-out;
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--text-soft);
-    transition: color 0.2s;
-  }
-
-  .modal-close:hover {
-    color: var(--text);
-  }
-
-  .modal-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 8px 0;
-  }
-
-  .modal-subtitle {
-    font-size: 0.95rem;
-    color: var(--text-soft);
-    margin: 0 0 24px 0;
-  }
-
-  .download-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 24px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-group label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .form-group input {
-    padding: 12px 16px;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
-    color: var(--text);
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  }
-
-  .form-group input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .btn-block {
-    width: 100%;
-  }
-
-  .modal-note {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin: 0;
-    text-align: center;
-  }
-
-  .modal-loading {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-  }
-
-  .modal-success {
-    text-align: center;
-    color: var(--term-ok);
-  }
-
-  .modal-error {
-    text-align: center;
-    color: var(--term-error);
-    font-size: 0.9rem;
-  }
-
   @media (max-width: 768px) {
     .resources-grid {
       grid-template-columns: 1fr;
     }
-
-    .modal-content {
-      max-width: 100%;
-      padding: 32px 24px;
-    }
-
-    .modal-title {
-      font-size: 1.25rem;
-    }
   }
 </style>
 
-<script>
-  let pendingPdfUrl = '';
-  let pendingPdfTitle = '';
-
-  function openDownloadModal(pdfUrl, pdfTitle) {
-    const modal = document.getElementById('download-modal');
-    const pdfUrlInput = document.getElementById('pdf-url');
-    const pdfTitleInput = document.getElementById('pdf-title');
-
-    pendingPdfUrl = pdfUrl;
-    pendingPdfTitle = pdfTitle;
-
-    pdfUrlInput.value = pdfUrl;
-    pdfTitleInput.value = pdfTitle;
-
-    modal.removeAttribute('hidden');
-  }
-
-  function closeDownloadModal() {
-    const modal = document.getElementById('download-modal');
-    modal.setAttribute('hidden', '');
-    pendingPdfUrl = '';
-    pendingPdfTitle = '';
-  }
-
-  async function handleDownloadSubmit(event) {
-    event.preventDefault();
-
-    const form = document.getElementById('download-form');
-    const email = document.getElementById('email').value;
-    const company = document.getElementById('company').value;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="modal-loading">Submitting...</span>';
-
-    try {
-      const formData = new FormData(form);
-      formData.append('email', email);
-      formData.append('company', company);
-      formData.append('pdf_title', pendingPdfTitle);
-      formData.append('subject', `Case Study Download: ${pendingPdfTitle}`);
-
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        submitBtn.innerHTML = '<span class="modal-success">✓ Success! Starting download...</span>';
-
-        setTimeout(() => {
-          const a = document.createElement('a');
-          a.href = pendingPdfUrl;
-          a.download = pendingPdfTitle + '.pdf';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          setTimeout(() => closeDownloadModal(), 500);
-        }, 500);
-      } else {
-        throw new Error('Submission failed');
-      }
-    } catch (error) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML =
-        '<span class="modal-error">Failed to submit. Please try again.</span>';
-      setTimeout(() => {
-        submitBtn.innerHTML = originalText;
-      }, 3000);
-    }
-  }
-
-  function initializeDownloadGate() {
-    // Attach click handlers to download buttons
-    document.querySelectorAll('.download-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const pdfUrl = btn.dataset.pdfUrl;
-        const pdfTitle = btn.dataset.pdfTitle;
-        openDownloadModal(pdfUrl, pdfTitle);
-      });
-    });
-
-    // Attach form submission handler
-    const form = document.getElementById('download-form');
-    if (form) {
-      form.addEventListener('submit', handleDownloadSubmit);
-    }
-
-    // Close modal when clicking backdrop
-    const backdrop = document.querySelector('.modal-backdrop');
-    if (backdrop) {
-      backdrop.addEventListener('click', closeDownloadModal);
-    }
-
-    // Close modal when clicking close button
-    const closeBtn = document.querySelector('.modal-close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeDownloadModal);
-    }
-  }
-
-  // Initialize on DOMContentLoaded
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeDownloadGate);
-  } else {
-    // DOM is already loaded
-    initializeDownloadGate();
-  }
-</script>
