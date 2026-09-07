@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import ClientCarousel from '../components/ClientCarousel.astro';
 import { clients } from '../data/clients.js';
 
 // Import all client logos dynamically
@@ -75,50 +76,11 @@ const clientSchemas = clients.map((client, idx) => ({
     </section>
   ) : (
     <>
-      <!-- ================= CLIENTS GRID ================= -->
+      <!-- ================= CLIENTS CAROUSEL ================= -->
       <section class="section clients-sec">
         <div class="container">
           <h2 class="section-head">Our clients</h2>
-          <div class="clients-grid">
-            {clients.map((client) => {
-              const logo = logoMap[client.logo];
-              return (
-                <div class="client-card glass-card" key={client.name}>
-                  {logo ? (
-                    <Image
-                      src={logo}
-                      alt={client.name}
-                      class="client-logo"
-                      widths={[150, 300]}
-                      sizes="150px"
-                    />
-                  ) : (
-                    <div class="client-logo-placeholder">{client.name}</div>
-                  )}
-                  <h3 class="h4">{client.name}</h3>
-                  <p class="client-desc">{client.description}</p>
-
-                  {client.achievements && client.achievements.length > 0 && (
-                    <div class="achievements">
-                      {client.achievements.map((achievement) => (
-                        <div class="achievement" key={achievement}>
-                          <Icon name="check" size={16} />
-                          <span>{achievement}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {client.testimonial && (
-                    <div class="testimonial">
-                      <p class="quote">"{client.testimonial}"</p>
-                      <p class="author">— {client.testimonialAuthor}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <ClientCarousel clients={clients} logoMap={logoMap} />
         </div>
       </section>
 

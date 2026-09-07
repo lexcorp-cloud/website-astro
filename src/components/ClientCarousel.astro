@@ -1,0 +1,354 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+
+interface Props {
+  clients: any[];
+  logoMap: any;
+}
+
+const { clients, logoMap } = Astro.props;
+---
+
+<div class="carousel-container">
+  <div class="carousel">
+    <div class="carousel-track" id="carousel-track">
+      {clients.map((client) => {
+        const logo = logoMap[client.logo];
+        return (
+          <div class="carousel-slide glass-card" key={client.name}>
+            <div class="slide-content">
+              {logo ? (
+                <Image
+                  src={logo}
+                  alt={client.name}
+                  class="client-logo"
+                  widths={[150, 300]}
+                  sizes="150px"
+                />
+              ) : (
+                <div class="client-logo-placeholder">{client.name}</div>
+              )}
+
+              <div class="client-info">
+                <h3 class="h3">{client.name}</h3>
+                <p class="client-desc">{client.description}</p>
+
+                {client.achievements && client.achievements.length > 0 && (
+                  <div class="achievements">
+                    <h4>Key Achievements</h4>
+                    <ul>
+                      {client.achievements.map((achievement) => (
+                        <li key={achievement}>
+                          <Icon name="check" size={16} />
+                          <span>{achievement}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {client.testimonial && (
+                  <div class="testimonial">
+                    <p class="quote">"{client.testimonial}"</p>
+                    <p class="author">— {client.testimonialAuthor}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="carousel-controls">
+    <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous client">
+      <Icon name="arrow" size={20} />
+    </button>
+
+    <div class="carousel-indicators">
+      {clients.map((_, idx) => (
+        <button
+          class={`indicator ${idx === 0 ? 'active' : ''}`}
+          data-index={idx}
+          aria-label={`Go to client ${idx + 1}`}
+          key={idx}
+        />
+      ))}
+    </div>
+
+    <button class="carousel-btn next" id="carousel-next" aria-label="Next client">
+      <Icon name="arrow" size={20} />
+    </button>
+  </div>
+
+  <p class="carousel-counter"><span id="carousel-current">1</span> of {clients.length}</p>
+</div>
+
+<script>
+  let currentIndex = 0;
+  const track = document.getElementById('carousel-track');
+  const slides = document.querySelectorAll('.carousel-slide');
+  const prevBtn = document.getElementById('carousel-prev');
+  const nextBtn = document.getElementById('carousel-next');
+  const indicators = document.querySelectorAll('.indicator');
+  const currentCounter = document.getElementById('carousel-current');
+  const totalSlides = slides.length;
+
+  function updateCarousel() {
+    const offset = -currentIndex * 100;
+    if (track) track.style.transform = `translateX(${offset}%)`;
+
+    // Update indicators
+    indicators.forEach((indicator, idx) => {
+      indicator.classList.toggle('active', idx === currentIndex);
+    });
+
+    // Update counter
+    if (currentCounter) currentCounter.textContent = currentIndex + 1;
+  }
+
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % totalSlides;
+    updateCarousel();
+  }
+
+  function prevSlide() {
+    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+    updateCarousel();
+  }
+
+  function goToSlide(index: number) {
+    currentIndex = index;
+    updateCarousel();
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+  if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+
+  indicators.forEach((indicator) => {
+    indicator.addEventListener('click', (e) => {
+      const index = parseInt((e.target as HTMLElement).getAttribute('data-index') || '0');
+      goToSlide(index);
+    });
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevSlide();
+    if (e.key === 'ArrowRight') nextSlide();
+  });
+</script>
+
+<style>
+  .carousel-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .carousel {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .carousel-slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    padding: clamp(32px, 5vw, 48px);
+  }
+
+  .slide-content {
+    display: flex;
+    gap: clamp(24px, 5vw, 48px);
+    align-items: flex-start;
+  }
+
+  .client-logo {
+    width: clamp(100px, 20vw, 180px);
+    height: auto;
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+
+  .client-logo-placeholder {
+    width: clamp(100px, 20vw, 180px);
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .client-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .client-info h3 {
+    margin: 0;
+    color: var(--text);
+  }
+
+  .client-desc {
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .achievements {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .achievements h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .achievements ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .achievements li {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .achievements :global(svg) {
+    flex-shrink: 0;
+    color: var(--accent-blue);
+    margin-top: 2px;
+  }
+
+  .testimonial {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent-blue);
+    margin-top: 8px;
+  }
+
+  .quote {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--text-soft);
+    margin: 0 0 8px 0;
+    line-height: 1.6;
+  }
+
+  .author {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .carousel-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+    color: var(--text);
+  }
+
+  .carousel-btn:hover {
+    background: var(--surface-strong);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+  }
+
+  .carousel-btn.prev :global(svg) {
+    transform: rotate(180deg);
+  }
+
+  .carousel-indicators {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+    padding: 0;
+  }
+
+  .indicator.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .carousel-counter {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .slide-content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .client-logo,
+    .client-logo-placeholder {
+      width: 120px;
+    }
+
+    .carousel-controls {
+      gap: 16px;
+    }
+
+    .carousel-btn {
+      width: 36px;
+      height: 36px;
+    }
+  }
+</style>
