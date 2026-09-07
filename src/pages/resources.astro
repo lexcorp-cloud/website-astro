@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 
+const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY;
+
 const resources = [
   {
     title: 'Slashplus Case Study',
@@ -87,7 +89,7 @@ const resources = [
       <p class="modal-subtitle">Enter your email to download the case study PDF</p>
 
       <form id="download-form" class="download-form">
-        <input type="hidden" name="access_key" value="e5a55154-1d88-41b1-82dc-b47f36fea64d" />
+        <input type="hidden" name="access_key" value={web3formsKey} />
         <input type="hidden" id="pdf-url" name="pdf_url" value="" />
         <input type="hidden" id="pdf-title" name="pdf_title" value="" />
 
@@ -439,8 +441,7 @@ const resources = [
     submitBtn.innerHTML = '<span class="modal-loading">Submitting...</span>';
 
     try {
-      const formData = new FormData();
-      formData.append('access_key', 'e5a55154-1d88-41b1-82dc-b47f36fea64d');
+      const formData = new FormData(form);
       formData.append('email', email);
       formData.append('company', company);
       formData.append('pdf_title', pendingPdfTitle);
