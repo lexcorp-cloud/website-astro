@@ -89,6 +89,7 @@ const { clients, logoMap } = Astro.props;
 
 <script>
   let currentIndex = 0;
+  let autoSlideInterval: any = null;
   const track = document.getElementById('carousel-track');
   const slides = document.querySelectorAll('.carousel-slide');
   const prevBtn = document.getElementById('carousel-prev');
@@ -96,6 +97,7 @@ const { clients, logoMap } = Astro.props;
   const indicators = document.querySelectorAll('.indicator');
   const currentCounter = document.getElementById('carousel-current');
   const totalSlides = slides.length;
+  const AUTO_SLIDE_INTERVAL = 6000; // 6 seconds
 
   function updateCarousel() {
     const offset = -currentIndex * 100;
@@ -113,16 +115,31 @@ const { clients, logoMap } = Astro.props;
   function nextSlide() {
     currentIndex = (currentIndex + 1) % totalSlides;
     updateCarousel();
+    resetAutoSlide();
   }
 
   function prevSlide() {
     currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
     updateCarousel();
+    resetAutoSlide();
   }
 
   function goToSlide(index: number) {
     currentIndex = index;
     updateCarousel();
+    resetAutoSlide();
+  }
+
+  function startAutoSlide() {
+    autoSlideInterval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % totalSlides;
+      updateCarousel();
+    }, AUTO_SLIDE_INTERVAL);
+  }
+
+  function resetAutoSlide() {
+    clearInterval(autoSlideInterval);
+    startAutoSlide();
   }
 
   if (prevBtn) prevBtn.addEventListener('click', prevSlide);
@@ -140,87 +157,123 @@ const { clients, logoMap } = Astro.props;
     if (e.key === 'ArrowLeft') prevSlide();
     if (e.key === 'ArrowRight') nextSlide();
   });
+
+  // Start auto-slide
+  startAutoSlide();
+
+  // Pause auto-slide on hover
+  const carouselContainer = document.querySelector('.carousel-container');
+  if (carouselContainer) {
+    carouselContainer.addEventListener('mouseenter', () => {
+      clearInterval(autoSlideInterval);
+    });
+    carouselContainer.addEventListener('mouseleave', () => {
+      startAutoSlide();
+    });
+  }
 </script>
 
 <style>
   .carousel-container {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 32px;
     align-items: center;
+    will-change: transform;
   }
 
   .carousel {
     width: 100%;
     overflow: hidden;
     border-radius: var(--radius-lg);
+    background: var(--bg);
   }
 
   .carousel-track {
     display: flex;
-    transition: transform 0.5s var(--ease-out);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
   }
 
   .carousel-slide {
     flex: 0 0 100%;
     min-width: 100%;
-    padding: clamp(32px, 5vw, 48px);
+    padding: clamp(40px, 6vw, 56px);
+    animation: slideIn 0.6s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0.8;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .slide-content {
     display: flex;
-    gap: clamp(24px, 5vw, 48px);
+    gap: clamp(28px, 6vw, 48px);
     align-items: flex-start;
   }
 
   .client-logo {
-    width: clamp(100px, 20vw, 180px);
+    width: clamp(110px, 22vw, 180px);
     height: auto;
     flex-shrink: 0;
     object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
   }
 
   .client-logo-placeholder {
-    width: clamp(100px, 20vw, 180px);
-    height: 100px;
+    width: clamp(110px, 22vw, 180px);
+    height: 110px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--surface);
     border-radius: var(--radius-md);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1rem;
     flex-shrink: 0;
+    color: var(--text-soft);
   }
 
   .client-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
+    min-width: 0;
   }
 
   .client-info h3 {
     margin: 0;
     color: var(--text);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    line-height: 1.2;
   }
 
   .client-desc {
     color: var(--text-soft);
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0;
+    font-size: 0.95rem;
   }
 
   .achievements {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   .achievements h4 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text);
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .achievements ul {
@@ -229,37 +282,39 @@ const { clients, logoMap } = Astro.props;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .achievements li {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: flex-start;
     font-size: 0.9rem;
     color: var(--text-soft);
+    line-height: 1.5;
   }
 
   .achievements :global(svg) {
     flex-shrink: 0;
     color: var(--accent-blue);
-    margin-top: 2px;
+    margin-top: 3px;
+    min-width: 16px;
   }
 
   .testimonial {
     background: var(--surface);
-    padding: 16px;
+    padding: 18px;
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--accent-blue);
-    margin-top: 8px;
+    border-left: 4px solid var(--accent-blue);
+    margin-top: 12px;
   }
 
   .quote {
     font-size: 0.9rem;
     font-style: italic;
     color: var(--text-soft);
-    margin: 0 0 8px 0;
-    line-height: 1.6;
+    margin: 0 0 10px 0;
+    line-height: 1.7;
   }
 
   .author {
@@ -272,28 +327,35 @@ const { clients, logoMap } = Astro.props;
   .carousel-controls {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 28px;
     justify-content: center;
   }
 
   .carousel-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.3s var(--ease-out);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--text);
+    font-weight: 600;
   }
 
   .carousel-btn:hover {
     background: var(--surface-strong);
     border-color: var(--accent-blue);
     color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  }
+
+  .carousel-btn:active {
+    transform: translateY(0);
   }
 
   .carousel-btn.prev :global(svg) {
@@ -302,7 +364,7 @@ const { clients, logoMap } = Astro.props;
 
   .carousel-indicators {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
   }
 
@@ -311,16 +373,20 @@ const { clients, logoMap } = Astro.props;
     height: 8px;
     border-radius: 50%;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     cursor: pointer;
-    transition: all 0.3s var(--ease-out);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0;
+  }
+
+  .indicator:hover {
+    background: var(--surface-strong);
   }
 
   .indicator.active {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
-    width: 24px;
+    width: 28px;
     border-radius: 4px;
   }
 
@@ -328,18 +394,38 @@ const { clients, logoMap } = Astro.props;
     font-size: 0.9rem;
     color: var(--text-muted);
     margin: 0;
+    font-weight: 500;
   }
 
   @media (max-width: 768px) {
+    .carousel-container {
+      gap: 24px;
+    }
+
+    .carousel-slide {
+      padding: clamp(28px, 5vw, 40px);
+    }
+
     .slide-content {
       flex-direction: column;
       align-items: center;
       text-align: center;
+      gap: clamp(20px, 4vw, 28px);
     }
 
     .client-logo,
     .client-logo-placeholder {
-      width: 120px;
+      width: 100px;
+      height: 100px;
+    }
+
+    .client-info h3 {
+      font-size: 1.3rem;
+    }
+
+    .achievements li {
+      font-size: 0.85rem;
+      justify-content: center;
     }
 
     .carousel-controls {
@@ -347,8 +433,25 @@ const { clients, logoMap } = Astro.props;
     }
 
     .carousel-btn {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .carousel-indicators {
+      gap: 6px;
+    }
+
+    .indicator.active {
+      width: 24px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-track,
+    .carousel-slide,
+    .carousel-btn {
+      transition: none;
+      animation: none;
     }
   }
 </style>
