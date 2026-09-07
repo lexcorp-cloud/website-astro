@@ -4,7 +4,7 @@
 export const clients = [
   {
     name: 'Slashplus',
-    logo: 'slashplus.png',
+    logo: 'slahsplus-horizontal.png',
     description: 'Architected infrastructure migration for Vehicle Tracking, Digital Signage, Parking, and Waste Management systems',
     achievements: [
       'Migrated all applications to new infrastructure with near-zero downtime',
@@ -18,7 +18,7 @@ export const clients = [
   },
   {
     name: 'GadgetByte Nepal',
-    logo: 'gadgetbyte-nepal.png',
+    logo: 'gadgetbytenepal-horizontal.jpeg',
     description: 'Designed and deployed containerized cloud infrastructure with automated CI/CD pipelines',
     achievements: [
       'Migrated to Docker-based cloud infrastructure with zero downtime',
@@ -32,7 +32,7 @@ export const clients = [
   },
   {
     name: 'Team Automation',
-    logo: 'team-automation.png',
+    logo: 'teamautomation-horizontal.jpeg',
     description: 'Architected scalable cloud infrastructure and designed deployment automation blueprints',
     achievements: [
       'Designed scalable cloud architecture for multi-tier applications',
