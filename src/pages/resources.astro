@@ -477,7 +477,7 @@ const resources = [
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function initializeDownloadGate() {
     // Attach click handlers to download buttons
     document.querySelectorAll('.download-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -504,5 +504,13 @@ const resources = [
     if (closeBtn) {
       closeBtn.addEventListener('click', closeDownloadModal);
     }
-  });
+  }
+
+  // Initialize on DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDownloadGate);
+  } else {
+    // DOM is already loaded
+    initializeDownloadGate();
+  }
 </script>
