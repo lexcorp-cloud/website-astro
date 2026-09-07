@@ -4,7 +4,7 @@
 export const clients = [
   {
     name: 'Slashplus',
-    logo: 'slahsplus-horizontal.png',
+    logo: 'slashplus-horizontal.png',
     description: 'Architected infrastructure migration for Vehicle Tracking, Digital Signage, Parking, and Waste Management systems',
     achievements: [
       'Migrated all applications to new infrastructure with near-zero downtime',
