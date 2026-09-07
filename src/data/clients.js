@@ -44,4 +44,22 @@ export const clients = [
       'Lex Corp\'s infrastructure expertise was instrumental in scaling our operations. From architecture design to implementation, they delivered a robust, well-documented solution that\'s been rock-solid in production.',
     testimonialAuthor: 'Pradip Gurung, Owner, Team Automation',
   },
+  {
+    name: 'GBN Store',
+    logo: 'gbnstore-horizontal.png',
+    description: 'E-commerce platform built on Next.js with enterprise-grade infrastructure, automated CI/CD, and high-availability architecture',
+    achievements: [
+      'Architected microservices infrastructure with separated frontend, API, and admin servers',
+      'Implemented multi-node deployment with automatic failover and load balancing',
+      'Built automated CI/CD pipelines with rollback capabilities and zero-downtime deployments',
+      'Set up comprehensive monitoring and alerting for API and frontend health',
+      'Configured enterprise security: private subnets, load balancer, jump server in public subnet',
+      'Deployed distributed services: PostgreSQL, Redis, Meilisearch on dedicated servers',
+      'Automated backup strategy and media delivery via CDN and cloud storage',
+      'Designed DR strategy enabling recovery in under 30 minutes',
+    ],
+    testimonial:
+      'Lex Corp designed a best-in-class infrastructure for our e-commerce platform. Their attention to security, automation, and reliability means we can focus entirely on business growth. The monitoring and alerting give us complete peace of mind.',
+    testimonialAuthor: 'GBN Store Team',
+  },
 ];
