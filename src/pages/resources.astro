@@ -194,17 +194,21 @@ const resources = [
         throw new Error('Web3Forms key not configured');
       }
 
-      const formData = new URLSearchParams();
-      formData.append('access_key', web3formsKey);
-      formData.append('email', email);
-      formData.append('company', company);
-      formData.append('resource', resourceName);
-      formData.append('subject', `Resource Download: ${resourceName}`);
-      formData.append('message', `Email: ${email}\nCompany: ${company}\nRequested Resource: ${resourceName}`);
+      const params = new URLSearchParams();
+      params.set('access_key', web3formsKey);
+      params.set('email', email);
+      params.set('company', company);
+      params.set('resource', resourceName);
+      params.set('subject', `Resource Download: ${resourceName}`);
+      params.set('message', `Email: ${email}\nCompany: ${company}\nRequested Resource: ${resourceName}`);
+      params.set('from_name', 'Lex Corp Website - Resources');
 
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
       });
 
       if (response.ok) {
