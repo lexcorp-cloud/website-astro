@@ -1,32 +1,35 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-import { WEB3FORMS_ACCESS_KEY } from '../config/site.js';
 
 const resources = [
   {
     title: 'Slashplus Case Study',
     description: 'See how we architected infrastructure migration for Vehicle Tracking, Digital Signage, and Waste Management systems. Includes zero-downtime deployment strategy and cost optimization results.',
     icon: 'code',
-    cta: 'Download Case Study',
+    cta: 'Download PDF',
+    pdf: '/case-studies/slashplus-case-study.pdf',
   },
   {
     title: 'GadgetByte Nepal Case Study',
     description: 'Learn how we reduced cloud costs by 40-45% while building CI/CD pipelines for automated deployments. Complete technical implementation breakdown.',
     icon: 'pipeline',
-    cta: 'Download Case Study',
+    cta: 'Download PDF',
+    pdf: '/case-studies/gadgetbyte-case-study.pdf',
   },
   {
     title: 'Team Automation Case Study',
     description: 'Discover our approach to designing scalable cloud architecture with disaster recovery planning and deployment automation blueprints.',
     icon: 'server',
-    cta: 'Download Case Study',
+    cta: 'Download PDF',
+    pdf: '/case-studies/team-automation-case-study.pdf',
   },
   {
     title: 'GBN Store Case Study',
     description: 'Enterprise-grade e-commerce infrastructure on Next.js with microservices, multi-node deployment, automated CI/CD, security hardening, and disaster recovery.',
     icon: 'shopping-cart',
-    cta: 'Download Case Study',
+    cta: 'Download PDF',
+    pdf: '/case-studies/gbnstore-case-study.pdf',
   },
 ];
 ---
@@ -58,14 +61,15 @@ const resources = [
             </div>
             <h3 class="resource-title">{resource.title}</h3>
             <p class="resource-desc">{resource.description}</p>
-            <button
+            <a
+              href={resource.pdf}
+              download
               class="btn btn-primary resource-cta"
-              data-form-type="case-study"
-              data-resource={resource.title}
+              title={`Download ${resource.title}`}
             >
               {resource.cta}
               <span class="arrow"><Icon name="arrow" size={14} /></span>
-            </button>
+            </a>
           </div>
         ))}
       </div>
@@ -84,209 +88,7 @@ const resources = [
       </div>
     </div>
   </section>
-
-  <!-- ================= GATED PDF MODAL ================= -->
-  <div id="pdf-modal" class="modal" hidden>
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Close modal">×</button>
-
-      <div class="modal-header">
-        <h2>Download Case Study</h2>
-        <p>Get instant access to the PDF by providing your email</p>
-      </div>
-
-      <form id="pdf-form" class="pdf-form">
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="your@company.com"
-          />
-        </div>
-        <div class="form-group">
-          <label for="company">Company (Optional)</label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            placeholder="Your Company"
-          />
-        </div>
-        <input type="hidden" id="resource-name" name="resource_name" />
-        <button type="submit" class="btn btn-primary btn-block">
-          Download PDF
-        </button>
-      </form>
-
-      <p class="form-note">
-        We respect your privacy. Your information will only be used to send the resource.
-      </p>
-    </div>
-  </div>
 </BaseLayout>
-
-<script define:vars={{siteUrl: import.meta.env.SITE, web3formsKey: WEB3FORMS_ACCESS_KEY}}>
-  const modal = document.getElementById('pdf-modal');
-  const form = document.getElementById('pdf-form');
-  const resourceNameInput = document.getElementById('resource-name');
-  const closeBtn = document.querySelector('.modal-close');
-  const backdrop = document.querySelector('.modal-backdrop');
-
-  // Function to close modal
-  const closeModal = () => {
-    if (modal) modal.hidden = true;
-  };
-
-  // Function to open modal
-  const openModal = (resourceName) => {
-    if (resourceNameInput) resourceNameInput.value = resourceName;
-    if (modal) {
-      modal.hidden = false;
-      const emailInput = modal.querySelector('#email');
-      if (emailInput) emailInput.focus();
-    }
-  };
-
-  // Open modal when clicking resource CTA
-  document.querySelectorAll('.resource-cta').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const resourceName = btn.getAttribute('data-resource');
-      openModal(resourceName);
-    });
-  });
-
-  // Close button click
-  if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeModal();
-    });
-  }
-
-  // Backdrop click to close
-  if (backdrop) {
-    backdrop.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeModal();
-    });
-  }
-
-  // PDF download mapping
-  const pdfLinks = {
-    'Slashplus Case Study': '/case-studies/slashplus-case-study.pdf',
-    'GadgetByte Nepal Case Study': '/case-studies/gadgetbyte-case-study.pdf',
-    'Team Automation Case Study': '/case-studies/team-automation-case-study.pdf',
-    'GBN Store Case Study': '/case-studies/gbnstore-case-study.pdf',
-  };
-
-  // Handle form submission
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById('email').value;
-    const company = document.getElementById('company').value;
-    const resourceName = resourceNameInput.value;
-    const pdfUrl = pdfLinks[resourceName];
-
-    try {
-      // Send to Web3Forms (for lead capture)
-      if (!web3formsKey) {
-        throw new Error('Web3Forms key not configured');
-      }
-
-      const formData = new FormData();
-      formData.append('access_key', web3formsKey);
-      formData.append('email', email);
-      formData.append('company', company);
-      formData.append('resource', resourceName);
-      formData.append('subject', `Resource Download: ${resourceName}`);
-      formData.append('message', `Email: ${email}\nCompany: ${company}\nRequested Resource: ${resourceName}`);
-      formData.append('from_name', 'Lex Corp Website - Resources');
-
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        // Show success message and trigger download
-        form.innerHTML = '<div class="success-message"><p>✓ Your PDF is downloading now!</p><p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 12px;">We\'ve also sent the link to your email.</p></div>';
-
-        // Trigger PDF download (if PDFs exist)
-        if (pdfUrl) {
-          const link = document.createElement('a');
-          link.href = pdfUrl;
-          link.download = pdfUrl.split('/').pop();
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        } else {
-          console.warn('PDF URL not found for:', resourceName);
-        }
-
-        setTimeout(() => {
-          closeModal();
-          // Reset form
-          if (form) {
-            form.innerHTML = `
-              <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required placeholder="your@company.com" />
-              </div>
-              <div class="form-group">
-                <label for="company">Company (Optional)</label>
-                <input type="text" id="company" name="company" placeholder="Your Company" />
-              </div>
-              <input type="hidden" id="resource-name" name="resource_name" />
-              <button type="submit" class="btn btn-primary btn-block">Download PDF</button>
-            `;
-          }
-        }, 2500);
-      } else {
-        throw new Error(`Web3Forms request failed with status ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      // Close modal even on error, but show brief message
-      if (form) {
-        form.innerHTML = '<div class="success-message" style="background: rgba(255, 77, 77, 0.15);"><p>⚠ Error processing download. Please try again or contact support.</p></div>';
-      }
-      setTimeout(() => {
-        closeModal();
-        // Reset form
-        if (form) {
-          form.innerHTML = `
-            <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" required placeholder="your@company.com" />
-            </div>
-            <div class="form-group">
-              <label for="company">Company (Optional)</label>
-              <input type="text" id="company" name="company" placeholder="Your Company" />
-            </div>
-            <input type="hidden" id="resource-name" name="resource_name" />
-            <button type="submit" class="btn btn-primary btn-block">Download PDF</button>
-          `;
-        }
-      }, 3000);
-    }
-  });
-
-  // Close modal on Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal && !modal.hidden) {
-      e.preventDefault();
-      closeModal();
-    }
-  });
-</script>
 
 <style>
   .hero-resources {
@@ -361,6 +163,10 @@ const resources = [
 
   .resource-cta {
     align-self: flex-start;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .cta-sec {
@@ -386,165 +192,9 @@ const resources = [
     margin: 0;
   }
 
-  /* ========== MODAL ========== */
-  .modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .modal:where([hidden]) {
-    display: none !important;
-  }
-
-  .modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-content {
-    position: relative;
-    z-index: 1001;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: clamp(32px, 5vw, 48px);
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s var(--ease-out);
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: var(--surface);
-    color: var(--text);
-    font-size: 24px;
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s var(--ease-out);
-  }
-
-  .modal-close:hover {
-    background: var(--surface-strong);
-    color: var(--accent-blue);
-  }
-
-  .modal-header {
-    margin-bottom: 28px;
-  }
-
-  .modal-header h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 8px;
-    color: var(--text);
-  }
-
-  .modal-header p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    margin: 0;
-  }
-
-  .pdf-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .form-group label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .form-group input {
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 1rem;
-    transition: all 0.3s var(--ease-out);
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  }
-
-  .btn-block {
-    width: 100%;
-  }
-
-  .form-note {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin: 0;
-    text-align: center;
-  }
-
-  .success-message {
-    text-align: center;
-    padding: 20px;
-    background: rgba(110, 231, 160, 0.1);
-    border-radius: var(--radius-md);
-  }
-
-  .success-message p {
-    font-size: 1rem;
-    color: var(--text);
-    margin: 0;
-  }
-
   @media (max-width: 768px) {
     .resources-grid {
       grid-template-columns: 1fr;
-    }
-
-    .modal-content {
-      margin: 20px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .modal-content {
-      animation: none;
     }
   }
 </style>
