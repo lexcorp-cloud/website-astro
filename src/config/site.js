@@ -2,6 +2,7 @@
 export const WEB3FORMS_ACCESS_KEY = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY || '';
 export const ANALYTICS_ID = import.meta.env.PUBLIC_ANALYTICS_ID || '';
 export const CLARITY_ID = import.meta.env.PUBLIC_CLARITY_ID || '';
+export const DRIFT_ID = import.meta.env.PUBLIC_DRIFT_ID || '';
 
 export const LINKEDIN_URL = 'https://www.linkedin.com/company/lex-corp-nepal/';
 

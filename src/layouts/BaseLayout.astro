@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { CONTACT, COMPANY, ANALYTICS_ID, CLARITY_ID } from '../config/site.js';
+import { CONTACT, COMPANY, ANALYTICS_ID, CLARITY_ID, DRIFT_ID } from '../config/site.js';
 
 interface Props {
   title: string;
@@ -136,6 +136,22 @@ const schema = {
       <slot />
     </main>
     <Footer />
+
+    {/* Drift Live Chat - Customer conversation widget. Only load if DRIFT_ID is configured. */}
+    {DRIFT_ID && (
+      <script is:inline define:vars={{driftId: DRIFT_ID}} >
+        "use strict";
+        !function() {
+          var t = window.driftt = window.drift = window.drift || [], e = [], n = [];
+          function o(t) {
+            var e = false;
+            try { e = window.opener && window.opener.drift } catch (t) {}
+            return e || (t ? n : e)
+          }
+          t.load = function(t) { var e = !1; return function() { var n = o(e); if (n) n.load(); else { if (e = !0, !window.drift) { if (document.readyState === "loading") return void (document.addEventListener("DOMContentLoaded", o.bind(null, !0))); var r = document.getElementsByTagName("script")[0], i = document.createElement("script"); i.async = !1, i.src = "https://js.driftt.com/include/".concat(t), r.parentNode.insertBefore(i, r) } } } }, t.identify = function(t) { n.push({ method: "identify", params: [t] }) }, t.config = function(t) { n.push({ method: "config", params: [t] }) }, t.on = function(t, n) { e.push({ method: "on", params: [t, n] }) }, t.off = function(t, n) { e.push({ method: "off", params: [t, n] }) }, t.show = function() { n.push({ method: "show", params: [] }) }, t.hide = function() { n.push({ method: "hide", params: [] }) }, t.ready = function(t) { n.push({ method: "ready", params: [t] }) }, t.page = function() { n.push({ method: "page", params: [] }) }, t.remove = function() { if (document.getElementById("drift-frame-controller")) { var t = document.getElementById("drift-frame-controller"); t.remove() } }, t.load(driftId);
+        }();
+      </script>
+    )}
 
     <script>
       import '../scripts/animations.js';

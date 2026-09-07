@@ -1,0 +1,177 @@
+---
+// FAQ Section with schema markup
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  faqs: FAQ[];
+  title?: string;
+}
+
+const { faqs, title = "Frequently Asked Questions" } = Astro.props;
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(faq => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+};
+---
+
+<section class="faq-section">
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <div class="container">
+    <h2 class="section-head">{title}</h2>
+
+    <div class="faq-grid">
+      {faqs.map((faq, idx) => (
+        <div class="faq-item" key={idx}>
+          <button
+            class="faq-question"
+            aria-expanded="false"
+            aria-controls={`faq-answer-${idx}`}
+          >
+            <span class="question-text">{faq.question}</span>
+            <span class="icon">+</span>
+          </button>
+          <div
+            id={`faq-answer-${idx}`}
+            class="faq-answer"
+            hidden
+          >
+            {faq.answer}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.faq-question').forEach(button => {
+    button.addEventListener('click', () => {
+      const answerId = button.getAttribute('aria-controls');
+      const answer = document.getElementById(answerId);
+      const isOpen = button.getAttribute('aria-expanded') === 'true';
+
+      button.setAttribute('aria-expanded', !isOpen);
+      answer?.toggleAttribute('hidden');
+    });
+  });
+</script>
+
+<style>
+  .faq-section {
+    padding-block: clamp(60px, 8vw, 100px);
+  }
+
+  .section-head {
+    margin-bottom: clamp(40px, 5vw, 60px);
+    font-size: clamp(1.6rem, 4vw, 2rem);
+    text-align: center;
+  }
+
+  .faq-grid {
+    display: grid;
+    gap: clamp(16px, 3vw, 24px);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.3s var(--ease-out);
+  }
+
+  .faq-item:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+  }
+
+  .faq-question {
+    width: 100%;
+    padding: clamp(18px, 4vw, 24px);
+    background: var(--surface);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    transition: all 0.3s var(--ease-out);
+  }
+
+  .faq-question:hover {
+    background: var(--surface-strong);
+    color: var(--accent-blue);
+  }
+
+  .faq-question[aria-expanded='true'] {
+    background: var(--surface-strong);
+    color: var(--accent-blue);
+  }
+
+  .faq-question[aria-expanded='true'] .icon {
+    transform: rotate(45deg);
+  }
+
+  .question-text {
+    text-align: left;
+    flex: 1;
+  }
+
+  .icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.3s var(--ease-out);
+    color: var(--accent-blue);
+  }
+
+  .faq-answer {
+    padding: clamp(18px, 4vw, 24px);
+    background: var(--bg);
+    color: var(--text-soft);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.3s var(--ease-out);
+  }
+
+  .faq-answer[hidden] {
+    display: none;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-item,
+    .faq-question,
+    .faq-answer {
+      transition: none;
+      animation: none;
+    }
+  }
+</style>

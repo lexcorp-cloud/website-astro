@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import FaqSection from '../components/FaqSection.astro';
 import { services, technologies } from '../data/services.js';
+import { faqs } from '../data/faqs.js';
 
 const marquee = [...technologies, ...technologies];
 ---
@@ -63,6 +65,8 @@ const marquee = [...technologies, ...technologies];
       </div>
     </div>
   </section>
+
+  <FaqSection {faqs} />
 
   <section class="section s-cta-sec">
     <div class="container">
