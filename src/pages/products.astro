@@ -1,0 +1,265 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { products } from '../data/products.js';
+
+// Service entries rather than Product: these are hosted services, and Product
+// implies offers and pricing we deliberately don't publish. Lex Corp is named
+// as provider by reference (name + url), not by repeating the Organization
+// block that BaseLayout already emits.
+const itemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Lex Corp products',
+  itemListElement: products.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Service',
+      name: p.name,
+      url: p.url,
+      description: p.description,
+      provider: { '@type': 'Organization', name: 'Lex Corp', url: new URL('/', Astro.site).toString() },
+    },
+  })),
+};
+---
+
+<BaseLayout
+  title="Lex Corp Products: Cloud Servers in Nepal"
+  description="Products built and run by Lex Corp, starting with Lex Corp Cloud: cloud servers in Nepal, paid in Nepali Rupees through Khalti, eSewa, FonePay or bank transfer."
+>
+  <!-- Structured data -->
+  <script type="application/ld+json" set:html={JSON.stringify(itemList)} />
+
+  <section class="section p-hero">
+    <div class="grid-bg"></div>
+    <div class="orb orb-a p-orb" data-parallax="0.14"></div>
+
+    <div class="container p-in">
+      <span class="eyebrow">Products</span>
+      <h1 class="p-title">Products we build and run ourselves.</h1>
+      <p class="lead">
+        Lex Corp builds and runs its own products as well as engineering services
+        for clients. Each product below is operated by the same team that delivers
+        our client work.
+      </p>
+    </div>
+  </section>
+
+  <section class="section p-list-sec">
+    <div class="container">
+      <div class="p-grid">
+        {products.map((p) => (
+          <article class="reveal glass-card p-card">
+            <div class="p-card-head">
+              <span class="icon-tile"><Icon name={p.icon} /></span>
+              <span class="p-status mono" data-live={p.status === 'live'}>
+                {p.status === 'live' ? 'Live' : 'Coming soon'}
+              </span>
+            </div>
+
+            <h2 class="h3">{p.name}</h2>
+            <span class="p-tagline mono">{p.tagline}</span>
+            <p class="p-desc">{p.description}</p>
+
+            <ul class="p-points">
+              {p.keyPoints.map((k) => (
+                <li>
+                  <span class="tick"><Icon name="check" size={13} /></span>
+                  {k}
+                </li>
+              ))}
+            </ul>
+
+            <p class="p-audience"><span class="mono">For</span> {p.audience}</p>
+
+            {p.status === 'live' && (
+              <a href={p.url} class="btn btn-primary p-visit" target="_blank" rel="noopener noreferrer">
+                Visit {p.name}
+                <span class="arrow"><Icon name="arrow" size={16} /></span>
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section p-cta-sec">
+    <div class="container">
+      <div class="cta-card reveal">
+        <div class="grid-bg"></div>
+        <div class="cta-in">
+          <span class="eyebrow">Need something built?</span>
+          <h2 class="h2">Our products sit alongside our client engagements.</h2>
+          <p class="lead">
+            If you need infrastructure designed and run for your own business, the
+            same team can take that on.
+          </p>
+          <div class="cta-actions">
+            <a href="/contact" class="btn btn-primary">
+              Start a project
+              <span class="arrow"><Icon name="arrow" size={17} /></span>
+            </a>
+            <a href="/services" class="btn btn-ghost">View services</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .p-hero {
+    position: relative;
+    padding-top: clamp(64px, 9vw, 108px);
+    padding-bottom: clamp(32px, 4vw, 52px);
+    overflow: hidden;
+  }
+
+  .p-orb { width: 520px; height: 520px; top: -220px; right: -160px; opacity: 0.28; }
+
+  /* Constrain children, not .container itself — see the centring trap in AGENTS.md §10. */
+  .p-in { position: relative; z-index: 1; }
+  .p-in > * { max-width: 46rem; }
+
+  .p-title {
+    margin-bottom: 18px;
+    font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .p-list-sec { padding-top: clamp(20px, 3vw, 36px); }
+
+  .p-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 18px;
+  }
+
+  .p-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .p-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .p-status {
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.62rem !important;
+    color: var(--text-muted);
+  }
+
+  .p-status[data-live='true'] {
+    color: var(--term-ok);
+    border-color: rgba(110, 231, 160, 0.3);
+  }
+
+  .p-card h2 { margin: 2px 0 0; }
+
+  .p-tagline {
+    font-size: 0.7rem !important;
+    color: var(--accent-blue);
+  }
+
+  .p-desc {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .p-points {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 18px 0 0;
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: 11px;
+  }
+
+  .p-points li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    align-items: center;
+    gap: 11px;
+    font-size: 0.88rem;
+    color: var(--text-soft);
+  }
+
+  .p-points .tick {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(110, 231, 160, 0.12);
+    border: 1px solid rgba(110, 231, 160, 0.3);
+    color: var(--term-ok);
+  }
+
+  .p-audience {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .p-audience .mono {
+    margin-right: 6px;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .p-visit {
+    align-self: flex-start;
+    margin-top: auto;
+  }
+
+  .p-cta-sec { padding-block: clamp(60px, 8vw, 100px); }
+
+  /* ---------- shared CTA card (same as services/about/clients) ---------- */
+  .cta-card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background:
+      radial-gradient(ellipse 70% 90% at 12% 8%, rgba(255, 77, 109, 0.16), transparent 62%),
+      radial-gradient(ellipse 80% 90% at 88% 92%, rgba(108, 124, 255, 0.2), transparent 62%),
+      var(--bg-elev);
+    padding: clamp(36px, 5vw, 70px);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .cta-in {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin-inline: auto;
+  }
+
+  .cta-in .lead { margin-inline: auto; }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 13px;
+    margin-top: 28px;
+  }
+</style>

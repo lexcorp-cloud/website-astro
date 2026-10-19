@@ -7,6 +7,7 @@ import logoBlack from '../assets/logo-black-horizontal.png';
 
 const links = [
   { href: '/services', label: 'Services' },
+  { href: '/products', label: 'Products' },
   { href: '/tools', label: 'Tools' },
   { href: '/resources', label: 'Resources' },
   { href: '/about', label: 'About' },
@@ -126,6 +127,12 @@ const isCurrent = (href: string) => {
 
   .nav-link:hover { color: var(--text); }
 
+  /* Seven links plus the CTA only fit in this band with tighter link padding. */
+  @media (min-width: 941px) and (max-width: 1180px) {
+    .nav { gap: 0; }
+    .nav-link { padding: 8px 10px; font-size: 0.85rem; }
+  }
+
   .nav-link[aria-current='page'] {
     color: var(--text);
     background: var(--surface-strong);
@@ -137,6 +144,8 @@ const isCurrent = (href: string) => {
     align-items: center;
     gap: 10px;
   }
+
+  .cta { white-space: nowrap; }
 
   .burger {
     display: none;

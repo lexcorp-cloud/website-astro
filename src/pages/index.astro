@@ -5,6 +5,7 @@ import Terminal from '../components/Terminal.astro';
 import PipelineFlow from '../components/PipelineFlow.astro';
 import Icon from '../components/Icon.astro';
 import { services, technologies, whyLexCorp, process, stats } from '../data/services.js';
+import { products } from '../data/products.js';
 
 const headline = ['We architect the', 'infrastructure behind', 'what you build.'];
 const marquee = [...technologies, ...technologies];
@@ -119,6 +120,40 @@ const marquee = [...technologies, ...technologies];
   </section>
 
   <!-- ================= CONTROL CENTER ================= -->
+  <!-- ================= OUR PRODUCTS ================= -->
+  <section class="section prod-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Our products</span>
+        <h2 class="h2">Built and run by Lex Corp.</h2>
+        <p class="lead">
+          Alongside client engagements, we build and operate our own products.
+          Lex Corp Cloud is live today.
+        </p>
+      </div>
+
+      <div class="prod-grid">
+        {products.map((p) => (
+          <div class="reveal glass-card prod">
+            <div class="prod-head">
+              <span class="icon-tile"><Icon name={p.icon} /></span>
+              <span class="prod-status mono" data-live={p.status === 'live'}>{p.status === 'live' ? 'Live' : 'Coming soon'}</span>
+            </div>
+            <h3 class="h3">{p.name}</h3>
+            <p>{p.tagline}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="prod-more">
+        <a href="/products" class="btn btn-ghost">
+          All products
+          <span class="arrow"><Icon name="arrow" size={16} /></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <section class="section ops-sec">
     <div class="scanline"></div>
     <div class="orb orb-a ops-orb" data-parallax="0.14"></div>
@@ -617,6 +652,51 @@ const marquee = [...technologies, ...technologies];
   }
 
   /* ---------------- FREE TOOL BAND ---------------- */
+  /* ---------------- OUR PRODUCTS ---------------- */
+  .prod-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+  }
+
+  .prod {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .prod-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .prod-status {
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.62rem !important;
+    color: var(--text-muted);
+  }
+
+  .prod-status[data-live='true'] {
+    color: var(--term-ok);
+    border-color: rgba(110, 231, 160, 0.3);
+  }
+
+  .prod h3 { margin: 2px 0 0; }
+
+  .prod p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .prod-more { margin-top: 28px; }
+
   .tool-sec { padding-block: clamp(20px, 3vw, 40px); }
 
   .tool-band {

@@ -1,6 +1,7 @@
 export const services = [
   {
     slug: 'cloud-engineering',
+    productSlug: 'lex-corp-cloud',
     icon: 'cloud',
     title: 'Cloud Engineering',
     blurb: 'Architecture and migration designed for scale, cost control, and resilience across AWS, Azure, and GCP.',
@@ -15,6 +16,7 @@ export const services = [
   },
   {
     slug: 'server-infrastructure',
+    productSlug: 'lex-corp-cloud',
     icon: 'server',
     title: 'Server & Infrastructure',
     blurb: 'Hardened Linux estates, networking, and load balancing engineered for uptime under real traffic.',
